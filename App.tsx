@@ -28,6 +28,8 @@ const App: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [partnerLogoUrl, setPartnerLogoUrl] = useState<string | null>(null);
+  const [hasUserNavigated, setHasUserNavigated] = useState(false);
+  const [hasAutoDemoRun, setHasAutoDemoRun] = useState(false);
 
   const orderedSlides: SlideData[] = SLIDE_ORDER
     .map((id) => SLIDES.find((s) => s.id === id))
@@ -54,6 +56,16 @@ const App: React.FC = () => {
     setCurrentSlideIndex((prev) => Math.max(prev - 1, 0));
   }, []);
 
+  const handleUserNext = useCallback(() => {
+    setHasUserNavigated(true);
+    nextSlide();
+  }, [nextSlide]);
+
+  const handleUserPrev = useCallback(() => {
+    setHasUserNavigated(true);
+    prevSlide();
+  }, [prevSlide]);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -69,15 +81,39 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'Space') {
-        nextSlide();
+        handleUserNext();
       } else if (e.key === 'ArrowLeft') {
-        prevSlide();
+        handleUserPrev();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextSlide, prevSlide]);
+  }, [handleUserNext, handleUserPrev]);
+
+  // Demo automática en mobile: avanzar y volver una vez en la slide 1
+  useEffect(() => {
+    if (hasAutoDemoRun || hasUserNavigated) return;
+    if (currentSlideIndex !== 0) return;
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+
+    setHasAutoDemoRun(true);
+
+    let backTimeout: number | undefined;
+    const nextTimeout = window.setTimeout(() => {
+      nextSlide();
+      backTimeout = window.setTimeout(() => {
+        prevSlide();
+      }, 1200);
+    }, 2500);
+
+    return () => {
+      window.clearTimeout(nextTimeout);
+      if (backTimeout !== undefined) {
+        window.clearTimeout(backTimeout);
+      }
+    };
+  }, [currentSlideIndex, hasAutoDemoRun, hasUserNavigated, nextSlide, prevSlide]);
 
   const renderSlideContent = () => {
     const data = currentSlideData;
@@ -105,21 +141,21 @@ const App: React.FC = () => {
           slideNumber={currentSlideIndex + 1}
           totalSlides={totalSlides}
           partnerLogoUrl={partnerLogoUrl || undefined}
-          onNextSlide={nextSlide}
-          onPrevSlide={prevSlide}
+          onNextSlide={handleUserNext}
+          onPrevSlide={handleUserPrev}
         >
           {renderSlideContent()}
         </SlideLayout>
 
         {/* Floating Controls */}
         <div className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/90 backdrop-blur border border-gray-200 p-2 rounded-full shadow-lg z-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <button onClick={prevSlide} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+            <button onClick={handleUserPrev} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
                 <ChevronLeft size={20} />
             </button>
             <span className="text-xs font-mono font-medium w-12 text-center text-gray-500">
                 {currentSlideIndex + 1}/{totalSlides}
             </span>
-            <button onClick={nextSlide} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+            <button onClick={handleUserNext} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
                 <ChevronRight size={20} />
             </button>
             <div className="w-px h-4 bg-gray-300 mx-1"></div>
