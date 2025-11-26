@@ -87,7 +87,7 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl }) =>
             )
           )}
       </div>
-      <div className="mt-16 text-gray-400 font-bold tracking-widest uppercase text-base">Paradela S.A. → CloserCat</div>
+      <div className="mt-16 text-gray-400 font-bold tracking-widest uppercase text-base"></div>
 
       {data.videoUrl && !isLocalVideo && isVideoOpen && (
         <div className="absolute inset-0 bg-black/80 z-40 flex items-center justify-center">

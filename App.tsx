@@ -101,7 +101,13 @@ const App: React.FC = () => {
     <div className="w-screen h-screen bg-gray-200 flex items-stretch justify-stretch md:items-center md:justify-center p-0 sm:p-2 font-sans overflow-hidden">
       {/* En mobile usamos full-screen vertical; en md+ mantenemos frame 16:9 centrado */}
       <div className="relative w-full h-full md:h-auto md:aspect-video md:max-w-[177.78vh] md:max-h-full shadow-2xl md:rounded-xl overflow-hidden bg-white mx-auto">
-        <SlideLayout slideNumber={currentSlideIndex + 1} totalSlides={totalSlides} partnerLogoUrl={partnerLogoUrl || undefined}>
+        <SlideLayout
+          slideNumber={currentSlideIndex + 1}
+          totalSlides={totalSlides}
+          partnerLogoUrl={partnerLogoUrl || undefined}
+          onNextSlide={nextSlide}
+          onPrevSlide={prevSlide}
+        >
           {renderSlideContent()}
         </SlideLayout>
 
