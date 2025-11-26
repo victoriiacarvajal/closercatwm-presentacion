@@ -11,7 +11,7 @@ export const SLIDES: SlideData[] = [
     subtitle: "Convierte el caos de WhatsApp en una oportunidad para escalar tu operación de ventas",
     imagePlaceholder: "Screenshot del Dashboard de CloserCat",
     imageUrl: "/closercat-dashboard.png", // PEGA AQUÍ LA URL DE TU IMAGEN
-    videoUrl: "https://www.youtube.com/embed/-BVCJ8tt6jU?autoplay=1",
+    videoUrl: "/vista-global-closercat.mp4",
   },
   // SLIDE 2: PROGRAMA
   {
@@ -550,10 +550,10 @@ export const SLIDES: SlideData[] = [
       { title: "Hito 3: Go-Live", content: ["Despliegue a equipo comercial", "Monitoreo en tiempo real", "Ajustes de optimización"] }
     ],
     addOns: [
-      { title: "Activación de número WhatsApp Business", price: "≈ 450.000 COP", detail: "Pago único por número (configuración técnica + multiusuario básico, margen para partners)" },
-      { title: "Línea Adicional WhatsApp", price: "≈ 100.000 COP", detail: "/mes por línea activa (equivalente a USD 25 aprox., espacio para intermediación)" },
-      { title: "Integración CRM/ERP estándar", price: "Desde ≈ 1.500.000 COP", detail: "Pago único, conectores soportados (≈ USD 375, margen para partners)" },
-      { title: "Integraciones CRM/ERP a la medida", price: "Desde ≈ 3.500.000 COP", detail: "Proyecto custom sobre APIs propias (≈ USD 875, permite hasta 40% de intermediación)" },
+      { title: "Activación de número WhatsApp Business", price: "≈ 450.000 COP", detail: "Pago único por número (configuración técnica + multiusuario básico)" },
+      { title: "Línea Adicional WhatsApp", price: "≈ 100.000 COP", detail: "/mes por línea activa (equivalente a USD 25 aprox)" },
+      { title: "Integración CRM/ERP estándar", price: "Desde ≈ 1.500.000 COP", detail: "Pago único, conectores soportados (≈ USD 375)" },
+      { title: "Integraciones CRM/ERP a la medida", price: "Desde ≈ 3.500.000 COP", detail: "Proyecto custom sobre APIs propias (≈ USD 875)" },
       { title: "Customización avanzada del asistente", price: "≈ 1.200.000 COP", detail: "Diseño de prompts + combinación de casos de uso + pruebas guiadas (≈ USD 300)" },
       { title: "Onboarding Asistido", price: "≈ 600.000 COP", detail: "Sesión de 2 horas con equipo experto (equivalente a USD 150 aprox.)" }
     ],

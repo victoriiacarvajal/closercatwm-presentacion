@@ -27,6 +27,7 @@ const SLIDE_ORDER: number[] = [
 const App: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [partnerLogoUrl, setPartnerLogoUrl] = useState<string | null>(null);
 
   const orderedSlides: SlideData[] = SLIDE_ORDER
     .map((id) => SLIDES.find((s) => s.id === id))
@@ -34,6 +35,16 @@ const App: React.FC = () => {
 
   const currentSlideData = orderedSlides[currentSlideIndex] || orderedSlides[0];
   const totalSlides = orderedSlides.length;
+
+  // Detect partner from query string once on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('partner');
+    if (slug) {
+      setPartnerLogoUrl(`/partners/${slug}.png`);
+    }
+  }, []);
 
   const nextSlide = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.min(prev + 1, totalSlides - 1));
@@ -71,7 +82,7 @@ const App: React.FC = () => {
   const renderSlideContent = () => {
     const data = currentSlideData;
     switch (data.type) {
-      case SlideType.COVER: return <CoverSlide data={data} />;
+      case SlideType.COVER: return <CoverSlide data={data} partnerLogoUrl={partnerLogoUrl || undefined} />;
       case SlideType.AGENDA: return <AgendaSlide data={data} />;
       case SlideType.TRANSITION: return <TransitionSlide data={data} />;
       case SlideType.STANDARD: return <StandardSlide data={data} />;
@@ -87,13 +98,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen bg-gray-200 flex items-center justify-center p-2 font-sans overflow-hidden">
-      {/* Aspect Ratio Container (16:9) 
-          max-w-[177.78vh] ensures width doesn't exceed 16/9 of height (preventing vertical overflow)
-          w-full ensures it fills width if height is not the bottleneck
-      */}
-      <div className="relative aspect-video w-full max-w-[177.78vh] max-h-full shadow-2xl rounded-xl overflow-hidden bg-white mx-auto">
-        <SlideLayout slideNumber={currentSlideIndex + 1} totalSlides={totalSlides}>
+    <div className="w-screen h-screen bg-gray-200 flex items-stretch justify-stretch md:items-center md:justify-center p-0 sm:p-2 font-sans overflow-hidden">
+      {/* En mobile usamos full-screen vertical; en md+ mantenemos frame 16:9 centrado */}
+      <div className="relative w-full h-full md:h-auto md:aspect-video md:max-w-[177.78vh] md:max-h-full shadow-2xl md:rounded-xl overflow-hidden bg-white mx-auto">
+        <SlideLayout slideNumber={currentSlideIndex + 1} totalSlides={totalSlides} partnerLogoUrl={partnerLogoUrl || undefined}>
           {renderSlideContent()}
         </SlideLayout>
 
