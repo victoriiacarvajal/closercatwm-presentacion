@@ -61,7 +61,7 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({ children, slideNumber, totalS
                   <img
                     src={partnerLogoUrl}
                     alt="Partner Logo"
-                    className="h-8 sm:h-9 md:h-10 w-auto object-contain"
+                    className="h-10 sm:h-12 md:h-14 w-auto object-contain"
                     onError={() => setShowPartnerInHeader(false)}
                   />
                 )}

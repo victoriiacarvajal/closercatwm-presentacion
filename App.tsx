@@ -24,27 +24,61 @@ const SLIDE_ORDER: number[] = [
   36,
 ];
 
+// IDs de slides de precios/implementación que pueden ocultarse según el contexto de la presentación
+const HIDE_PRICING_SLIDE_IDS: number[] = [22, 23, 38];
+
+// Mapa de presets opacos: presentationId -> configuración interna
+// Ejemplo: "nqprws" encapsula partner "partner-wsi" + hidePricing true
+const PRESENTATION_PRESETS: Record<string, { partnerSlug?: string; hidePricing?: boolean }> = {
+  nqprws: {
+    partnerSlug: 'wsi',
+    hidePricing: true,
+  },
+};
+
 const App: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [partnerLogoUrl, setPartnerLogoUrl] = useState<string | null>(null);
   const [hasUserNavigated, setHasUserNavigated] = useState(false);
   const [hasAutoDemoRun, setHasAutoDemoRun] = useState(false);
+  const [hidePricing, setHidePricing] = useState(false);
 
-  const orderedSlides: SlideData[] = SLIDE_ORDER
+  const effectiveSlideOrder = hidePricing
+    ? SLIDE_ORDER.filter((id) => !HIDE_PRICING_SLIDE_IDS.includes(id))
+    : SLIDE_ORDER;
+
+  const orderedSlides: SlideData[] = effectiveSlideOrder
     .map((id) => SLIDES.find((s) => s.id === id))
     .filter((s): s is SlideData => Boolean(s));
 
   const currentSlideData = orderedSlides[currentSlideIndex] || orderedSlides[0];
   const totalSlides = orderedSlides.length;
 
-  // Detect partner from query string once on mount
+  // Detectar configuración de presentación desde la query string (presentationId o flags legacy)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+    const presentationId = params.get('presentationId');
+
+    const preset = presentationId ? PRESENTATION_PRESETS[presentationId] : undefined;
+
+    if (preset) {
+      if (preset.partnerSlug) {
+        setPartnerLogoUrl(`/partners/${preset.partnerSlug}.png`);
+      }
+      setHidePricing(Boolean(preset.hidePricing));
+      return;
+    }
+
+    // Fallback: compatibilidad con parámetros antiguos directos
     const slug = params.get('partner');
     if (slug) {
       setPartnerLogoUrl(`/partners/${slug}.png`);
+    }
+    const hidePricingFlag = params.get('hidePricing');
+    if (hidePricingFlag === '1' || hidePricingFlag === 'true') {
+      setHidePricing(true);
     }
   }, []);
 

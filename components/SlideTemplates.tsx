@@ -39,7 +39,7 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl }) =>
               <img
                 src={partnerLogoUrl}
                 alt="Partner Logo"
-                className="h-10 sm:h-12 mx-auto object-contain"
+                className="h-12 sm:h-14 mx-auto object-contain"
                 onError={() => setShowPartnerLogo(false)}
               />
             </>
