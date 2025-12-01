@@ -9,13 +9,33 @@ interface SlideLayoutProps {
   onNextSlide?: () => void;
   onPrevSlide?: () => void;
   canNavigate?: boolean;
+  // CTA props
+  showCtaButton?: boolean;
+  hasPartnerConfig?: boolean;
+  ctaUrl?: string | null;
+  rootPartnerCtaUrl?: string | null;
+  rootCustomerCtaUrl?: string | null;
 }
 
 // Generated SVG Data URI for CloserCat Logo (Simulating a local file)
 const LOGO_URL = "/logo-closercat.png";
 
-const SlideLayout: React.FC<SlideLayoutProps> = ({ children, slideNumber, totalSlides, partnerLogoUrl, onNextSlide, onPrevSlide, canNavigate = true }) => {
+const SlideLayout: React.FC<SlideLayoutProps> = ({
+  children,
+  slideNumber,
+  totalSlides,
+  partnerLogoUrl,
+  onNextSlide,
+  onPrevSlide,
+  canNavigate = true,
+  showCtaButton = false,
+  hasPartnerConfig = false,
+  ctaUrl,
+  rootPartnerCtaUrl,
+  rootCustomerCtaUrl,
+}) => {
   const [showPartnerInHeader, setShowPartnerInHeader] = React.useState(true);
+  const [showCtaOptions, setShowCtaOptions] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
   const contentRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -78,8 +98,9 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({ children, slideNumber, totalS
       <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 bg-brand-purple/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
       {/* Header Area */}
-      <div className="w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-10 h-12 md:h-16">
-        <div className="flex items-center gap-2 md:gap-3">
+      <div className="w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-30 h-12 md:h-16 relative">
+        {/* Izquierda: Logo */}
+        <div className="flex items-center gap-2 md:gap-4">
             {/* Logo (oculto en slide 1 para dar protagonismo al logo principal de portada) */}
             {slideNumber !== 1 && (
               <>
@@ -95,8 +116,78 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({ children, slideNumber, totalS
               </>
             )}
         </div>
-        <div className="text-xs md:text-sm font-mono text-gray-400">
-          {slideNumber} / {totalSlides}
+
+        {/* Derecha: Botón Empezar O Indicador de slides */}
+        <div className="flex items-center gap-3">
+          {/* Botón Empezar (solo si showCtaButton=true y no es slide 1) */}
+          {showCtaButton && slideNumber !== 1 && (hasPartnerConfig ? ctaUrl : (rootPartnerCtaUrl || rootCustomerCtaUrl)) && (
+            <div className="relative z-50">
+              {/* Caso 1: Hay partner - un solo link */}
+              {hasPartnerConfig && ctaUrl && (
+                <a
+                  href={ctaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center px-4 md:px-6 py-1.5 md:py-2 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-xs md:text-sm shadow-md hover:opacity-90"
+                >
+                  Empezar
+                </a>
+              )}
+
+              {/* Caso 2: Sin partner - menú con dos opciones */}
+              {!hasPartnerConfig && (rootPartnerCtaUrl || rootCustomerCtaUrl) && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCtaOptions((prev) => !prev);
+                    }}
+                    className="inline-flex items-center justify-center px-4 md:px-6 py-1.5 md:py-2 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-xs md:text-sm shadow-md hover:opacity-90"
+                  >
+                    Empezar
+                  </button>
+
+                  {showCtaOptions && (
+                    <div 
+                      className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-3 px-3 text-left z-[100]"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <p className="text-[10px] md:text-xs uppercase font-semibold text-gray-400 mb-2 px-2">¿Cómo te interesa?</p>
+                      <div className="space-y-1">
+                        {rootPartnerCtaUrl && (
+                          <a
+                            href={rootPartnerCtaUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="block w-full text-xs md:text-sm px-3 py-2.5 rounded-lg hover:bg-brand-purple/10 text-gray-800 cursor-pointer"
+                          >
+                            Como <span className="font-semibold">partner / reseller</span>
+                          </a>
+                        )}
+                        {rootCustomerCtaUrl && (
+                          <a
+                            href={rootCustomerCtaUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="block w-full text-xs md:text-sm px-3 py-2.5 rounded-lg hover:bg-brand-purple/10 text-gray-800 cursor-pointer"
+                          >
+                            Para <span className="font-semibold">mi negocio</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Indicador de slide (siempre visible) */}
+          <div className="text-xs md:text-sm font-mono text-gray-400">
+            {slideNumber} / {totalSlides}
+          </div>
         </div>
       </div>
 

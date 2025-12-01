@@ -17,7 +17,7 @@ const SECRET_KEY = 'closercat-2025';
 // Configuración por partner: URLs separadas para partner y cliente
 const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
   wsi: {
-    customerCtaUrl: 'https://example.com/agendar-closercat-wsi',
+    customerCtaUrl: 'https://www.wsiworld.lat/henry-guzman',
   },
   parquesoft: {
     customerCtaUrl: 'https://google.com/',
@@ -54,14 +54,17 @@ const PRESENTATION_PRESETS: Record<string, {
   hidePricing?: boolean;
   slideOrder?: number[];  // orden custom opcional
   ctaUrl?: string;        // URL de "Agendar" específica del preset
+  showCtaButton?: boolean; // mostrar botón "Empezar" en header
 }> = {
   nqprws: {
     partnerSlug: 'wsi',
     hidePricing: true,
+    showCtaButton: true,
   },
   // Pitch rápido WhatsApp (6 slides, ~2 minutos de lectura)
   waquick: {
     hidePricing: true,
+    showCtaButton: true,
     slideOrder: [
       1,   // Portada CloserCat
       6,   // El problema del caos WhatsApp (dolor)
@@ -74,6 +77,7 @@ const PRESENTATION_PRESETS: Record<string, {
   // Versión media: problema + solución + campañas (9 slides)
   wamedium: {
     hidePricing: true,
+    showCtaButton: true,
     slideOrder: [
       1,   // Portada
       6,   // Problema
@@ -98,6 +102,7 @@ const App: React.FC = () => {
   const [customSlideOrder, setCustomSlideOrder] = useState<number[] | null>(null);
   const [scale, setScale] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [showCtaButton, setShowCtaButton] = useState(false);
   const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL); // usado en slide de cierre (cliente)
   const [rootPartnerCtaUrl, setRootPartnerCtaUrl] = useState<string | null>(GENERIC_PARTNER_CTA_URL);
   const [rootCustomerCtaUrl, setRootCustomerCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL);
@@ -178,6 +183,7 @@ const App: React.FC = () => {
       }
 
       setHidePricing(Boolean(preset.hidePricing));
+      setShowCtaButton(Boolean(preset.showCtaButton));
       if (preset.slideOrder) {
         setCustomSlideOrder(preset.slideOrder);
       }
@@ -424,6 +430,11 @@ const App: React.FC = () => {
           onNextSlide={canNavigate ? handleUserNext : undefined}
           onPrevSlide={canNavigate ? handleUserPrev : undefined}
           canNavigate={canNavigate}
+          showCtaButton={showCtaButton}
+          hasPartnerConfig={hasPartnerConfig}
+          ctaUrl={ctaUrl}
+          rootPartnerCtaUrl={rootPartnerCtaUrl}
+          rootCustomerCtaUrl={rootCustomerCtaUrl}
         >
           {renderSlideContent()}
         </SlideLayout>

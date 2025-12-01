@@ -115,11 +115,11 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
           {isLocalVideo ? (
             <video
               src={data.videoUrl}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               autoPlay
               loop
               muted
-              controls
+              playsInline
             />
           ) : (
             data.imagePlaceholder && (
@@ -294,11 +294,11 @@ export const StandardSlide: React.FC<TemplateProps> = ({ data }) => {
                        {isLocalVideo ? (
                           <video
                             src={data.videoUrl}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                             autoPlay
                             loop
                             muted
-                            controls
+                            playsInline
                           />
                        ) : (
                           <>
@@ -396,11 +396,11 @@ export const SplitImageSlide: React.FC<TemplateProps> = ({ data }) => {
                 {isLocalVideo ? (
                   <video
                     src={data.videoUrl}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                     autoPlay
                     loop
                     muted
-                    controls
+                    playsInline
                   />
                 ) : (
                   <>
@@ -480,11 +480,11 @@ export const DashboardSlide: React.FC<TemplateProps> = ({ data }) => {
         {isLocalVideo ? (
           <video
             src={data.videoUrl}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover pointer-events-none"
             autoPlay
             loop
             muted
-            controls
+            playsInline
           />
         ) : (
           <>
