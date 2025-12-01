@@ -11,16 +11,19 @@ import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 
 const DESIGN_WIDTH = 1920;
 const DESIGN_HEIGHT = 1080;
-const GENERIC_DEFAULT_CTA_URL = 'https://example.com/agendar-closercat';
+
+// URLs genéricas por defecto (puedes reemplazarlas por las reales)
+const GENERIC_CUSTOMER_CTA_URL = 'https://calendly.com/rogertovalle?a1=CloserCat%20Pro%20-%20Cliente';
+const GENERIC_PARTNER_CTA_URL = 'https://calendly.com/rogertovalle/?a1=CloserCat%20Pro%20-%20Partnership';
 const SECRET_KEY = 'closercat-2025';
 
-// Configuración por partner: CTA y validación de slug
-const PARTNER_CONFIG: Record<string, { ctaUrl: string }> = {
+// Configuración por partner: URLs separadas para partner y cliente
+const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
   wsi: {
-    ctaUrl: 'https://example.com/agendar-closercat-wsi',
+    customerCtaUrl: 'https://example.com/agendar-closercat-wsi',
   },
   parquesoft: {
-    ctaUrl: 'https://google.com/',
+    customerCtaUrl: 'https://google.com/',
   },
 };
 
@@ -98,7 +101,10 @@ const App: React.FC = () => {
   const [customSlideOrder, setCustomSlideOrder] = useState<number[] | null>(null);
   const [scale, setScale] = useState(1);
   const [isDesktopLayout, setIsDesktopLayout] = useState(false);
-  const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_DEFAULT_CTA_URL);
+  const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL); // usado en slide de cierre (cliente)
+  const [rootPartnerCtaUrl, setRootPartnerCtaUrl] = useState<string | null>(GENERIC_PARTNER_CTA_URL);
+  const [rootCustomerCtaUrl, setRootCustomerCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL);
+  const [hasPartnerConfig, setHasPartnerConfig] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [hasPreset, setHasPreset] = useState(false);
   const secretBufferRef = React.useRef('');
@@ -157,11 +163,21 @@ const App: React.FC = () => {
       setIsUnlocked(true);
 
       const partnerSlug = partnerSlugFromPreset || preset.partnerSlug;
-      let resolvedCta: string | null = null;
+      let partnerCtaFromConfig: string | null = null;
+      let customerCtaFromConfig: string | null = null;
 
       if (partnerSlug) {
         setPartnerLogoUrl(`/partners/${partnerSlug}.png`);
-        resolvedCta = PARTNER_CONFIG[partnerSlug]?.ctaUrl ?? null;
+        const cfg = PARTNER_CONFIG[partnerSlug];
+        if (cfg) {
+          partnerCtaFromConfig = cfg.partnerCtaUrl ?? null;
+          customerCtaFromConfig = cfg.customerCtaUrl ?? null;
+          setHasPartnerConfig(true);
+        } else {
+          setHasPartnerConfig(false);
+        }
+      } else {
+        setHasPartnerConfig(false);
       }
 
       setHidePricing(Boolean(preset.hidePricing));
@@ -169,11 +185,15 @@ const App: React.FC = () => {
         setCustomSlideOrder(preset.slideOrder);
       }
 
-      // Prioridad: CTA por partner → CTA por preset → CTA genérica
+      // Actualizar CTAs raíz (portada)
+      setRootPartnerCtaUrl(partnerCtaFromConfig || GENERIC_PARTNER_CTA_URL);
+      setRootCustomerCtaUrl(customerCtaFromConfig || GENERIC_CUSTOMER_CTA_URL);
+
+      // Prioridad para CTA de cierre: preset.ctaUrl → CTA cliente del partner → CTA genérica cliente
       setCtaUrl(
-        resolvedCta ||
         preset.ctaUrl ||
-        GENERIC_DEFAULT_CTA_URL
+        customerCtaFromConfig ||
+        GENERIC_CUSTOMER_CTA_URL
       );
 
       // Guardar SIEMPRE la última URL de referido con presentationId para futuras redirecciones
@@ -202,18 +222,32 @@ const App: React.FC = () => {
     const slug = params.get('partner');
     if (slug) {
       setPartnerLogoUrl(`/partners/${slug}.png`);
-      const partnerCta = PARTNER_CONFIG[slug]?.ctaUrl;
-      if (partnerCta) {
-        setCtaUrl(partnerCta);
+      const cfg = PARTNER_CONFIG[slug];
+      if (cfg) {
+        setRootPartnerCtaUrl(cfg.partnerCtaUrl ?? GENERIC_PARTNER_CTA_URL);
+        setRootCustomerCtaUrl(cfg.customerCtaUrl ?? GENERIC_CUSTOMER_CTA_URL);
+        setCtaUrl(cfg.customerCtaUrl ?? GENERIC_CUSTOMER_CTA_URL);
+        setHasPartnerConfig(true);
+      } else {
+        setRootPartnerCtaUrl(GENERIC_PARTNER_CTA_URL);
+        setRootCustomerCtaUrl(GENERIC_CUSTOMER_CTA_URL);
+        setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
+        setHasPartnerConfig(false);
       }
+    } else {
+      // Sin partner explícito
+      setRootPartnerCtaUrl(GENERIC_PARTNER_CTA_URL);
+      setRootCustomerCtaUrl(GENERIC_CUSTOMER_CTA_URL);
+      setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
+      setHasPartnerConfig(false);
     }
     const hidePricingFlag = params.get('hidePricing');
     if (hidePricingFlag === '1' || hidePricingFlag === 'true') {
       setHidePricing(true);
     }
 
-    // Sin preset específico ni partner conocido: usar URL de CTA genérica
-    setCtaUrl(GENERIC_DEFAULT_CTA_URL);
+    // Sin preset específico ni partner conocido: usar URLs genéricas
+    setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
     setIsUnlocked(false);
   }, []);
 
@@ -324,11 +358,33 @@ const App: React.FC = () => {
   const renderSlideContent = () => {
     const data = currentSlideData;
     switch (data.type) {
-      case SlideType.COVER: return <CoverSlide data={data} partnerLogoUrl={partnerLogoUrl || undefined} />;
+      case SlideType.COVER:
+        return (
+          <CoverSlide
+            data={data}
+            partnerLogoUrl={partnerLogoUrl || undefined}
+            rootPartnerCtaUrl={!canNavigate ? rootPartnerCtaUrl || undefined : undefined}
+            rootCustomerCtaUrl={!canNavigate ? rootCustomerCtaUrl || undefined : undefined}
+          />
+        );
       case SlideType.AGENDA: return <AgendaSlide data={data} />;
       case SlideType.TRANSITION: {
         const isCtaSlide = data.id === 36;
-        return <TransitionSlide data={data} ctaUrl={isCtaSlide ? ctaUrl || undefined : undefined} />;
+        if (isCtaSlide) {
+          // Si hay partner asociado (config encontrado), usamos solo el CTA del partner (cliente)
+          if (hasPartnerConfig) {
+            return <TransitionSlide data={data} ctaUrl={ctaUrl || undefined} />;
+          }
+          // Si no hay partner asociado, reutilizamos el mismo menú doble de la portada
+          return (
+            <TransitionSlide
+              data={data}
+              rootPartnerCtaUrl={rootPartnerCtaUrl || undefined}
+              rootCustomerCtaUrl={rootCustomerCtaUrl || undefined}
+            />
+          );
+        }
+        return <TransitionSlide data={data} />;
       }
       case SlideType.STANDARD: return <StandardSlide data={data} />;
       case SlideType.SPLIT_IMAGE: return <SplitImageSlide data={data} />;
@@ -388,19 +444,6 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Estado bloqueado en raíz: solo mostrar CTA global */}
-        {!canNavigate && ctaUrl && (
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center z-40">
-            <a
-              href={ctaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-sm sm:text-base shadow-lg hover:opacity-90"
-            >
-              Contactar
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );

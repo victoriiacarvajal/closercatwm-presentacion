@@ -5,7 +5,9 @@ import { Check, User, Bot, ArrowRight, Zap, Shield, PlayCircle } from 'lucide-re
 interface TemplateProps {
   data: SlideData;
   partnerLogoUrl?: string;
-  ctaUrl?: string; // URL opcional para botón "Agendar" en slides de transición
+  ctaUrl?: string;    // URL opcional para botón "Agendar" en slides de transición / cierre
+  rootPartnerCtaUrl?: string; // URL opcional para CTA "partner" en portada
+  rootCustomerCtaUrl?: string; // URL opcional para CTA "cliente" en portada
 }
 
 // Filas de comparación usadas tanto en mobile (tarjetas) como en desktop (tabla)
@@ -22,9 +24,10 @@ const COMPARISON_ROWS: [string, string, string, string, string][] = [
 ];
 
 // 1. Cover Slide
-export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl }) => {
+export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, rootPartnerCtaUrl, rootCustomerCtaUrl }) => {
   const [isVideoOpen, setIsVideoOpen] = React.useState(false);
   const [showPartnerLogo, setShowPartnerLogo] = React.useState(true);
+  const [showContactOptions, setShowContactOptions] = React.useState(false);
 
   const isLocalVideo = !!(data.videoUrl && data.videoUrl.startsWith('/') && /\.(mp4|webm|ogg)$/i.test(data.videoUrl));
 
@@ -60,8 +63,48 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl }) =>
           )}
         </div>
       </div>
-      <h2 className="text-2xl sm:text-3xl text-brand-cyan font-medium mb-10 sm:mb-16 max-w-4xl">{data.subtitle}</h2>
-      
+      <h2 className="text-2xl sm:text-3xl text-brand-cyan font-medium mb-6 sm:mb-8 max-w-4xl">{data.subtitle}</h2>
+
+      {/* CTA global cuando la navegación está bloqueada (solo si hay al menos una URL) */}
+      {(rootPartnerCtaUrl || rootCustomerCtaUrl) && (
+        <div className="mb-6 sm:mb-8 relative">
+          <button
+            onClick={() => setShowContactOptions((prev) => !prev)}
+            className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-sm sm:text-base shadow-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-cyan/60"
+          >
+            Contactar
+          </button>
+
+          {showContactOptions && (
+            <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-3 text-left z-30">
+              <p className="text-[11px] sm:text-xs uppercase font-semibold text-gray-400 mb-2 px-1">¿Cómo te interesa CloserCat?</p>
+              <div className="space-y-2">
+                {rootPartnerCtaUrl && (
+                  <a
+                    href={rootPartnerCtaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full text-[13px] sm:text-sm px-3 py-2 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
+                  >
+                    Me interesa como <span className="font-semibold">partner / reseller</span>
+                  </a>
+                )}
+                {rootCustomerCtaUrl && (
+                  <a
+                    href={rootCustomerCtaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-full text-[13px] sm:text-sm px-3 py-2 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
+                  >
+                    Me interesa <span className="font-semibold">para mi negocio</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div 
         className="w-full max-w-4xl aspect-video bg-gray-100 rounded-xl border-2 border-gray-200 flex items-center justify-center relative overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500 group"
         onClick={handleOpenVideo}
@@ -146,7 +189,7 @@ export const AgendaSlide: React.FC<TemplateProps> = ({ data }) => (
 );
 
 // 3. Transition Slide
-export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl }) => (
+export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl, rootPartnerCtaUrl, rootCustomerCtaUrl }) => (
   <div className="h-full flex flex-col items-center justify-center text-white relative overflow-hidden px-4 sm:px-8">
     {/* Fondo principal con degradado de marca, coherente con el logo */}
     <div className="absolute inset-0 bg-gradient-to-br from-brand-purple to-brand-cyan" />
@@ -159,7 +202,8 @@ export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl }) => (
       </h2>
     )}
 
-    {ctaUrl && (
+    {/* Caso 1: CTA único (cuando hay partner asociado) */}
+    {ctaUrl && !rootPartnerCtaUrl && !rootCustomerCtaUrl && (
       <a
         href={ctaUrl}
         target="_blank"
@@ -168,6 +212,35 @@ export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl }) => (
       >
         Agendar
       </a>
+    )}
+
+    {/* Caso 2: menú doble (sin partner asociado, reutiliza patrón de portada) */}
+    {!ctaUrl && (rootPartnerCtaUrl || rootCustomerCtaUrl) && (
+      <div className="mt-8 sm:mt-10 bg-white/10 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 backdrop-blur border border-white/20 z-10">
+        <p className="text-xs sm:text-sm text-white/80 mb-2 text-center">¿Cómo te interesa avanzar?</p>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+          {rootPartnerCtaUrl && (
+            <a
+              href={rootPartnerCtaUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full bg-white text-brand-purple text-xs sm:text-sm font-semibold shadow-md hover:bg-gray-100"
+            >
+              Partner / reseller
+            </a>
+          )}
+          {rootCustomerCtaUrl && (
+            <a
+              href={rootCustomerCtaUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full bg-brand-cyan text-white text-xs sm:text-sm font-semibold shadow-md hover:bg-cyan-500"
+            >
+              Para mi negocio
+            </a>
+          )}
+        </div>
+      </div>
     )}
   </div>
 );

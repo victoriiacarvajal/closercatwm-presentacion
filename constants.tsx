@@ -130,7 +130,7 @@ export const SLIDES: SlideData[] = [
   {
     id: 6,
     type: SlideType.STANDARD,
-    title: "01 El caos de WhatsApp comercial hoy",
+    title: "El caos de WhatsApp comercial hoy",
     subtitle: "Los equipos de ventas enfrentan retos que cuestan tiempo, dinero y bloquean el crecimiento:",
     bullets: [
       "📱 Conversaciones desperdigadas en múltiples dispositivos y números",
@@ -140,7 +140,7 @@ export const SLIDES: SlideData[] = [
       "🗃️ Desorganización: conversaciones perdidas en el historial infinito",
       "❌ Sin seguimiento: hasta 60% de leads se olvidan y nunca se cierran"
     ],
-    extraText: "El 78% de compradores B2B elige al proveedor que responde primero."
+    extraText: "El 78% de compradores elige al proveedor que responde primero."
   },
 
   // SLIDE 7: IMPACTO
@@ -334,7 +334,7 @@ export const SLIDES: SlideData[] = [
   {
     id: 28,
     type: SlideType.SPLIT_IMAGE,
-    title: "Contact Enrichment: el perfil del cliente se construye solo",
+    title: "Enriquecimiento del Contacto: el perfil del cliente se construye solo",
     content: "Mientras la conversación fluye, CloserCat extrae automáticamente 11+ campos del contacto sin intervención manual. Cero trabajo de captura de datos.",
     bullets: [
       "👤 Datos básicos: nombre completo, email, ubicación",
@@ -428,7 +428,7 @@ export const SLIDES: SlideData[] = [
   {
     id: 31,
     type: SlideType.SPLIT_IMAGE,
-    title: "Mide cada campaña en tiempo real (sin Excel)",
+    title: "Mide cada campaña en tiempo real.",
     subtitle: "Mide el impacto de cada envío",
     content: "Cada campaña cuenta con un dashboard completo para entender qué está funcionando y dónde intervenir.",
     bullets: [
@@ -586,7 +586,7 @@ export const SLIDES: SlideData[] = [
     id: 21,
     type: SlideType.COMPARISON_TABLE,
     title: "¿Por qué CloserCat?",
-    footerText: "CloserCat es el único que combina IA + humanos en la misma conversación, Contact Enrichment automático y datos conversacionales de punta a punta para escalar tus ventas"
+    footerText: "CloserCat ombina IA + humanos en la misma conversación, Contact Enrichment automático y datos conversacionales de punta a punta para escalar tus ventas"
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
