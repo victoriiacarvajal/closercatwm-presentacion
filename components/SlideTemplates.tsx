@@ -42,49 +42,50 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center px-4 sm:px-8 md:px-16 relative">
-      <div className="mb-6 sm:mb-8 flex flex-col items-center gap-3">
-        <div className="flex items-center justify-center gap-3 sm:gap-4">
-          <img
-            src="/logo-closercat.png"
-            alt="CloserCat Logo"
-            className="h-16 sm:h-20 md:h-24 mx-auto object-contain drop-shadow-xl"
-          />
-          {partnerLogoUrl && showPartnerLogo && (
-            <>
-              <span className="text-xs sm:text-sm text-gray-300 font-medium">x</span>
-              <img
-                src={partnerLogoUrl}
-                alt="Partner Logo"
-                className="h-12 sm:h-14 mx-auto object-contain"
-                onError={() => setShowPartnerLogo(false)}
-              />
-            </>
-          )}
-        </div>
+    <div className="h-full flex flex-col items-center justify-center text-center px-4 md:px-16 py-4 md:py-8 relative">
+      {/* Logo */}
+      <div className="mb-4 md:mb-6 flex items-center justify-center gap-3 md:gap-4">
+        <img
+          src="/logo-closercat.png"
+          alt="CloserCat Logo"
+          className="h-16 md:h-28 object-contain drop-shadow-xl"
+        />
+        {partnerLogoUrl && showPartnerLogo && (
+          <>
+            <span className="text-sm md:text-base text-gray-300 font-medium">x</span>
+            <img
+              src={partnerLogoUrl}
+              alt="Partner Logo"
+              className="h-12 md:h-20 object-contain"
+              onError={() => setShowPartnerLogo(false)}
+            />
+          </>
+        )}
       </div>
-      <h2 className="text-2xl sm:text-3xl text-brand-cyan font-medium mb-6 sm:mb-8 max-w-4xl">{data.subtitle}</h2>
 
-      {/* CTA global cuando la navegación está bloqueada (solo si hay al menos una URL) */}
+      {/* Subtitle */}
+      <h2 className="text-xl md:text-4xl text-brand-cyan font-medium mb-4 md:mb-6 max-w-5xl leading-tight px-2">{data.subtitle}</h2>
+
+      {/* CTA global cuando la navegación está bloqueada */}
       {(rootPartnerCtaUrl || rootCustomerCtaUrl) && (
-        <div className="mb-6 sm:mb-8 relative">
+        <div className="mb-4 md:mb-6 relative">
           <button
             onClick={() => setShowContactOptions((prev) => !prev)}
-            className="inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-sm sm:text-base shadow-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-cyan/60"
+            className="inline-flex items-center justify-center px-6 md:px-10 py-2.5 md:py-3 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white font-semibold text-sm md:text-lg shadow-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-cyan/60"
           >
             Contactar
           </button>
 
           {showContactOptions && (
-            <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-64 sm:w-72 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 px-3 text-left z-30">
-              <p className="text-[11px] sm:text-xs uppercase font-semibold text-gray-400 mb-2 px-1">¿Cómo te interesa CloserCat?</p>
+            <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-72 md:w-80 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 md:py-4 px-3 md:px-4 text-left z-30">
+              <p className="text-[10px] md:text-xs uppercase font-semibold text-gray-400 mb-2 md:mb-3 px-1">¿Cómo te interesa CloserCat?</p>
               <div className="space-y-2">
                 {rootPartnerCtaUrl && (
                   <a
                     href={rootPartnerCtaUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="block w-full text-[13px] sm:text-sm px-3 py-2 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
+                    className="block w-full text-sm md:text-base px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
                   >
                     Me interesa como <span className="font-semibold">partner / reseller</span>
                   </a>
@@ -94,7 +95,7 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
                     href={rootCustomerCtaUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="block w-full text-[13px] sm:text-sm px-3 py-2 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
+                    className="block w-full text-sm md:text-base px-3 md:px-4 py-2 md:py-3 rounded-xl hover:bg-brand-purple/5 text-gray-800 text-left"
                   >
                     Me interesa <span className="font-semibold">para mi negocio</span>
                   </a>
@@ -105,8 +106,9 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
         </div>
       )}
 
+      {/* Video container - responsive en mobile, fijo en desktop */}
       <div 
-        className="w-full max-w-4xl aspect-video bg-gray-100 rounded-xl border-2 border-gray-200 flex items-center justify-center relative overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500 group"
+        className="w-full max-w-sm md:w-[1000px] md:max-w-none aspect-video md:h-[562px] bg-gray-100 rounded-xl border-2 border-gray-200 flex items-center justify-center relative overflow-hidden shadow-2xl transform hover:scale-[1.01] transition-transform duration-500 group"
         onClick={handleOpenVideo}
         style={!isLocalVideo && data.videoUrl ? { cursor: 'pointer' } : undefined}
       >
@@ -144,7 +146,6 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
             )
           )}
       </div>
-      <div className="mt-16 text-gray-400 font-bold tracking-widest uppercase text-base"></div>
 
       {data.videoUrl && !isLocalVideo && isVideoOpen && (
         <div className="absolute inset-0 bg-black/80 z-40 flex items-center justify-center">
@@ -262,31 +263,31 @@ export const StandardSlide: React.FC<TemplateProps> = ({ data }) => {
   };
 
   return (
-    <div className="h-full flex flex-col px-4 sm:px-8 md:px-20 py-6 md:py-12 relative">
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-gray-900 mb-3 md:mb-4">{data.title}</h2>
-      {data.subtitle && <h3 className="text-lg sm:text-xl md:text-2xl text-brand-purple font-medium mb-6 md:mb-12">{data.subtitle}</h3>}
+    <div className="h-full flex flex-col px-4 md:px-20 py-4 md:py-10 relative overflow-y-auto md:overflow-hidden">
+      <h2 className="text-2xl md:text-5xl font-display font-bold text-gray-900 mb-1 md:mb-2">{data.title}</h2>
+      {data.subtitle && <h3 className="text-base md:text-2xl text-brand-purple font-medium mb-4 md:mb-6">{data.subtitle}</h3>}
       
-      <div className="flex-1 flex flex-col md:flex-row gap-6 md:gap-16 items-start md:items-center">
-          <div className="flex-1 space-y-5 sm:space-y-6 md:space-y-8">
-              {data.content && <p className="text-base sm:text-lg md:text-2xl text-gray-600 leading-relaxed mb-4 md:mb-8">{data.content}</p>}
+      <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-12 items-start md:items-center min-h-0">
+          <div className="flex-1 space-y-2 md:space-y-4">
+              {data.content && <p className="text-base md:text-xl text-gray-600 leading-relaxed mb-2 md:mb-4">{data.content}</p>}
               {data.bullets?.map((bull, i) => (
-                  <div key={i} className="flex gap-3 sm:gap-4">
-                      <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-brand-cyan mt-2.5 sm:mt-3.5 flex-shrink-0" />
-                      <p className="text-base sm:text-lg md:text-2xl text-gray-700 leading-snug">{bull}</p>
+                  <div key={i} className="flex gap-2 md:gap-3">
+                      <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-brand-cyan mt-1.5 md:mt-2.5 flex-shrink-0" />
+                      <p className="text-sm md:text-xl text-gray-700 leading-snug">{bull}</p>
                   </div>
               ))}
                {data.extraText && (
-                  <div className="mt-6 md:mt-10 p-4 sm:p-6 md:p-8 bg-brand-cyan/10 border-l-4 md:border-l-8 border-brand-cyan rounded-r-xl">
-                      <p className="font-bold text-brand-cyan text-base sm:text-lg md:text-xl">{data.extraText}</p>
+                  <div className="mt-4 md:mt-6 p-3 md:p-5 bg-brand-cyan/10 border-l-4 md:border-l-6 border-brand-cyan rounded-r-xl">
+                      <p className="font-bold text-brand-cyan text-sm md:text-lg">{data.extraText}</p>
                   </div>
               )}
           </div>
           
-          {/* Updated Image Column: Now flex-1 (50% width) to match SplitImageSlide proportions */}
+          {/* Columna de imagen */}
           {data.imagePlaceholder && (
-               <div className="flex-1 self-stretch flex items-center justify-center pl-0 md:pl-6 mt-6 md:mt-0">
+               <div className="flex-1 w-full md:w-auto flex items-center justify-center">
                    <div 
-                      className="w-full bg-gray-100 rounded-2xl flex items-center justify-center text-center p-4 sm:p-6 relative overflow-hidden border border-gray-200 shadow-2xl aspect-square transform hover:scale-[1.01] transition-transform group"
+                      className="w-full aspect-square md:aspect-auto md:h-full md:max-h-[600px] bg-gray-100 rounded-2xl flex items-center justify-center relative overflow-hidden border border-gray-200 shadow-2xl transform hover:scale-[1.01] transition-transform group"
                       onClick={handleOpenVideo}
                       style={!isLocalVideo && data.videoUrl ? { cursor: 'pointer' } : undefined}
                    >
@@ -366,29 +367,29 @@ export const SplitImageSlide: React.FC<TemplateProps> = ({ data }) => {
   };
 
   return (
-    <div className="h-full flex flex-col md:flex-row px-4 sm:px-8 md:px-20 py-6 md:py-12 gap-6 md:gap-16 relative">
+    <div className="h-full flex flex-col md:flex-row px-4 md:px-20 py-4 md:py-10 gap-4 md:gap-12 relative overflow-y-auto md:overflow-hidden">
         <div className="flex-1 flex flex-col justify-center">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8 leading-tight">{data.title}</h2>
-            {data.content && <p className="text-base sm:text-lg md:text-2xl text-gray-600 mb-6 sm:mb-8 md:mb-10 leading-relaxed">{data.content}</p>}
+            <h2 className="text-2xl md:text-4xl font-display font-bold text-gray-900 mb-2 md:mb-4 leading-tight">{data.title}</h2>
+            {data.content && <p className="text-sm md:text-lg text-gray-600 mb-4 md:mb-6 leading-relaxed">{data.content}</p>}
             
-            <div className="space-y-4 sm:space-y-5 md:space-y-6">
+            <div className="space-y-2 md:space-y-3">
                  {data.bullets?.map((bull, i) => (
-                    <div key={i} className="flex gap-4 items-start">
-                        <Check className="w-5 h-5 sm:w-6 sm:h-6 text-brand-green mt-1 flex-shrink-0" />
-                        <p className="text-base sm:text-lg md:text-xl text-gray-700 font-medium leading-snug">{bull}</p>
+                    <div key={i} className="flex gap-2 md:gap-3 items-start">
+                        <Check className="w-4 h-4 md:w-5 md:h-5 text-brand-green mt-0.5 md:mt-1 flex-shrink-0" />
+                        <p className="text-sm md:text-lg text-gray-700 font-medium leading-snug">{bull}</p>
                     </div>
                 ))}
             </div>
 
             {data.extraText && (
-                 <div className="mt-6 md:mt-12 pt-4 md:pt-8 border-t border-gray-200">
-                    <p className="text-brand-purple font-semibold italic text-base sm:text-lg md:text-xl">{data.extraText}</p>
+                 <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-gray-200">
+                    <p className="text-brand-purple font-semibold italic text-sm md:text-lg">{data.extraText}</p>
                 </div>
             )}
         </div>
-        <div className="flex-1 h-full flex items-center justify-center p-4 sm:p-6 mt-6 md:mt-0">
+        <div className="flex-1 flex items-center justify-center">
              <div 
-                className="w-full aspect-square bg-white rounded-3xl shadow-2xl border border-gray-100 flex items-center justify-center relative overflow-hidden transform hover:scale-[1.02] transition-transform group"
+                className="w-full aspect-square md:aspect-auto md:h-full md:max-h-[600px] bg-white rounded-3xl shadow-2xl border border-gray-100 flex items-center justify-center relative overflow-hidden transform hover:scale-[1.01] transition-transform group"
                 onClick={handleOpenVideo}
                 style={!isLocalVideo && data.videoUrl ? { cursor: 'pointer' } : undefined}
              >

@@ -9,9 +9,6 @@ import {
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 
-const DESIGN_WIDTH = 1920;
-const DESIGN_HEIGHT = 1080;
-
 // URLs genéricas por defecto (puedes reemplazarlas por las reales)
 const GENERIC_CUSTOMER_CTA_URL = 'https://calendly.com/rogertovalle?a1=CloserCat%20Pro%20-%20Cliente';
 const GENERIC_PARTNER_CTA_URL = 'https://calendly.com/rogertovalle/?a1=CloserCat%20Pro%20-%20Partnership';
@@ -100,7 +97,7 @@ const App: React.FC = () => {
   const [hidePricing, setHidePricing] = useState(false);
   const [customSlideOrder, setCustomSlideOrder] = useState<number[] | null>(null);
   const [scale, setScale] = useState(1);
-  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL); // usado en slide de cierre (cliente)
   const [rootPartnerCtaUrl, setRootPartnerCtaUrl] = useState<string | null>(GENERIC_PARTNER_CTA_URL);
   const [rootCustomerCtaUrl, setRootCustomerCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL);
@@ -251,30 +248,34 @@ const App: React.FC = () => {
     setIsUnlocked(false);
   }, []);
 
+  // Detectar mobile vs desktop y calcular escala solo para desktop
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const updateScale = () => {
+    const updateLayout = () => {
       const { innerWidth, innerHeight } = window;
+      const mobile = innerWidth < 768;
+      setIsMobile(mobile);
 
-      if (innerWidth < 768) {
-        setIsDesktopLayout(false);
-        setScale(1);
+      if (mobile) {
+        setScale(1); // En mobile no escalamos
         return;
       }
 
-      setIsDesktopLayout(true);
-      const scaleFactor = Math.min(
-        innerWidth / DESIGN_WIDTH,
-        innerHeight / DESIGN_HEIGHT,
-        1
-      );
-      setScale(scaleFactor);
+      // Desktop: frame fijo 1920x1080 escalado
+      const padding = 32;
+      const availableW = innerWidth - padding;
+      const availableH = innerHeight - padding;
+      const designW = 1920;
+      const designH = 1080;
+      const scaleX = availableW / designW;
+      const scaleY = availableH / designH;
+      setScale(Math.min(scaleX, scaleY, 1));
     };
 
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    return () => window.removeEventListener('resize', updateLayout);
   }, []);
 
   const nextSlide = useCallback(() => {
@@ -399,19 +400,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="w-screen h-screen bg-gray-200 flex items-stretch justify-stretch md:items-center md:justify-center p-0 sm:p-2 font-sans overflow-hidden">
-      {/* En mobile usamos full-screen vertical; en md+ mantenemos frame 16:9 centrado */}
+    <div className="w-screen h-screen bg-gray-200 flex items-center justify-center font-sans overflow-hidden">
+      {/* Mobile: full screen fluido | Desktop: frame fijo 1920x1080 escalado */}
       <div
-        className="relative w-full h-full md:h-auto md:aspect-video md:max-w-[177.78vh] md:max-h-full shadow-2xl md:rounded-xl overflow-hidden bg-white mx-auto"
+        className={`relative shadow-2xl overflow-hidden bg-white ${
+          isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
+        }`}
         style={
-          isDesktopLayout
-            ? {
-                width: DESIGN_WIDTH,
-                height: DESIGN_HEIGHT,
+          isMobile
+            ? undefined
+            : {
+                width: 1920,
+                height: 1080,
                 transform: `scale(${scale})`,
                 transformOrigin: 'center center',
               }
-            : undefined
         }
       >
         <SlideLayout

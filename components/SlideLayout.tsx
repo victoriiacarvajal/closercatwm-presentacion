@@ -78,47 +78,47 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({ children, slideNumber, totalS
       <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 bg-brand-purple/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
       {/* Header Area */}
-      <div className="w-full px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 flex justify-between items-center z-10 h-14 sm:h-16 md:h-20">
-        <div className="flex items-center gap-3">
-            {/* Logo Image (oculto en la slide 1 para dar protagonismo al logo principal de portada) */}
+      <div className="w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-10 h-12 md:h-16">
+        <div className="flex items-center gap-2 md:gap-3">
+            {/* Logo (oculto en slide 1 para dar protagonismo al logo principal de portada) */}
             {slideNumber !== 1 && (
               <>
-                <img src={LOGO_URL} alt="CloserCat Logo" className="h-10 sm:h-12 md:h-14 w-auto object-contain" />
+                <img src={LOGO_URL} alt="CloserCat Logo" className="h-8 md:h-12 w-auto object-contain" />
                 {partnerLogoUrl && showPartnerInHeader && (
                   <img
                     src={partnerLogoUrl}
                     alt="Partner Logo"
-                    className="h-10 sm:h-12 md:h-14 w-auto object-contain"
+                    className="h-8 md:h-12 w-auto object-contain"
                     onError={() => setShowPartnerInHeader(false)}
                   />
                 )}
               </>
             )}
         </div>
-        <div className="text-[10px] sm:text-xs font-mono text-gray-400">
+        <div className="text-xs md:text-sm font-mono text-gray-400">
           {slideNumber} / {totalSlides}
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto md:overflow-hidden relative z-10 pb-4 sm:pb-6" ref={contentRef}>
+      <div className="flex-1 overflow-y-auto md:overflow-hidden relative z-10" ref={contentRef}>
         {children}
       </div>
 
-      <div className={`absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 sm:px-4 md:px-6 z-20 pointer-events-none ${canNavigate ? '' : 'opacity-0'}`}>
+      <div className={`absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 md:px-6 z-20 pointer-events-none ${canNavigate ? '' : 'opacity-0'}`}>
         <button
           onClick={onPrevSlide}
           disabled={!onPrevSlide || slideNumber === 1}
-          className="pointer-events-auto flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
+          className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+          <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
         </button>
         <button
           onClick={onNextSlide}
           disabled={!onNextSlide || slideNumber === totalSlides}
-          className="pointer-events-auto flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
+          className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
         >
-          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+          <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
         </button>
       </div>
 

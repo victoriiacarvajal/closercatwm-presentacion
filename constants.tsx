@@ -586,7 +586,7 @@ export const SLIDES: SlideData[] = [
     id: 21,
     type: SlideType.COMPARISON_TABLE,
     title: "¿Por qué CloserCat?",
-    footerText: "CloserCat ombina IA + humanos en la misma conversación, Contact Enrichment automático y datos conversacionales de punta a punta para escalar tus ventas"
+    footerText: "CloserCat ombina IA + humanos en la misma conversación, enriquecimiento de contactos automático y datos conversacionales integrables de punta a punta para escalar tus ventas"
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
