@@ -19,8 +19,8 @@ const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: 
   wsi: {
     customerCtaUrl: 'https://www.wsiworld.lat/henry-guzman',
   },
-  parquesoft: {
-    customerCtaUrl: 'https://google.com/',
+  vc: {
+    customerCtaUrl: 'https://calendly.com/victoriia-carvajal?a1=CloserCat%20Pro',
   },
 };
 
