@@ -1,8 +1,13 @@
 import { SlideData, SlideType } from './types';
 import React from 'react';
 
+
 // Icons used in content (represented as strings for rendering logic or just text)
 export const SLIDES: SlideData[] = [
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 1: APERTURA Y CONTEXTO
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 1: PORTADA
   {
     id: 1,
@@ -10,9 +15,10 @@ export const SLIDES: SlideData[] = [
     title: "CloserCat",
     subtitle: "Convierte el caos de WhatsApp en una oportunidad para escalar tu operación de ventas",
     imagePlaceholder: "Screenshot del Dashboard de CloserCat",
-    imageUrl: "/closercat-dashboard.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-dashboard.png",
     videoUrl: "/vista-global-closercat.mp4",
   },
+
   // SLIDE 2: PROGRAMA
   {
     id: 2,
@@ -23,11 +29,13 @@ export const SLIDES: SlideData[] = [
       "02 Cómo CloserCat convierte cada chat en oportunidad",
       "03 IA + equipo comercial: cada uno hace lo que mejor sabe",
       "04 Operación diaria sin conversaciones perdidas",
-      "05 Plantillas, campañas y marketing conversacional que sí convierten",
-      "06 Integraciones, comparativa y diferenciales clave",
-      "07 Cuánto cuesta y cómo empezamos"
+      "05 Contact Enrichment: perfiles que se construyen solos",
+      "06 Plantillas, campañas y marketing conversacional que sí convierten",
+      "07 Integraciones, comparativa y diferenciales clave",
+      "08 Cuánto cuesta y cómo empezamos"
     ]
   },
+
   // SLIDE 3: TRANSICIÓN
   {
     id: 3,
@@ -35,6 +43,11 @@ export const SLIDES: SlideData[] = [
     title: "El caos de WhatsApp comercial",
     subtitle: "tiene solución inteligente"
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 2: SOBRE CLOSERCAT Y VISIÓN
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 4: SOBRE CLOSERCAT
   {
     id: 4,
@@ -42,9 +55,10 @@ export const SLIDES: SlideData[] = [
     title: "Estamos aquí para empoderarte",
     content: "CloserCat nace de la frustración de ver cómo equipos talentosos pierden oportunidades por la desorganización de WhatsApp Business. Centralizamos, automatizamos con IA y te ayudamos a escalar tu operación de ventas sin perder control sobre cada conversación.",
     imagePlaceholder: "Equipo trabajando con dashboard CloserCat",
-    imageUrl: "/closercat-imagen-celular.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-imagen-celular.png",
     videoUrl: "",
   },
+
   // SLIDE 5: NUESTRA VISIÓN
   {
     id: 5,
@@ -52,9 +66,10 @@ export const SLIDES: SlideData[] = [
     title: "Transformamos WhatsApp en tu mejor canal de ventas",
     content: "Donde la IA aprende de tus mejores closers y tu equipo mantiene el control para escalar la operación sin perder calidad humana.",
     imagePlaceholder: "Conversaciones caóticas vs Dashboard Organizado",
-    imageUrl: "/closercat-imagen-ia.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-imagen-ia.png",
     videoUrl: "",
   },
+
   // SLIDE 5B: TODO COMIENZA CON UNA CONVERSACIÓN
   {
     id: 24,
@@ -63,15 +78,16 @@ export const SLIDES: SlideData[] = [
     content: "Cada oportunidad nace cuando un cliente escribe por WhatsApp. CloserCat escucha en tiempo real, espera que el cliente termine su idea y responde una sola vez con todo el contexto.",
     bullets: [
       "Notificación instantánea de nueva conversación",
-      "El usuario puede enviar mensajes en ráfaga",
-      "La IA espera el contexto completo antes de responder, como haría tu mejor closer",
+      "El usuario puede enviar mensajes en ráfaga (el sistema espera 3 segundos)",
+      "La IA consolida todos los mensajes antes de responder, como haría tu mejor closer",
       "Una única respuesta coherente y contextual"
     ],
-    extraText: "",
+    extraText: "Burst buffer inteligente: si el cliente envía 5 mensajes seguidos, la IA responde una sola vez con todo el contexto.",
     imagePlaceholder: "Conversación con mensajes en ráfaga y respuesta inteligente",
-    imageUrl: "/closercat-conversacion.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-conversacion.png",
     videoUrl: "/closercat-conversation-v2.mp4",
   },
+
   // SLIDE 5C: CASOS DE USO DEL ASISTENTE
   {
     id: 25,
@@ -80,30 +96,36 @@ export const SLIDES: SlideData[] = [
     subtitle: "Una IA exclusiva para tu negocio",
     content: "CloserCat se configura con la información de tu negocio y se especializa en los casos de uso que más impacto tienen en tus ingresos.",
     bullets: [
-      "🛒 Venta transaccional: recomendación de productos y recepción de pedidos",
-      "🎯 Prospección: informa, califica y agenda sin que tu equipo toque el teclado",
-      "🛟 Servicio al cliente: FAQs y base de conocimiento documental",
+      "🛒 Ecommerce: catálogo de productos con búsqueda semántica, precios y disponibilidad",
+      "🎯 B2B/Prospección: servicios, calificación de leads y agendamiento automático",
+      "🛟 Soporte: FAQs y base de conocimiento documental con respuestas precisas",
       "🤖 Un asistente entrenado solo con tu operación, no con plantillas genéricas"
     ],
-    extraText: "Cada configuración es exclusiva para tu negocio. Puedes combinar casos de uso según la etapa del cliente y, si se requiere manejar múltiples casos de uso en una misma conversación, hacemos una revisión y ajuste personalizados para garantizar coherencia.",
+    extraText: "Cada caso de uso activa un Knowledge Base especializado: Productos para ecommerce, Servicios para B2B, FAQs para soporte. La IA adapta su comportamiento según el contexto.",
     imagePlaceholder: "Pantalla de configuración del asistente (casos de uso y datos del negocio)",
-    imageUrl: "/closercat-configuracion-asistente.png", // PEGA AQUÍ LA URL DE TU IMAGEN
-    videoUrl: "/closercat-casos-de-uso-v1.mp4", // PEGA AQUÍ LA URL DE TU VIDEO DE CONFIGURACIÓN
+    imageUrl: "/closercat-configuracion-asistente.png",
+    videoUrl: "/closercat-casos-de-uso-v1.mp4",
   },
-  // SLIDE 5D: COMPRENSIÓN MULTIMODAL (solo texto)
+
+  // SLIDE 5D: COMPRENSIÓN MULTIMODAL
   {
     id: 26,
     type: SlideType.STANDARD,
     title: "La IA entiende texto, imágenes y audios como tu mejor vendedor",
     content: "El asistente entiende mucho más que texto: aprovecha todo lo que tus clientes comparten para responder mejor y avanzar hacia el cierre.",
     bullets: [
-      "📝 Textos: mensajes completos con contexto de la conversación",
-      "🖼️ Imágenes: productos, documentos, capturas y más",
-      "🎤 Audios: notas de voz transcritas y entendidas por la IA",
+      "📝 Textos: mensajes completos con contexto de toda la conversación",
+      "🖼️ Imágenes: productos, documentos, capturas (metadata procesada)",
+      "🎤 Audios: notas de voz transcritas automáticamente por Azure Speech",
       "🧠 Generación de respuestas basada en todas las señales disponibles"
     ],
-    extraText: "La IA combina texto, imágenes y audio para mantener una sola línea de conversación coherente.",
+    extraText: "La IA combina texto, imágenes y audio para mantener una sola línea de conversación coherente. Transcripción de audio en tiempo real.",
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 3: EL PROBLEMA Y SU IMPACTO
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 6: EL PROBLEMA
   {
     id: 6,
@@ -120,6 +142,7 @@ export const SLIDES: SlideData[] = [
     ],
     extraText: "El 78% de compradores B2B elige al proveedor que responde primero."
   },
+
   // SLIDE 7: IMPACTO
   {
     id: 7,
@@ -133,9 +156,10 @@ export const SLIDES: SlideData[] = [
       "Clientes frustrados que terminan comprando a otro proveedor"
     ],
     imagePlaceholder: "Gráfico descendente conversión vs tiempo",
-    imageUrl: "", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "",
     videoUrl: "",
   },
+
   // SLIDE 8: TRANSICIÓN
   {
     id: 8,
@@ -143,6 +167,11 @@ export const SLIDES: SlideData[] = [
     title: "Con CloserCat",
     subtitle: "cada conversación es una oportunidad organizada"
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 4: CENTRO DE COMANDO Y DIFERENCIADORES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 9: CENTRO DE COMANDO
   {
     id: 9,
@@ -150,9 +179,10 @@ export const SLIDES: SlideData[] = [
     title: "¿Cómo escalarías tu operación si todo tu equipo vendiera desde un solo panel?",
     subtitle: "Un solo panel para gestionar todas tus conversaciones comerciales, sin abrir WhatsApp.",
     imagePlaceholder: "DASHBOARD COMPLETO: Barra superior (Plantillas, Cierre), Panel de conversaciones, Filtros",
-    imageUrl: "/closercat-dashboard.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-dashboard.png",
     videoUrl: "",
   },
+
   // SLIDE 10: DIFERENCIADORES
   {
     id: 10,
@@ -162,26 +192,33 @@ export const SLIDES: SlideData[] = [
     bullets: [
       "✓ Aprende de TUS conversaciones, no de templates genéricos",
       "✓ La IA sugiere y tu equipo decide qué se envía",
-      "✓ Escucha en ráfaga: procesa múltiples mensajes antes de responder",
-      "✓ Guardrails inteligentes: nunca da información fuera de tus políticas",
-      "✓ Integración nativa con WhatsApp Business API"
+      "✓ Burst buffer de 3 segundos: procesa múltiples mensajes antes de responder",
+      "✓ Guardrails con 8 tipos de validación: nunca da información fuera de tus políticas",
+      "✓ Contact Enrichment: extrae datos del cliente automáticamente",
+      "✓ Integración nativa con WhatsApp Business API oficial"
     ],
     imagePlaceholder: "Comparativa CloserCat vs Chatbot Genérico",
-    imageUrl: "/closercat-integracion.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-integracion.png",
     videoUrl: "",
   },
+
   // SLIDE 11: ACCESOS RÁPIDOS (GRID)
   {
     id: 11,
     type: SlideType.GRID,
     title: "Accesos rápidos para vender más rápido",
     columns: [
-      { title: "1️⃣ PLANTILLAS 📝", content: ["Acceso instantáneo a plantillas probadas", "Seguimientos, objeciones, demos", "Personaliza con tu voz de marca"] },
-      { title: "2️⃣ CIERRE ✅", content: ["Marca conversaciones como cerradas", "Seguimiento de conversiones", "Métricas de éxito por agente"] },
-      { title: "3️⃣ INTEGRACIONES 🔗", content: ["Conecta WhatsApp Business API", "CRMs, Zapier, Make, Google Sheets", "Flujo de datos automatizado"] },
-      { title: "4️⃣ CAMPAÑAS 🎯", content: ["Organiza por producto o región", "Tracking de ROI por campaña", "A/B testing de mensajes"] }
+      { title: "1️⃣ PLANTILLAS 📝", content: ["Plantillas WABA aprobadas por Meta", "Seguimientos, objeciones, demos", "Variables dinámicas personalizadas"] },
+      { title: "2️⃣ CIERRE ✅", content: ["Estados automáticos por IA", "Cierre positivo, negativo, en riesgo", "Métricas de éxito por agente"] },
+      { title: "3️⃣ MEDIA GALLERY 🖼️", content: ["500MB de almacenamiento por cuenta", "Imágenes, videos y documentos", "Validación automática WhatsApp"] },
+      { title: "4️⃣ CAMPAÑAS 🎯", content: ["Hasta 50,000 contactos por campaña", "Segmentación avanzada por 24+ campos", "Métricas en tiempo real"] }
     ]
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 5: OPERACIÓN DIARIA
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 12: INICIAR CONVERSACIÓN
   {
     id: 12,
@@ -193,11 +230,12 @@ export const SLIDES: SlideData[] = [
       "Paso 3: Selecciona campaña/etiquetas (opcional)",
       "Paso 4: ¡Comienza a vender!"
     ],
-    extraText: "Beneficio clave: sin cambiar de app, sin perder contexto y sin saltar entre pantallas.",
+    extraText: "Beneficio clave: sin cambiar de app, sin perder contexto y sin saltar entre pantallas. La ventana de 24 horas se abre automáticamente.",
     imagePlaceholder: "Botón Cyan brillante INICIAR NUEVA CONVERSACIÓN",
-    imageUrl: "/closercat-conversacion.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-conversacion.png",
     videoUrl: "/closercat-mensaje-1-a-1.mp4",
   },
+
   // SLIDE 13: BÚSQUEDA
   {
     id: 13,
@@ -208,11 +246,12 @@ export const SLIDES: SlideData[] = [
       "🎚️ Filtros potentes: por estado, recencia, origen o campaña.",
       "✅ Checkbox: 'Mostrar archivadas' para ver también el archivo histórico"
     ],
-    extraText: "Búsqueda, filtros y ordenamiento se aplican en tiempo real, sin recargar la pantalla.",
+    extraText: "Búsqueda, filtros y ordenamiento se aplican en tiempo real, sin recargar la pantalla. Historial completo de todas las conversaciones.",
     imagePlaceholder: "Panel de Filtrar y Buscar expandido",
-    imageUrl: "/closercat-busqueda.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-busqueda.png",
     videoUrl: "/closercat-buscador-v3.mp4",
   },
+
   // SLIDE 14: IA VS MANUAL
   {
     id: 14,
@@ -220,81 +259,117 @@ export const SLIDES: SlideData[] = [
     title: "Activa o desactiva la IA según cada conversación",
     content: "La IA no reemplaza a tu equipo: los acompaña. Puedes activar o desactivar la IA conversación por conversación, y cuando está en modo manual tus comerciales responden directamente con todo el contexto.",
     bullets: [
-      "🤖 Modo IA ACTIVADA: la IA propone respuestas basadas en entrenamiento y tú decides qué se envía.",
+      "🤖 Modo IA ACTIVADA: la IA propone respuestas basadas en Knowledge Base y contexto.",
       "✍️ Modo MANUAL: tu equipo responde directamente usando texto, imágenes, audios o documentos.",
-      "🔁 Cambio rápido entre modos sin salir de la conversación."
+      "🔁 Cambio rápido entre modos sin salir de la conversación.",
+      "⚡ AI Auto-Disable: se desactiva automáticamente en cierre positivo o violación crítica."
     ],
-    extraText: "En esta vista puedes ver el toggle de IA y cómo cambia el flujo entre modo automático y manual.",
+    extraText: "El sistema detecta automáticamente cuándo la conversación llegó a buen término y desactiva la IA para evitar respuestas innecesarias.",
     imagePlaceholder: "Interfaz mostrando el toggle IA activada/desactivada",
-    imageUrl: "/closercat-modo-ia-manual.png", // PEGA AQUÍ LA URL DE TU IMAGEN
-    videoUrl: "/closercat-human-message-v1.mp4", // PEGA AQUÍ LA URL DE TU VIDEO DEMO IA ON/OFF
+    imageUrl: "/closercat-modo-ia-manual.png",
+    videoUrl: "/closercat-human-message-v1.mp4",
   },
+
   // SLIDE 15: PLANTILLAS (SPLIT_IMAGE)
   {
     id: 15,
     type: SlideType.SPLIT_IMAGE,
-    title: "Plantillas para enviar mensajes manuales mucho más rápido",
-    content: "Todas personalizables. Pensadas para que tu equipo envíe mensajes manuales más rápido, sin empezar desde cero y aprovechando lo que ya funciona.",
+    title: "Plantillas WABA para mensajes manuales mucho más rápido",
+    content: "Plantillas aprobadas por Meta, listas para usar. Pensadas para que tu equipo envíe mensajes manuales más rápido, sin empezar desde cero y aprovechando lo que ya funciona.",
     bullets: [
       "📋 SEGUIMIENTO POST-DEMO: 'Gracias por tu tiempo...'",
       "💰 CIERRE CONSULTIVO: 'Propuesta personalizada lista'",
       "🔥 MANEJO DE OBJECIONES: 'Comparativa vs. competencia'",
       "❄️ REACTIVACIÓN: 'Nueva oferta exclusiva para ti'"
     ],
+    extraText: "Las plantillas usan variables dinámicas ({{nombre}}, {{producto}}) que se llenan automáticamente con datos del contacto.",
     imagePlaceholder: "Interfaz de Configuración de Plantillas",
-    imageUrl: "/closercat-plantillas.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-plantillas.png",
     videoUrl: "",
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 6: GUARDRAILS Y SEGURIDAD DE IA
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 16: GUARDRAILS
   {
     id: 16,
     type: SlideType.SPLIT_IMAGE,
     title: "Guardrails: la IA nunca se sale de tus políticas",
     bullets: [
-      "❌ Temas prohibidos (ej: descuentos sin autorización)",
-      "❌ Bloqueo de información sensible o fuera de política",
-      "✅ Evaluación previa de cada respuesta antes de enviarse",
-      "✅ Escalación automática a supervisor cuando hay riesgo",
-      "✅ Alineación con tono de marca y directrices legales (ej. GDPR)"
+      "🔒 Cada respuesta se valida contra tus políticas antes de enviarse",
+      "✅ 8 tipos de chequeos automáticos: descuentos, datos sensibles, promesas imposibles…",
+      "🚨 Si hay riesgo, se bloquea el mensaje y se escala a tu equipo",
+      "📊 Queda registro de cada incidente para aprender y ajustar la política"
     ],
-    extraText: "Cada respuesta se evalúa para mitigar riesgos: proteger la reputación de tu empresa, evitar compromisos que no debe asumir y mantener siempre alineación con las instrucciones generales. Ejemplo: Cliente pide 50% descuento → la IA escala a manager en lugar de prometer algo imposible.",
+    extraText: "Piensa en Guardrails como un 'juez IA' que revisa cada mensaje antes de salir. Si detecta algo crítico —por ejemplo, que el cliente pide 50% de descuento— bloquea la respuesta y notifica al supervisor en lugar de prometer algo imposible.",
     imagePlaceholder: "Toggle Guardrails activado con indicador visual",
-    imageUrl: "", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "",
     videoUrl: "/closercat-guardrails-v1.mp4",
   },
+
   // SLIDE 16B: ESTADO DE CONVERSACIÓN EN TIEMPO REAL
   {
     id: 27,
     type: SlideType.STANDARD,
     title: "Estado de cada conversación en tiempo real",
     subtitle: "Prioriza dónde intervenir para cerrar más",
-    content: "CloserCat clasifica automáticamente cada conversación según su avance hacia el cierre.",
+    content: "CloserCat clasifica automáticamente cada conversación según su avance hacia el cierre. La IA evalúa el contexto y asigna el estado basándose en tu política de cierre configurada.",
     bullets: [
       "🔵 Iniciada: conversación recién comenzada",
       "🟡 En progreso: interacción activa hacia el objetivo",
       "🟠 En riesgo: posibilidad alta de perder la oportunidad",
-      "🟢 Cierre positivo: objetivo alcanzado (venta, cita, etc.)",
+      "🟢 Cierre positivo: objetivo alcanzado (venta, cita, etc.) — IA se desactiva automáticamente",
       "🔴 Cierre negativo: oportunidad perdida o descartada"
     ],
-    extraText: "Esta clasificación permite a tu equipo enfocarse en las conversaciones que más impacto tienen en el negocio.",
+    extraText: "La clasificación es automática: la IA analiza cada mensaje contra tu closure_policy y actualiza el estado en tiempo real. Tu equipo puede enfocarse en conversaciones 'En riesgo' que necesitan intervención humana.",
   },
-  // SLIDE 16C: EXTRACCIÓN ESTRUCTURADA DE DATOS
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 7: CONTACT ENRICHMENT (NUEVO)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // SLIDE 16C: EXTRACCIÓN ESTRUCTURADA DE DATOS (MEJORADO)
   {
     id: 28,
     type: SlideType.SPLIT_IMAGE,
-    title: "De conversación natural a datos accionables",
-    content: "Mientras la conversación fluye, CloserCat extrae y organiza datos clave del contacto de forma estructurada.",
+    title: "Contact Enrichment: el perfil del cliente se construye solo",
+    content: "Mientras la conversación fluye, CloserCat extrae automáticamente 11+ campos del contacto sin intervención manual. Cero trabajo de captura de datos.",
     bullets: [
-      "Mantiene actualizado el contexto del contacto",
-      "Extrae nombre, intereses, necesidades y objeciones",
-      "Prepara la información para enviarla a tu CRM o BI",
-      "Enriquecimiento progresivo del perfil con cada interacción"
+      "👤 Datos básicos: nombre completo, email, ubicación",
+      "🏢 Datos B2B: empresa, cargo, industria, tamaño",
+      "💰 Datos de venta: presupuesto, timeline, necesidades específicas",
+      "🎯 Intención: nivel de interés y etapa del funnel"
     ],
-    extraText: "Los datos conversacionales dejan de vivir solo en WhatsApp y se convierten en un activo reutilizable.",
-    imagePlaceholder: "Conversación de WhatsApp transformada en JSON estructurado",
-    imageUrl: "/closercat-contexto.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    extraText: "Tiempo de enriquecimiento: < 2 segundos por mensaje. Los datos fluyen automáticamente a campañas, segmentación y CRM. Tu equipo de ventas recibe leads pre-calificados con toda la información.",
+    imagePlaceholder: "Conversación de WhatsApp → Perfil de contacto enriquecido",
+    imageUrl: "/closercat-contexto.png",
     videoUrl: "/closercat-contact-extraction-v1.mp4",
   },
+
+  // SLIDE 28B: CAMPOS QUE SE EXTRAEN (NUEVO)
+  {
+    id: 40,
+    type: SlideType.STANDARD,
+    title: "11+ campos extraídos automáticamente de cada conversación",
+    subtitle: "De conversación natural a datos accionables",
+    content: "La IA analiza cada mensaje buscando información estructurada. Todo se actualiza en tiempo real sin intervención manual.",
+    bullets: [
+      "📝 Nombre completo y email detectados del texto",
+      "🏢 Empresa, cargo e industria inferidos del contexto",
+      "👥 Tamaño de empresa ('Somos 50 personas' → 50)",
+      "💰 Presupuesto y timeline ('$10K para enero')",
+      "📍 Ubicación geográfica (ciudad, país)",
+      "🎯 Necesidades específicas y objeciones capturadas"
+    ],
+    extraText: "Confidence threshold configurable (default 0.7). Si la IA no está segura, no actualiza el campo. Puedes corregir manualmente y el sistema aprende de las correcciones.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 8: CAMPAÑAS Y MARKETING
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 17: CAMPAÑAS
   {
     id: 17,
@@ -305,11 +380,12 @@ export const SLIDES: SlideData[] = [
       "🎓 Campaña Demo Educativa: 87 leads calificados listos para ventas",
       "🌎 Campaña Expansión LATAM: performance por región y segmento"
     ],
-    extraText: "Funcionalidades: etiquetado automático, métricas en tiempo real y ROI medible por campaña.",
+    extraText: "Hasta 50,000 contactos por campaña. Rate de envío ~4,800/hora. Métricas en tiempo real y ROI medible por campaña.",
     imagePlaceholder: "Panel de CAMPAÑAS con métricas",
-    imageUrl: "/closercat-campañas.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-campañas.png",
     videoUrl: "",
   },
+
   // SLIDE 17B: CAMPAÑAS - MÉTODO 1 CSV
   {
     id: 29,
@@ -317,35 +393,37 @@ export const SLIDES: SlideData[] = [
     title: "Campañas – Método 1: importa tu base y dispara mensajes masivos",
     content: "Crea campañas importando tu base de contactos existente mediante un archivo CSV.",
     bullets: [
-      "Importa contactos desde archivos CSV o Excel",
+      "Importa contactos desde archivos CSV o Excel (hasta 10MB / ~100,000 filas)",
       "Mapeo de campos personalizados para cada negocio",
-      "Uso de variables dinámicas dentro de las plantillas",
+      "Uso de variables dinámicas dentro de las plantillas WABA",
       "Ideal para bases de datos históricas que ya tienes",
       "Permite iniciar rápidamente campañas a gran escala"
     ],
-    extraText: "Ejemplo: importar leads desde tu CRM actual o desde hojas de cálculo.",
+    extraText: "Ejemplo: importar leads desde tu CRM actual o desde hojas de cálculo. Los contactos importados también se enriquecen automáticamente cuando responden.",
     imagePlaceholder: "Modal de campañas mostrando pestaña CSV",
-    imageUrl: "/closercat-csv.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-csv.png",
     videoUrl: "",
   },
-  // SLIDE 17C: CAMPAÑAS - CONSTRUCTOR DE AUDIENCIAS
+
+  // SLIDE 17C: CAMPAÑAS - CONSTRUCTOR DE AUDIENCIAS (MEJORADO)
   {
     id: 30,
     type: SlideType.SPLIT_IMAGE,
-    title: "Campañas – Método 2: audiencias para marketing 1 a 1",
-    subtitle: "Segmentación inteligente basada en comportamiento",
-    content: "Usa toda la data recolectada en conversaciones para iniciar mensajes de marketing 1 a 1 altamente relevantes.",
+    title: "Campañas – Método 2: segmentación avanzada con 24+ campos",
+    subtitle: "Audiencias hiper-segmentadas basadas en datos reales",
+    content: "Usa los datos extraídos automáticamente por Contact Enrichment para crear audiencias precisas.",
     bullets: [
-      "Segmentación por datos de contacto y atributos personalizados (ej. producto de interés)",
-      "Filtros por comportamiento conversacional y estado de cierre (ej. interesados sin compra)",
-      "Audiencias dinámicas que se actualizan con cada nueva conversación",
-      "Desencadena campañas de marketing 1 a 1 con mensajes relevantes para cada segmento"
+      "🏢 Por empresa: industria, tamaño, ubicación",
+      "💼 Por contacto: cargo, departamento, seniority",
+      "🎯 Por comportamiento: estado de cierre, engagement bucket",
+      "⚙️ Custom fields ilimitados para tu negocio"
     ],
-    extraText: "Tus campañas dejan de ser listas estáticas y se vuelven audiencias vivas basadas en comportamiento real.",
+    extraText: "Ejemplo: 'CTOs de Fintechs en CDMX con 50-200 empleados que están en estado En Progreso'. +40% en tasa de respuesta con segmentación precisa.",
     imagePlaceholder: "Constructor de audiencias con filtros avanzados",
-    imageUrl: "/closercat-audiencias.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-audiencias.png",
     videoUrl: "",
   },
+
   // SLIDE 17D: DASHBOARD DE CAMPAÑAS
   {
     id: 31,
@@ -356,13 +434,40 @@ export const SLIDES: SlideData[] = [
     bullets: [
       "Métricas clave: enviados, entregados, leídos, respondidos",
       "Pestañas para Resumen, Audiencias, CSV, Targets y Configuración",
-      "Botón 'Nueva campaña' siempre visible para iterar rápido",
+      "Estimación de tiempo: 1,000 contactos ≈ 12-15 min, 10,000 ≈ 2-3 horas",
       "Visión consolidada del performance de tus esfuerzos conversacionales"
     ],
+    extraText: "5 campañas simultáneas por tenant. Rate limiting automático según límites de WhatsApp (~80 msg/segundo).",
     imagePlaceholder: "Dashboard de campañas con métricas y pestañas",
-    imageUrl: "/closercat-dashboard-campanas.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-dashboard-campanas.png",
     videoUrl: "/closercat-campañas-v1.mp4",
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 9: MEDIA GALLERY (NUEVO)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // SLIDE 17E: MEDIA GALLERY (NUEVO)
+  {
+    id: 41,
+    type: SlideType.STANDARD,
+    title: "Media Gallery: todos tus archivos en un solo lugar",
+    subtitle: "Gestión centralizada de imágenes, videos y documentos",
+    content: "Sube archivos una vez y reutilízalos en todas tus plantillas y campañas. Validación automática según límites de WhatsApp.",
+    bullets: [
+      "🖼️ Imágenes: JPG, PNG hasta 5MB — headers de plantillas",
+      "🎥 Videos: MP4 hasta 16MB — contenido multimedia",
+      "📄 Documentos: PDF, Word, Excel hasta 100MB — adjuntos",
+      "📊 500MB de almacenamiento por cuenta (ampliable)",
+      "✅ Drag & drop con validación instantánea"
+    ],
+    extraText: "Grid responsive con preview, filtros por tipo y búsqueda por nombre. Las URLs de Azure se regeneran automáticamente cada 5 días.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 10: GESTIÓN Y SEGUIMIENTOS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 18: ARCHIVADO
   {
     id: 18,
@@ -375,24 +480,30 @@ export const SLIDES: SlideData[] = [
       "↩️ Restauración con un clic cuando la conversación se reactiva",
       "📜 Hilos previos: acceso rápido a todo el historial relevante"
     ],
-    extraText: "Recupera contexto de conversaciones de hace 6 meses en segundos, ya sea que se hayan archivado automáticamente o por decisión de tu equipo.",
+    extraText: "Recupera contexto de conversaciones de hace 6 meses en segundos. Historial completo de mensajes sin límite de retención.",
     imagePlaceholder: "Panel de Archivados",
-    imageUrl: "/closercat-contexto.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-contexto.png",
     videoUrl: "/closercat-gestion-conversacion-v1.mp4",
   },
-  // SLIDE 19: SEGUIMIENTOS
+
+  // SLIDE 19: SEGUIMIENTOS (MEJORADO)
   {
     id: 19,
     type: SlideType.STANDARD,
-    title: "Nunca olvides una oportunidad",
+    title: "Seguimientos automáticos: nunca olvides una oportunidad",
     bullets: [
-      "📅 Programa recordatorios claros (automáticos o manuales): 'Contactar en 3 días'",
-      "⏰ Alertas automáticas por Email/Slack si no hay respuesta",
+      "📅 Programa recordatorios: 'Contactar en 3 días' con fecha y hora específica",
+      "⏰ Notificaciones automáticas cuando llega el momento de actuar",
+      "🔄 Cancelación automática si el cliente responde antes del seguimiento",
       "📊 Dashboard: vista de hoy, semana y mes priorizada por impacto"
     ],
-    extraText: "Los seguimientos programados, combinando automatización y acción manual de tu equipo, aumentan tu tasa de cierre hasta un 40%.",
+    extraText: "Los seguimientos programados aumentan tu tasa de cierre hasta un 40%. La IA puede retomar automáticamente conversaciones inactivas después de 24 horas si está configurado.",
   },
-  // BLOQUE DE INTEGRACIONES
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 11: INTEGRACIONES
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 19A: TRANSICIÓN A MARKETING E INTEGRACIONES
   {
     id: 35,
@@ -400,6 +511,7 @@ export const SLIDES: SlideData[] = [
     title: "De la operación diaria al marketing conversacional",
     subtitle: "Integra tus datos y campañas para escalar aún más tus ventas"
   },
+
   // SLIDE 19B: VISIÓN GENERAL DE INTEGRACIONES
   {
     id: 32,
@@ -408,52 +520,59 @@ export const SLIDES: SlideData[] = [
     subtitle: "La conversación no vive aislada, vive conectada",
     content: "La información que CloserCat organiza está pensada para conectarse fácilmente con tus sistemas existentes.",
     bullets: [
-      "Arquitectura abierta preparada para integraciones",
-      "Datos conversacionales estructurados y exportables",
-      "Dos métodos principales: Webhooks en tiempo real e integraciones CRM nativas",
+      "Arquitectura abierta con webhooks en tiempo real",
+      "Datos conversacionales estructurados y exportables (JSON)",
+      "Dos métodos principales: Webhooks + Integración CRM nativa (Q10)",
       "Flujo bidireccional de información entre CloserCat y tus herramientas"
     ],
-    extraText: "CloserCat no reemplaza tu stack, lo potencia conectándose donde ya trabajas hoy.",
+    extraText: "Hasta 20 webhooks configurables por cuenta. CloserCat no reemplaza tu stack, lo potencia conectándose donde ya trabajas hoy.",
     imagePlaceholder: "Vista de integraciones conectando CloserCat con tu stack actual",
-    imageUrl: "/closercat-integracion.png", // PEGA AQUÍ LA URL DE TU IMAGEN DE INTEGRACIONES
-    videoUrl: "/closercat-integrations-v1.mp4", // PEGA AQUÍ LA URL DE TU VIDEO DE INTEGRACIONES
+    imageUrl: "/closercat-integracion.png",
+    videoUrl: "/closercat-integrations-v1.mp4",
   },
-  // SLIDE 19C: INTEGRACIONES POR WEBHOOKS
+
+  // SLIDE 19C: INTEGRACIONES POR WEBHOOKS (MEJORADO)
   {
     id: 33,
     type: SlideType.SPLIT_IMAGE,
-    title: "Método 1: Webhooks en tiempo real",
+    title: "Método 1: Webhooks con seguridad enterprise",
     subtitle: "Conecta con n8n, Make, Zapier y más",
     content: "Emite eventos de conversación en tiempo real para disparar automatizaciones en tus herramientas favoritas.",
     bullets: [
-      "Eventos cuando hay nuevos mensajes, cambios de estado o cierres",
-      "Compatible con n8n, Make, Zapier y otros orquestadores",
-      "Payload JSON estructurado listo para leer en tus flujos",
-      "Permite orquestar flujos complejos sin tocar el core de CloserCat"
+      "📡 Eventos: nuevos mensajes, cambios de estado, cierres, enriquecimiento",
+      "🔐 Seguridad HMAC SHA-256 para verificar autenticidad",
+      "🔄 Retry automático: 3 reintentos con backoff exponencial (1s, 2s, 4s...)",
+      "📊 Monitoreo: logs de entrega, fallos y reintentos"
     ],
-    extraText: "Ejemplo: cuando una conversación llega a 'Cierre positivo', envía automáticamente el lead a tu CRM, notifica a tu equipo en Slack y todo sin tocar tu core.",
+    extraText: "Timeout configurable 1-60 segundos. Payload máximo 1MB. Ejemplo: cuando una conversación llega a 'Cierre positivo', envía automáticamente el lead a tu CRM y notifica en Slack.",
     imagePlaceholder: "Diagrama CloserCat → Webhook → n8n/Make → CRM/Slack",
-    imageUrl: "/closercat-webhooks.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    imageUrl: "/closercat-webhooks.png",
     videoUrl: "",
   },
+
   // SLIDE 19D: INTEGRACIONES CRM NATIVAS
   {
     id: 34,
     type: SlideType.SPLIT_IMAGE,
-    title: "Método 2: Integraciones CRM nativas",
+    title: "Método 2: Integración Q10 CRM nativa",
     subtitle: "Una sola verdad entre conversaciones y CRM",
-    content: "Sincronización bidireccional entre CloserCat y tu CRM para que ambos sistemas compartan la misma realidad.",
+    content: "Sincronización bidireccional entre CloserCat y Q10 CRM para que ambos sistemas compartan la misma realidad.",
     bullets: [
-      "Envía datos de conversaciones y cierres directamente a tu CRM",
+      "Envía datos de conversaciones y cierres directamente a Q10",
       "Recibe información del CRM para enriquecer las respuestas de la IA",
-      "Sincronización automática en ambas direcciones",
+      "Contact Enrichment → Q10 automático sin intervención manual",
       "Evita duplicados y mantiene una sola fuente de verdad"
     ],
-    extraText: "La IA puede usar datos históricos del CRM durante la conversación para personalizar aún más sus respuestas y aumentar tus tasas de cierre.",
-    imagePlaceholder: "Diagrama de doble flecha CloserCat ↔ CRM",
-    imageUrl: "/closercat-crm.png", // PEGA AQUÍ LA URL DE TU IMAGEN
+    extraText: "La IA puede usar datos históricos del CRM durante la conversación para personalizar aún más sus respuestas. Otras integraciones CRM disponibles vía webhooks + n8n/Make.",
+    imagePlaceholder: "Diagrama de doble flecha CloserCat ↔ Q10 CRM",
+    imageUrl: "/closercat-crm.png",
     videoUrl: "",
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 12: COMPARATIVA
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 20: TRANSICIÓN
   {
     id: 20,
@@ -461,13 +580,38 @@ export const SLIDES: SlideData[] = [
     title: "CloserCat vs. La competencia",
     subtitle: "No todas las soluciones de WhatsApp venden igual"
   },
+
   // SLIDE 21: TABLA COMPARATIVA
   {
     id: 21,
     type: SlideType.COMPARISON_TABLE,
     title: "¿Por qué CloserCat?",
-    footerText: "CloserCat es el único que combina IA + humanos en la misma conversación y datos conversacionales de punta a punta para escalar tus ventas"
+    footerText: "CloserCat es el único que combina IA + humanos en la misma conversación, Contact Enrichment automático y datos conversacionales de punta a punta para escalar tus ventas"
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 13: ROLES Y PERMISOS (NUEVO)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // SLIDE 21B: ROLES Y PERMISOS (NUEVO)
+  {
+    id: 42,
+    type: SlideType.STANDARD,
+    title: "Control granular: cada quien ve lo que necesita",
+    subtitle: "Roles y permisos para equipos de cualquier tamaño",
+    content: "CloserCat maneja tres niveles de acceso para que puedas escalar tu equipo de forma segura.",
+    bullets: [
+      "👤 Usuario Normal: gestiona sus conversaciones asignadas, envía mensajes, usa plantillas",
+      "🔧 Admin de Tenant: configura IA, crea campañas, gestiona usuarios, ve métricas globales",
+      "⚡ Super Admin: acceso multi-tenant, configuración avanzada, soporte técnico"
+    ],
+    extraText: "Multi-tenant nativo: cada cuenta está completamente aislada. Un admin no puede ver datos de otro tenant.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 14: PRECIOS Y SERVICIOS
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 22: PRECIOS POR MENSAJES (SUSCRIPCIÓN)
   {
     id: 22,
@@ -480,7 +624,6 @@ export const SLIDES: SlideData[] = [
         priceMessage: "161 COP",
         unitMessage: "/msg",
         detailMessage: "Paquete mensual 2.000 msgs ≈ 322.000 COP/mes",
-        // Campos de plataforma vacíos: este slide es solo de mensajes
         pricePlatform: "",
         unitPlatform: "",
         detailPlatform: "",
@@ -488,6 +631,7 @@ export const SLIDES: SlideData[] = [
           "Activación de WhatsApp y configuración inicial incluidas",
           "Mensajes se acumulan mes a mes durante el año",
           "Uso de la plataforma incluso si la IA está apagada",
+          "Contact Enrichment y Knowledge Base incluidos",
           "Ideal para equipos pequeños que recién formalizan el canal"
         ]
       },
@@ -502,7 +646,7 @@ export const SLIDES: SlideData[] = [
         features: [
           "Todo lo de Starter",
           "Hasta +10% de exceso mensual sin costo antes de adelantar pago",
-          "Mensajes acumulables durante el año",
+          "Guardrails avanzados con incident tracking",
           "Uso intensivo de la plataforma por varios vendedores sin costos extra de licencia"
         ]
       },
@@ -518,6 +662,7 @@ export const SLIDES: SlideData[] = [
           "Todo lo de Growth",
           "Hasta +15% de exceso mensual sin costo",
           "5% de descuento en proyectos de integración",
+          "5 campañas simultáneas con 50,000 targets cada una",
           "Pensado para marcas con varias campañas y números en paralelo"
         ]
       },
@@ -537,23 +682,24 @@ export const SLIDES: SlideData[] = [
         ]
       }
     ],
-    footerText: "On-Demand (sin contrato): Starter 1.000 msgs = 180.000 COP (180 COP/msg, 90 días); Growth 5.000 msgs = 810.000 COP (162 COP/msg, 120 días); Pro 10.000 msgs = 1.530.000 COP (153 COP/msg, 180 días).\nSuscripción por mensajes (recomendado): 2.000–100.000 msgs/mes entre 161–128 COP/msg, con activación, configuración y beneficios de exceso incluidos según tier.\nPrecios corporativos (mayoreo): para >100.000 msgs/mes, IA entre ~157 y 122 COP/msg según volumen, contrato anual y condiciones."
+    footerText: "On-Demand (sin contrato): Starter 1.000 msgs = 180.000 COP (180 COP/msg, 90 días); Growth 5.000 msgs = 810.000 COP (162 COP/msg, 120 días); Pro 10.000 msgs = 1.530.000 COP (153 COP/msg, 180 días).\nUn mensaje = cada respuesta enviada. Conversación abierta dentro de ventana 24h = mensajes ilimitados de respuesta.\nPrecios corporativos (mayoreo): para >100.000 msgs/mes, IA entre ~157 y 122 COP/msg según volumen, contrato anual y condiciones."
   },
+
   // SLIDE 23: IMPLEMENTACIÓN Y SERVICIOS
   {
     id: 23,
     type: SlideType.TIMELINE,
     title: "Implementación y servicios: de cero a equipo en producción",
-    columns: [ // Milestones columns
-      { title: "Hito 1: Setup Técnico", content: ["Conexión WhatsApp API", "Importación de historial", "Configuración de roles y permisos"] },
-      { title: "Hito 2: Calibración IA", content: ["Entrenamiento con tus datos", "Definición de Guardrails", "Personalización de tono"] },
-      { title: "Hito 3: Go-Live", content: ["Despliegue a equipo comercial", "Monitoreo en tiempo real", "Ajustes de optimización"] }
+    columns: [
+      { title: "Hito 1: Setup Técnico", content: ["Conexión WhatsApp API oficial", "Importación de historial", "Configuración de roles y permisos"] },
+      { title: "Hito 2: Calibración IA", content: ["Configuración de Knowledge Base", "Definición de Guardrails y políticas", "Personalización de tono y casos de uso"] },
+      { title: "Hito 3: Go-Live", content: ["Despliegue a equipo comercial", "Monitoreo de Contact Enrichment", "Ajustes de optimización"] }
     ],
     addOns: [
       { title: "Activación de número WhatsApp Business", price: "≈ 450.000 COP", detail: "Pago único por número (configuración técnica + multiusuario básico)" },
       { title: "Línea Adicional WhatsApp", price: "≈ 100.000 COP", detail: "/mes por línea activa (equivalente a USD 25 aprox)" },
-      { title: "Integración CRM/ERP estándar", price: "Desde ≈ 1.500.000 COP", detail: "Pago único, conectores soportados (≈ USD 375)" },
-      { title: "Integraciones CRM/ERP a la medida", price: "Desde ≈ 3.500.000 COP", detail: "Proyecto custom sobre APIs propias (≈ USD 875)" },
+      { title: "Integración Q10 CRM nativa", price: "Desde ≈ 1.500.000 COP", detail: "Pago único, sincronización bidireccional (≈ USD 375)" },
+      { title: "Integraciones CRM/ERP a la medida", price: "Desde ≈ 3.500.000 COP", detail: "Proyecto custom vía webhooks + n8n/Make (≈ USD 875)" },
       { title: "Customización avanzada del asistente", price: "≈ 1.200.000 COP", detail: "Diseño de prompts + combinación de casos de uso + pruebas guiadas (≈ USD 300)" },
       { title: "Onboarding Asistido", price: "≈ 600.000 COP", detail: "Sesión de 2 horas con equipo experto (equivalente a USD 150 aprox.)" }
     ],
@@ -564,6 +710,7 @@ export const SLIDES: SlideData[] = [
       { plan: "Enterprise", channel: "Dedicado 24/7", sla: "SLA < 1h Garantizado" }
     ]
   },
+
   // SLIDE 24: SOLO PLATAFORMA (POR CONTACTOS ACTIVOS)
   {
     id: 38,
@@ -576,6 +723,7 @@ export const SLIDES: SlideData[] = [
         content: [
           "≈ 390.000 COP/mes (≈ USD 100).",
           "Incluye panel, reglas, plantillas, campañas y reporting.",
+          "Media Gallery 500MB incluida.",
           "Ideal para equipos pequeños con infraestructura de WhatsApp/IA propia."
         ]
       },
@@ -592,7 +740,7 @@ export const SLIDES: SlideData[] = [
         content: [
           "≈ 1.560.000 COP/mes (≈ USD 400).",
           "Para marcas que ya viven en WhatsApp y necesitan un centro de comando.",
-          "Licencia de software pura: los mensajes y la IA los pagas a tu proveedor."
+          "Hasta 50,000 targets por campaña, 5 campañas simultáneas."
         ]
       },
       {
@@ -605,6 +753,32 @@ export const SLIDES: SlideData[] = [
       }
     ]
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 15: CAPACIDADES Y LÍMITES (NUEVO)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // SLIDE 38B: LÍMITES Y CAPACIDADES (NUEVO)
+  {
+    id: 43,
+    type: SlideType.STANDARD,
+    title: "Capacidad que escala contigo",
+    subtitle: "Límites transparentes diseñados para operaciones reales",
+    content: "CloserCat está diseñado para soportar operaciones de alto volumen sin sorpresas.",
+    bullets: [
+      "📨 Campañas: hasta 50,000 contactos por campaña, ~4,800/hora",
+      "📚 Knowledge Base: 10,000 items (productos + servicios + FAQs)",
+      "🔗 Webhooks: 20 suscripciones con retry automático",
+      "👥 Contactos: sin límite, historial completo ilimitado",
+      "🖼️ Storage: 500MB media gallery (ampliable)"
+    ],
+    extraText: "Todos los límites son configurables según tu plan. Habla con nosotros si necesitas más capacidad.",
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECCIÓN 16: CIERRE
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // SLIDE 25: CIERRE Y CTA
   {
     id: 36,

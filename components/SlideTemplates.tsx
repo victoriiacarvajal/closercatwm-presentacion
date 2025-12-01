@@ -5,7 +5,21 @@ import { Check, User, Bot, ArrowRight, Zap, Shield, PlayCircle } from 'lucide-re
 interface TemplateProps {
   data: SlideData;
   partnerLogoUrl?: string;
+  ctaUrl?: string; // URL opcional para botón "Agendar" en slides de transición
 }
+
+// Filas de comparación usadas tanto en mobile (tarjetas) como en desktop (tabla)
+const COMPARISON_ROWS: [string, string, string, string, string][] = [
+  ["IA entrenada con TUS datos conversacionales", "✅", "⚠️ FAQs genéricas / scripts", "N/A", "❌"],
+  ["Modo IA asistida + modo manual en la misma conversación", "✅", "❌ Auto 100%", "✅ Manual sin IA", "⚠️ Limitado"],
+  ["Guardrails + escalación a humano ante riesgo", "✅", "❌", "✅ Sin automatización", "⚠️ Básico"],
+  ["Escucha en ráfaga y comprensión multimodal", "✅", "⚠️ Solo texto", "✅ Humano", "⚠️ Limitado"],
+  ["Pipeline conversacional: estados y seguimientos", "✅", "❌", "❌", "⚠️ Pipeline no conversacional"],
+  ["Datos conversacionales estructurados para el negocio", "✅", "❌", "❌", "⚠️ Datos sueltos"],
+  ["Segmentación y campañas por comportamiento conversacional", "✅", "❌", "❌", "⚠️ Segmentación solo CRM"],
+  ["Dashboard de campañas y métricas en tiempo real", "✅", "❌", "❌", "✅ No enfocado en WhatsApp"],
+  ["Integraciones abiertas sobre datos conversacionales", "✅", "⚠️ Limitadas", "❌", "✅ No conversacional-first"],
+];
 
 // 1. Cover Slide
 export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl }) => {
@@ -132,11 +146,29 @@ export const AgendaSlide: React.FC<TemplateProps> = ({ data }) => (
 );
 
 // 3. Transition Slide
-export const TransitionSlide: React.FC<TemplateProps> = ({ data }) => (
-  <div className="h-full flex flex-col items-center justify-center bg-gray-900 text-white relative overflow-hidden px-4 sm:px-8">
-     <div className="absolute inset-0 bg-gradient-to-br from-brand-purple to-brand-cyan opacity-20"></div>
+export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl }) => (
+  <div className="h-full flex flex-col items-center justify-center text-white relative overflow-hidden px-4 sm:px-8">
+    {/* Fondo principal con degradado de marca, coherente con el logo */}
+    <div className="absolute inset-0 bg-gradient-to-br from-brand-purple to-brand-cyan" />
+    {/* Capa sutil para mejorar contraste de texto sobre el degradado */}
+    <div className="absolute inset-0 bg-black/25" />
     <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-4 sm:mb-6 md:mb-8 text-center z-10 px-2 sm:px-6 md:px-12 leading-tight max-w-6xl">{data.title}</h1>
-    {data.subtitle && <h2 className="text-xl sm:text-2xl md:text-4xl font-light text-brand-cyan z-10 text-center max-w-4xl">{data.subtitle}</h2>}
+    {data.subtitle && (
+      <h2 className="text-xl sm:text-2xl md:text-4xl font-light text-brand-cyan z-10 text-center max-w-4xl">
+        {data.subtitle}
+      </h2>
+    )}
+
+    {ctaUrl && (
+      <a
+        href={ctaUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-8 sm:mt-10 inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-white text-brand-purple font-semibold text-sm sm:text-base shadow-lg hover:bg-gray-100 z-10 transition-colors"
+      >
+        Agendar
+      </a>
+    )}
   </div>
 );
 
@@ -488,8 +520,37 @@ export const SplitTextSlide: React.FC<TemplateProps> = ({ data }) => (
 export const ComparisonTableSlide: React.FC<TemplateProps> = ({ data }) => (
   <div className="h-full flex flex-col px-4 sm:px-8 md:px-12 py-6 md:py-8">
     <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8">{data.title}</h2>
-    
-    <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-md flex-1 max-w-full">
+
+    {/* Mobile: tarjetas comparativas en lugar de tabla horizontal */}
+    <div className="md:hidden flex-1 mb-4 space-y-4 overflow-y-auto">
+      {COMPARISON_ROWS.map((row, i) => (
+        <div
+          key={i}
+          className="bg-white rounded-2xl p-4 shadow-md border border-gray-100"
+        >
+          <p className="font-semibold text-base text-gray-900 mb-2">
+            {row[0]}
+          </p>
+          <div className="text-sm space-y-1">
+            <p className="text-brand-cyan font-semibold">
+              CloserCat: <span className="font-bold">{row[1]}</span>
+            </p>
+            <p className="text-gray-600">
+              Chatbots Genéricos: {row[2]}
+            </p>
+            <p className="text-gray-600">
+              WhatsApp Manual: {row[3]}
+            </p>
+            <p className="text-gray-600">
+              CRMs + WA: {row[4]}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Desktop / md+: tabla completa como antes */}
+    <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-200 shadow-md flex-1 max-w-full">
       <table className="w-full min-w-[720px] text-sm sm:text-base text-left">
         <thead className="bg-gray-50 text-gray-700 font-display text-lg">
           <tr>
@@ -501,17 +562,7 @@ export const ComparisonTableSlide: React.FC<TemplateProps> = ({ data }) => (
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {[
-            ["IA entrenada con TUS datos conversacionales", "✅", "⚠️ FAQs genéricas / scripts", "N/A", "❌"],
-            ["Modo IA asistida + modo manual en la misma conversación", "✅", "❌ Auto 100%", "✅ Manual sin IA", "⚠️ Limitado"],
-            ["Guardrails + escalación a humano ante riesgo", "✅", "❌", "✅ Sin automatización", "⚠️ Básico"],
-            ["Escucha en ráfaga y comprensión multimodal", "✅", "⚠️ Solo texto", "✅ Humano", "⚠️ Limitado"],
-            ["Pipeline conversacional: estados y seguimientos", "✅", "❌", "❌", "⚠️ Pipeline no conversacional"],
-            ["Datos conversacionales estructurados para el negocio", "✅", "❌", "❌", "⚠️ Datos sueltos"],
-            ["Segmentación y campañas por comportamiento conversacional", "✅", "❌", "❌", "⚠️ Segmentación solo CRM"],
-            ["Dashboard de campañas y métricas en tiempo real", "✅", "❌", "❌", "✅ No enfocado en WhatsApp"],
-            ["Integraciones abiertas sobre datos conversacionales", "✅", "⚠️ Limitadas", "❌", "✅ No conversacional-first"],
-          ].map((row, i) => (
+          {COMPARISON_ROWS.map((row, i) => (
             <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
               <td className="p-3 sm:p-4 pl-4 sm:pl-6 font-medium text-gray-800 text-sm sm:text-base lg:text-lg">{row[0]}</td>
               <td className="p-3 sm:p-4 bg-brand-cyan/5 font-bold text-brand-cyan text-center text-base sm:text-lg lg:text-xl">{row[1]}</td>
@@ -523,6 +574,7 @@ export const ComparisonTableSlide: React.FC<TemplateProps> = ({ data }) => (
         </tbody>
       </table>
     </div>
+
     <div className="mt-6 text-center">
       <p className="text-2xl font-bold text-brand-purple bg-brand-purple/5 py-3 rounded-xl inline-block px-10 shadow-sm border border-brand-purple/10">{data.footerText}</p>
     </div>
