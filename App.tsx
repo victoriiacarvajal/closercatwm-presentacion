@@ -125,9 +125,17 @@ const App: React.FC = () => {
   const currentSlideData = orderedSlides[currentSlideIndex] || orderedSlides[0];
   const totalSlides = orderedSlides.length;
 
-  // Detectar configuración de presentación desde la query string (presentationId o flags legacy)
+  // Detectar configuración de presentación desde la URL (ruta + query string)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Normalizar rutas del dominio: cualquier path distinto de la raíz se considera 404 y vuelve a '/'
+    const { pathname } = window.location;
+    if (pathname !== '/' && pathname !== '/index.html') {
+      window.location.replace('/');
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const rawPresentationId = params.get('presentationId');
 
