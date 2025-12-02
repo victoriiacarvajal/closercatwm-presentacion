@@ -14,6 +14,14 @@ const GENERIC_CUSTOMER_CTA_URL = 'https://calendly.com/rogertovalle?a1=CloserCat
 const GENERIC_PARTNER_CTA_URL = 'https://calendly.com/rogertovalle/?a1=CloserCat%20Pro%20-%20Partnership';
 const SECRET_KEY = 'closercat-2025';
 
+function claritySet(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
+  const w = (window as any);
+  if (typeof w.clarity === 'function') {
+    w.clarity('set', key, value);
+  }
+}
+
 // Configuración por partner: URLs separadas para partner y cliente
 const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
   wsi: {
@@ -156,6 +164,9 @@ const App: React.FC = () => {
         ) {
           basePresetId = maybeBase;
           partnerSlugFromPreset = maybePartner;
+          claritySet('presentationId', rawPresentationId);
+          claritySet('presetId', basePresetId);
+          claritySet('partnerSlug', partnerSlugFromPreset);
         } else {
           // presentationId inválido → enviar a la raíz y salir
           window.location.href = '/';
@@ -204,6 +215,17 @@ const App: React.FC = () => {
         customerCtaFromConfig ||
         GENERIC_CUSTOMER_CTA_URL
       );
+
+      // Tracking en Clarity para esta presentación
+      if (rawPresentationId) {
+        claritySet('presentationId', rawPresentationId);
+      }
+      if (basePresetId) {
+        claritySet('presetId', basePresetId);
+      }
+      if (partnerSlug) {
+        claritySet('partnerSlug', partnerSlug);
+      }
 
       // Guardar SIEMPRE la última URL de referido con presentationId para futuras redirecciones
       try {
@@ -259,6 +281,14 @@ const App: React.FC = () => {
     setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
     setIsUnlocked(false);
   }, []);
+
+  // Tracking de slide actual en Clarity
+  useEffect(() => {
+    if (!currentSlideData) return;
+    claritySet('slide_index', currentSlideIndex + 1);
+    claritySet('slide_id', currentSlideData.id);
+    claritySet('slide_type', currentSlideData.type);
+  }, [currentSlideIndex, currentSlideData]);
 
   // Detectar mobile vs desktop y calcular escala solo para desktop
   useEffect(() => {
