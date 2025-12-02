@@ -80,8 +80,6 @@ const PRESENTATION_PRESETS: Record<string, {
     showCtaButton: true,
     slideOrder: [
       1,   // Portada
-      6,   // Problema
-      8,   // Transición
       24,  // Todo comienza con conversación
       28,  // Contact Enrichment
       16,  // Guardrails
