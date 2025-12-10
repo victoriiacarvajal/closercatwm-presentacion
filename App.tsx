@@ -30,6 +30,9 @@ const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: 
   vc: {
     customerCtaUrl: 'https://calendly.com/victoriia-carvajal?a1=CloserCat%20Pro',
   },
+  ticsia: {
+    customerCtaUrl: '#',
+  },
 };
 
 // Lista de partners válidos para slugs dinámicos en presentationId (base-partner)
@@ -64,6 +67,11 @@ const PRESENTATION_PRESETS: Record<string, {
   ctaUrl?: string;        // URL de "Agendar" específica del preset
   showCtaButton?: boolean; // mostrar botón "Empezar" en header
 }> = {
+  ticsia: {
+    partnerSlug: 'ticsia',
+    hidePricing: false,
+    showCtaButton: false,
+  },
   nqprws: {
     partnerSlug: 'wsi',
     hidePricing: true,

@@ -701,7 +701,8 @@ export const SLIDES: SlideData[] = [
       { title: "Integración Q10 CRM nativa", price: "Desde ≈ 1.500.000 COP", detail: "Pago único, sincronización bidireccional (≈ USD 375)" },
       { title: "Integraciones CRM/ERP a la medida", price: "Desde ≈ 3.500.000 COP", detail: "Proyecto custom vía webhooks + n8n/Make (≈ USD 875)" },
       { title: "Customización avanzada del asistente", price: "≈ 1.200.000 COP", detail: "Diseño de prompts + combinación de casos de uso + pruebas guiadas (≈ USD 300)" },
-      { title: "Onboarding Asistido", price: "≈ 600.000 COP", detail: "Sesión de 2 horas con equipo experto (equivalente a USD 150 aprox.)" }
+      { title: "Onboarding Asistido", price: "≈ 600.000 COP", detail: "Sesión de 2 horas con equipo experto (equivalente a USD 150 aprox.)" },
+      { title: "Consultoría Light – Discovery & ROI", price: "≈ 800.000 COP", detail: "Sesión de diagnóstico (2-3h): entendemos tu operación, construimos un caso de negocio con números reales y estimamos presupuesto mensual + retorno de inversión esperado (≈ USD 200)" }
     ],
     supportLevels: [
       { plan: "Starter", channel: "Email", sla: "Respuesta < 48h" },
