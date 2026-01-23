@@ -107,6 +107,7 @@ export const SLIDES: SlideData[] = [
     videoUrl: "/closercat-casos-de-uso-v1.mp4",
   },
 
+  // SLIDE 5C-2: CONFIGURACIÓN DEL ASISTENTE (USE CASE + KB)
   {
     id: 45,
     type: SlideType.SPLIT_IMAGE,
@@ -178,6 +179,7 @@ export const SLIDES: SlideData[] = [
     videoUrl: "",
   },
 
+  // SLIDE 7B: CÓMO FUNCIONA EN 60 SEGUNDOS
   {
     id: 44,
     type: SlideType.STANDARD,
@@ -400,6 +402,7 @@ export const SLIDES: SlideData[] = [
     extraText: "Confidence threshold configurable (default 0.7). Si la IA no está segura, no actualiza el campo. Puedes corregir manualmente y el sistema aprende de las correcciones.",
   },
 
+  // SLIDE 28C: CONTACTS MANAGEMENT (24+ CAMPOS)
   {
     id: 46,
     type: SlideType.SPLIT_IMAGE,

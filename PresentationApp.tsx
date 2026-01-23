@@ -2,15 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SLIDES } from './constants';
 import { SlideType, SlideData } from './types';
 import SlideLayout from './components/SlideLayout';
-import LandingApp from './LandingApp';
-import { 
-  CoverSlide, AgendaSlide, TransitionSlide, StandardSlide, 
-  SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide, 
-  ComparisonTableSlide, PricingSlide, TimelineSlide 
+import {
+  CoverSlide, AgendaSlide, TransitionSlide, StandardSlide,
+  SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide,
+  ComparisonTableSlide, PricingSlide, TimelineSlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 
-// URLs genéricas por defecto (puedes reemplazarlas por las reales)
 const GENERIC_CUSTOMER_CTA_URL = 'https://calendly.com/rogertovalle?a1=CloserCat%20Pro%20-%20Cliente';
 const GENERIC_PARTNER_CTA_URL = 'https://calendly.com/rogertovalle/?a1=CloserCat%20Pro%20-%20Partnership';
 const SECRET_KEY = 'closercat-2025';
@@ -23,7 +21,6 @@ function claritySet(key: string, value: unknown) {
   }
 }
 
-// Configuración por partner: URLs separadas para partner y cliente
 const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
   wsi: {
     customerCtaUrl: 'https://www.wsiworld.lat/henry-guzman',
@@ -36,37 +33,24 @@ const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: 
   },
 };
 
-// Lista de partners válidos para slugs dinámicos en presentationId (base-partner)
 const VALID_PARTNER_SLUGS = Object.keys(PARTNER_CONFIG);
 
-// Orden explícito de los slides según la narrativa acordada.
-// No todos los IDs definidos en constants.tsx aparecen aquí; algunos quedan fuera del flujo.
 const SLIDE_ORDER: number[] = [
-  // Introducción, contexto y problema
   1, 2, 3, 4, 6, 8,
-  // Bloque de features conversacionales (cómo opera CloserCat en cada conversación)
   24, 25, 26, 16, 27, 28, 40, 14, 15, 41, 18, 19, 13,
-  // Integraciones y marketing conversacional
   35, 32, 31, 12,
-  // Panel unificado, operación y pasos siguientes
   20, 21, 42, 22, 38, 23, 43,
-  // Cierre con llamada a la acción
   36,
 ];
 
-// IDs de slides de precios/implementación que pueden ocultarse según el contexto de la presentación
 const HIDE_PRICING_SLIDE_IDS: number[] = [22, 23, 38];
 
-// Mapa de presets opacos base: presentationId -> configuración interna
-// Ejemplos:
-//   "nqprws"  → preset completo y estático (incluye partnerSlug)
-//   "waquick" → preset base sin partner; el slug viene en presentationId (waquick-wsi)
-const PRESENTATION_PRESETS: Record<string, { 
-  partnerSlug?: string; 
+const PRESENTATION_PRESETS: Record<string, {
+  partnerSlug?: string;
   hidePricing?: boolean;
-  slideOrder?: number[];  // orden custom opcional
-  ctaUrl?: string;        // URL de "Agendar" específica del preset
-  showCtaButton?: boolean; // mostrar botón "Empezar" en header
+  slideOrder?: number[];
+  ctaUrl?: string;
+  showCtaButton?: boolean;
 }> = {
   ticsia: {
     partnerSlug: 'ticsia',
@@ -78,31 +62,29 @@ const PRESENTATION_PRESETS: Record<string, {
     hidePricing: true,
     showCtaButton: true,
   },
-  // Pitch rápido WhatsApp (6 slides, ~2 minutos de lectura)
   waquick: {
     hidePricing: true,
     showCtaButton: true,
     slideOrder: [
-      1,   // Portada CloserCat
-      6,   // El problema del caos WhatsApp (dolor)
-      8,   // Transición "Con CloserCat"
-      28,  // Contact Enrichment (diferenciador clave)
-      10,  // Lo que nos hace diferentes
-      36,  // CTA cierre
+      1,
+      6,
+      8,
+      28,
+      10,
+      36,
     ]
   },
-  // Versión media: problema + solución + campañas (9 slides)
   wamedium: {
     hidePricing: true,
     showCtaButton: true,
     slideOrder: [
-      1,   // Portada
-      24,  // Todo comienza con conversación
-      28,  // Contact Enrichment
-      16,  // Guardrails
-      31,  // Dashboard campañas
-      21,  // Comparativa
-      36,  // CTA
+      1,
+      24,
+      28,
+      16,
+      31,
+      21,
+      36,
     ],
   },
 };
@@ -118,7 +100,7 @@ const PresentationApp: React.FC = () => {
   const [scale, setScale] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [showCtaButton, setShowCtaButton] = useState(false);
-  const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL); // usado en slide de cierre (cliente)
+  const [ctaUrl, setCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL);
   const [rootPartnerCtaUrl, setRootPartnerCtaUrl] = useState<string | null>(GENERIC_PARTNER_CTA_URL);
   const [rootCustomerCtaUrl, setRootCustomerCtaUrl] = useState<string | null>(GENERIC_CUSTOMER_CTA_URL);
   const [hasPartnerConfig, setHasPartnerConfig] = useState(false);
@@ -140,16 +122,8 @@ const PresentationApp: React.FC = () => {
   const currentSlideData = orderedSlides[currentSlideIndex] || orderedSlides[0];
   const totalSlides = orderedSlides.length;
 
-  // Detectar configuración de presentación desde la URL (ruta + query string)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    // Normalizar rutas del dominio: cualquier path distinto de la raíz se considera 404 y vuelve a '/'
-    const { pathname } = window.location;
-    if (pathname !== '/' && pathname !== '/index.html') {
-      window.location.replace('/');
-      return;
-    }
 
     const params = new URLSearchParams(window.location.search);
     const rawPresentationId = params.get('presentationId');
@@ -158,11 +132,9 @@ const PresentationApp: React.FC = () => {
     let partnerSlugFromPreset: string | null = null;
 
     if (rawPresentationId) {
-      // 1) Compatibilidad directa: el id completo existe como preset estático
       if (PRESENTATION_PRESETS[rawPresentationId]) {
         basePresetId = rawPresentationId;
       } else {
-        // 2) Formato dinámico base-partner (ej. waquick-wsi)
         const [maybeBase, maybePartner] = rawPresentationId.split('-', 2);
 
         if (
@@ -177,7 +149,6 @@ const PresentationApp: React.FC = () => {
           claritySet('presetId', basePresetId);
           claritySet('partnerSlug', partnerSlugFromPreset);
         } else {
-          // presentationId inválido → enviar a la raíz y salir
           window.location.href = '/';
           return;
         }
@@ -214,18 +185,15 @@ const PresentationApp: React.FC = () => {
         setCustomSlideOrder(preset.slideOrder);
       }
 
-      // Actualizar CTAs raíz (portada)
       setRootPartnerCtaUrl(partnerCtaFromConfig || GENERIC_PARTNER_CTA_URL);
       setRootCustomerCtaUrl(customerCtaFromConfig || GENERIC_CUSTOMER_CTA_URL);
 
-      // Prioridad para CTA de cierre: preset.ctaUrl → CTA cliente del partner → CTA genérica cliente
       setCtaUrl(
         preset.ctaUrl ||
         customerCtaFromConfig ||
         GENERIC_CUSTOMER_CTA_URL
       );
 
-      // Tracking en Clarity para esta presentación
       if (rawPresentationId) {
         claritySet('presentationId', rawPresentationId);
       }
@@ -236,29 +204,16 @@ const PresentationApp: React.FC = () => {
         claritySet('partnerSlug', partnerSlug);
       }
 
-      // Guardar SIEMPRE la última URL de referido con presentationId para futuras redirecciones
       try {
         window.localStorage.setItem('closercat_referral_url', window.location.pathname + window.location.search);
       } catch {
-        // Ignorar errores de acceso a localStorage
+        // ignore
       }
       return;
     }
 
     setHasPreset(false);
 
-    // Si no hay preset pero existe una URL de referido guardada y estamos en la raíz, redirigir allí
-    try {
-      const storedReferral = window.localStorage.getItem('closercat_referral_url');
-      if (storedReferral && window.location.search === '') {
-        window.location.href = storedReferral;
-        return;
-      }
-    } catch {
-      // Ignorar errores de acceso a localStorage
-    }
-
-    // Fallback: compatibilidad con parámetros antiguos directos
     const slug = params.get('partner');
     if (slug) {
       setPartnerLogoUrl(`/partners/${slug}.png`);
@@ -275,7 +230,6 @@ const PresentationApp: React.FC = () => {
         setHasPartnerConfig(false);
       }
     } else {
-      // Sin partner explícito
       setRootPartnerCtaUrl(GENERIC_PARTNER_CTA_URL);
       setRootCustomerCtaUrl(GENERIC_CUSTOMER_CTA_URL);
       setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
@@ -286,12 +240,10 @@ const PresentationApp: React.FC = () => {
       setHidePricing(true);
     }
 
-    // Sin preset específico ni partner conocido: usar URLs genéricas
     setCtaUrl(GENERIC_CUSTOMER_CTA_URL);
     setIsUnlocked(false);
   }, []);
 
-  // Tracking de slide actual en Clarity
   useEffect(() => {
     if (!currentSlideData) return;
     claritySet('slide_index', currentSlideIndex + 1);
@@ -299,7 +251,6 @@ const PresentationApp: React.FC = () => {
     claritySet('slide_type', currentSlideData.type);
   }, [currentSlideIndex, currentSlideData]);
 
-  // Detectar mobile vs desktop y calcular escala solo para desktop
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -309,11 +260,10 @@ const PresentationApp: React.FC = () => {
       setIsMobile(mobile);
 
       if (mobile) {
-        setScale(1); // En mobile no escalamos
+        setScale(1);
         return;
       }
 
-      // Desktop: frame fijo 1920x1080 escalado
       const padding = 32;
       const availableW = innerWidth - padding;
       const availableH = innerHeight - padding;
@@ -361,7 +311,6 @@ const PresentationApp: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Registrar secuencia para la clave secreta (solo caracteres relevantes)
       const char = e.key.length === 1 ? e.key.toLowerCase() : '';
       if (/[a-z0-9-]/.test(char)) {
         secretBufferRef.current = (secretBufferRef.current + char).slice(-SECRET_KEY.length);
@@ -383,7 +332,6 @@ const PresentationApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleUserNext, handleUserPrev, canNavigate, isUnlocked]);
 
-  // Demo automática en mobile: avanzar y volver una vez en la slide 1
   useEffect(() => {
     if (hasAutoDemoRun || hasUserNavigated) return;
     if (currentSlideIndex !== 0) return;
@@ -423,11 +371,9 @@ const PresentationApp: React.FC = () => {
       case SlideType.TRANSITION: {
         const isCtaSlide = data.id === 36;
         if (isCtaSlide) {
-          // Si hay partner asociado (config encontrado), usamos solo el CTA del partner (cliente)
           if (hasPartnerConfig) {
             return <TransitionSlide data={data} ctaUrl={ctaUrl || undefined} />;
           }
-          // Si no hay partner asociado, reutilizamos el mismo menú doble de la portada
           return (
             <TransitionSlide
               data={data}
@@ -452,7 +398,6 @@ const PresentationApp: React.FC = () => {
 
   return (
     <div className="w-screen h-screen bg-gray-200 flex items-center justify-center font-sans overflow-hidden">
-      {/* Mobile: full screen fluido | Desktop: frame fijo 1920x1080 escalado */}
       <div
         className={`relative shadow-2xl overflow-hidden bg-white ${
           isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
@@ -461,11 +406,11 @@ const PresentationApp: React.FC = () => {
           isMobile
             ? undefined
             : {
-                width: 1920,
-                height: 1080,
-                transform: `scale(${scale})`,
-                transformOrigin: 'center center',
-              }
+              width: 1920,
+              height: 1080,
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center',
+            }
         }
       >
         <SlideLayout
@@ -484,22 +429,21 @@ const PresentationApp: React.FC = () => {
           {renderSlideContent()}
         </SlideLayout>
 
-        {/* Floating Controls (solo cuando la navegación está habilitada) */}
         {canNavigate && (
           <div className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/90 backdrop-blur border border-gray-200 p-2 rounded-full shadow-lg z-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <button onClick={handleUserPrev} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
-                  <ChevronLeft size={20} />
-              </button>
-              <span className="text-xs font-mono font-medium w-12 text-center text-gray-500">
-                  {currentSlideIndex + 1}/{totalSlides}
-              </span>
-              <button onClick={handleUserNext} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
-                  <ChevronRight size={20} />
-              </button>
-              <div className="w-px h-4 bg-gray-300 mx-1"></div>
-               <button onClick={toggleFullscreen} className="p-2 hover:bg-gray-100 rounded-full text-gray-700">
-                  {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-              </button>
+            <button onClick={handleUserPrev} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+              <ChevronLeft size={20} />
+            </button>
+            <span className="text-xs font-mono font-medium w-12 text-center text-gray-500">
+              {currentSlideIndex + 1}/{totalSlides}
+            </span>
+            <button onClick={handleUserNext} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+              <ChevronRight size={20} />
+            </button>
+            <div className="w-px h-4 bg-gray-300 mx-1"></div>
+            <button onClick={toggleFullscreen} className="p-2 hover:bg-gray-100 rounded-full text-gray-700">
+              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
           </div>
         )}
 
@@ -508,18 +452,4 @@ const PresentationApp: React.FC = () => {
   );
 };
 
-const RootApp: React.FC = () => {
-  if (typeof window === 'undefined') return <LandingApp />;
-
-  const params = new URLSearchParams(window.location.search);
-  const mode = params.get('mode');
-  const hasPresentationQuery = Boolean(params.get('presentationId')) || Boolean(params.get('partner'));
-
-  if (mode === 'presentation' || hasPresentationQuery) {
-    return <PresentationApp />;
-  }
-
-  return <LandingApp />;
-};
-
-export default RootApp;
+export default PresentationApp;

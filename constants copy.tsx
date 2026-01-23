@@ -75,7 +75,7 @@ export const SLIDES: SlideData[] = [
   // SLIDE 5C: CASOS DE USO DEL ASISTENTE
   {
     id: 25,
-    type: SlideType.STANDARD,
+    type: SlideType.SPLIT_IMAGE,
     title: "Configura una IA que vende como tu negocio",
     subtitle: "Una IA exclusiva para tu negocio",
     content: "CloserCat se configura con la información de tu negocio y se especializa en los casos de uso que más impacto tienen en tus ingresos.",
@@ -87,8 +87,8 @@ export const SLIDES: SlideData[] = [
     ],
     extraText: "Cada configuración es exclusiva para tu negocio. Puedes combinar casos de uso según la etapa del cliente y, si se requiere manejar múltiples casos de uso en una misma conversación, hacemos una revisión y ajuste personalizados para garantizar coherencia.",
     imagePlaceholder: "Pantalla de configuración del asistente (casos de uso y datos del negocio)",
-    imageUrl: "/closercat-configuracion-asistente.png", // PEGA AQUÍ LA URL DE TU IMAGEN
-    videoUrl: "/closercat-casos-de-uso-v1.mp4", // PEGA AQUÍ LA URL DE TU VIDEO DE CONFIGURACIÓN
+    imageUrl: "", // PEGA AQUÍ LA URL DE TU IMAGEN
+    videoUrl: "/closercat-conversation-v2.mp4", // PEGA AQUÍ LA URL DE TU VIDEO DE CONFIGURACIÓN
   },
   // SLIDE 5D: COMPRENSIÓN MULTIMODAL (solo texto)
   {

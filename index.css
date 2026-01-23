@@ -1,0 +1,15 @@
+:root {
+  --brand-blue-primary: #08c4f4;
+  --brand-purple-closer: #8336ff;
+  --brand-bg-light: #f2f2f5;
+  --brand-bg-dark: #121212;
+  --brand-surface-dark: #1e1e1e;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
