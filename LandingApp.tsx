@@ -210,8 +210,7 @@ const LandingApp: React.FC = () => {
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[var(--brand-blue-primary)] to-[var(--brand-purple-closer)]" />
-            <div className="font-[Poppins] text-lg font-semibold">CloserCat</div>
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-9 w-auto" />
           </div>
 
           <div className="hidden items-center md:flex">

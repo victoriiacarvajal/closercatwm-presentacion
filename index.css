@@ -1,15 +1,39 @@
 :root {
-  --brand-blue-primary: #08c4f4;
-  --brand-purple-closer: #8336ff;
-  --brand-bg-light: #f2f2f5;
-  --brand-bg-dark: #121212;
-  --brand-surface-dark: #1e1e1e;
+  --brand-blue-primary: #0066FF;
+  --brand-purple-closer: #6B46C1;
+  --brand-blue-secondary: #4A90E2;
+  --brand-purple-light: #9B59B6;
+  --brand-gray-dark: #2C3E50;
+  --brand-gray-medium: #7F8C8D;
+  --brand-gray-light: #BDC3C7;
+  --brand-gray-lighter: #ECF0F1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #F2F2F5;
+  color: #1a202c;
 }
 
 html, body {
   height: 100%;
 }
 
-body {
-  margin: 0;
+/* Offset for sticky header when scrolling to sections */
+[id] {
+  scroll-margin-top: 80px;
 }
