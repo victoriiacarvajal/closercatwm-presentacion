@@ -1,12 +1,19 @@
 :root {
-  --brand-blue-primary: #0066FF;
-  --brand-purple-closer: #6B46C1;
-  --brand-blue-secondary: #4A90E2;
-  --brand-purple-light: #9B59B6;
-  --brand-gray-dark: #2C3E50;
-  --brand-gray-medium: #7F8C8D;
-  --brand-gray-light: #BDC3C7;
-  --brand-gray-lighter: #ECF0F1;
+  /* Colores primarios - Guía de Marca CloserCat Pro */
+  --brand-blue-primary: #08C4F4;
+  --brand-blue-dark: #104E8B;
+  --brand-purple-closer: #8336FF;
+  --brand-purple-deep: #5F2DA5;
+  
+  /* Colores secundarios */
+  --brand-gray-smoke: #F2F2F5;
+  --brand-black: #121212;
+  --brand-white: #FFFFFF;
+  
+  /* Gradientes */
+  --gradient-brand: linear-gradient(135deg, #08C4F4 0%, #8336FF 100%);
+  --gradient-brand-subtle: linear-gradient(135deg, rgba(8,196,244,0.1) 0%, rgba(131,54,255,0.1) 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #06A8D1 0%, #6B2DD9 100%);
 }
 
 * {
@@ -20,13 +27,13 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F2F2F5;
-  color: #1a202c;
+  background-color: var(--brand-gray-smoke);
+  color: var(--brand-black);
 }
 
 html, body {
@@ -36,4 +43,87 @@ html, body {
 /* Offset for sticky header when scrolling to sections */
 [id] {
   scroll-margin-top: 80px;
+}
+
+/* Print styles for quotation */
+@media print {
+  @page {
+    margin: 1cm;
+    size: letter;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  html, body {
+    height: auto !important;
+    overflow: hidden !important;
+    background-color: white !important;
+  }
+
+  body {
+    background-color: white !important;
+  }
+
+  /* Show only print-specific elements and their children */
+  .print\:block,
+  .print\:block * {
+    visibility: visible !important;
+  }
+
+  /* Position print view at top of page */
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    page-break-after: avoid;
+  }
+
+  /* Hide elements that shouldn't print */
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Remove shadows and rounded corners for cleaner print */
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .rounded-2xl,
+  .rounded-xl,
+  .rounded-lg {
+    border-radius: 0 !important;
+  }
+
+  /* Ensure proper page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  /* Print-friendly colors - convert gradients to solid */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br,
+  .bg-gradient-to-l {
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Ensure text is black for better print quality */
+  * {
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

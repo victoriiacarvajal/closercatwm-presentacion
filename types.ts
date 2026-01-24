@@ -30,3 +30,47 @@ export interface SlideData {
   addOns?: { title: string; price: string; detail?: string }[];
   supportLevels?: { plan: string; sla: string; channel: string }[];
 }
+
+// Landing page types
+export type SegmentType = 
+  | 'emprendedores' 
+  | 'formacion' 
+  | 'ecommerce' 
+  | 'b2b' 
+  | 'soporte' 
+  | 'otras-industrias';
+
+export type BadgeColor = 'blue' | 'green' | 'gray' | 'purple';
+
+export interface SegmentCardProps {
+  segment: SegmentType;
+  icon: string;
+  title: string;
+  description: string;
+  badge: string;
+  badgeColor: BadgeColor;
+  featured?: boolean;
+}
+
+export interface ValuePropData {
+  icon: string;
+  title: string;
+  feature: string;
+  capability: string;
+  benefit: string;
+  screenshot?: string;
+}
+
+export interface LeadFormData {
+  name: string;
+  company: string;
+  whatsapp: string;
+  email: string;
+  monthlyVolumeEstimate: string;
+  useCase: string;
+  crm: string;
+  website?: string; // honeypot
+  industria?: string; // para otras-industrias
+  kpiObjetivo?: string; // para otras-industrias
+  procesoActual?: string; // para otras-industrias
+}

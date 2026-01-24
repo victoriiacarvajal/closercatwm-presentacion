@@ -7,23 +7,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Poppins:wght@600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
               brand: {
-                cyan: '#00B4D8',
-                purple: '#6F4AA0',
-                green: '#2ecc71',
-                orange: '#f39c12',
+                blue: {
+                  primary: '#08C4F4',
+                  dark: '#104E8B',
+                },
+                purple: {
+                  closer: '#8336FF',
+                  deep: '#5F2DA5',
+                },
+                gray: {
+                  smoke: '#F2F2F5',
+                },
+                black: '#121212',
               }
             },
             fontFamily: {
-              sans: ['Montserrat', 'sans-serif'],
-              display: ['Poppins', 'sans-serif'],
+              poppins: ['Poppins', 'sans-serif'],
+              inter: ['Inter', 'sans-serif'],
               mono: ['Roboto Mono', 'monospace'],
+            },
+            backgroundImage: {
+              'gradient-brand': 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)',
+              'gradient-brand-subtle': 'linear-gradient(135deg, rgba(8,196,244,0.1) 0%, rgba(131,54,255,0.1) 100%)',
             }
           }
         }
