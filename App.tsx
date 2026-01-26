@@ -3,12 +3,13 @@ import { SLIDES } from './constants';
 import { SlideType, SlideData } from './types';
 import SlideLayout from './components/SlideLayout';
 import LandingApp from './LandingApp';
-import { 
-  CoverSlide, AgendaSlide, TransitionSlide, StandardSlide, 
-  SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide, 
-  ComparisonTableSlide, PricingSlide, TimelineSlide 
+import {
+  CoverSlide, AgendaSlide, TransitionSlide, StandardSlide,
+  SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide,
+  ComparisonTableSlide, PricingSlide, TimelineSlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
+import SEOManager from './components/shared/SEOManager';
 
 // URLs genéricas por defecto (puedes reemplazarlas por las reales)
 const GENERIC_CUSTOMER_CTA_URL = 'https://calendly.com/rogertovalle?a1=CloserCat%20Pro%20-%20Cliente';
@@ -61,8 +62,8 @@ const HIDE_PRICING_SLIDE_IDS: number[] = [22, 23, 38];
 // Ejemplos:
 //   "nqprws"  → preset completo y estático (incluye partnerSlug)
 //   "waquick" → preset base sin partner; el slug viene en presentationId (waquick-wsi)
-const PRESENTATION_PRESETS: Record<string, { 
-  partnerSlug?: string; 
+const PRESENTATION_PRESETS: Record<string, {
+  partnerSlug?: string;
   hidePricing?: boolean;
   slideOrder?: number[];  // orden custom opcional
   ctaUrl?: string;        // URL de "Agendar" específica del preset
@@ -454,18 +455,17 @@ const PresentationApp: React.FC = () => {
     <div className="w-screen h-screen bg-gray-200 flex items-center justify-center font-sans overflow-hidden">
       {/* Mobile: full screen fluido | Desktop: frame fijo 1920x1080 escalado */}
       <div
-        className={`relative shadow-2xl overflow-hidden bg-white ${
-          isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
-        }`}
+        className={`relative shadow-2xl overflow-hidden bg-white ${isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
+          }`}
         style={
           isMobile
             ? undefined
             : {
-                width: 1920,
-                height: 1080,
-                transform: `scale(${scale})`,
-                transformOrigin: 'center center',
-              }
+              width: 1920,
+              height: 1080,
+              transform: `scale(${scale})`,
+              transformOrigin: 'center center',
+            }
         }
       >
         <SlideLayout
@@ -487,19 +487,19 @@ const PresentationApp: React.FC = () => {
         {/* Floating Controls (solo cuando la navegación está habilitada) */}
         {canNavigate && (
           <div className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/90 backdrop-blur border border-gray-200 p-2 rounded-full shadow-lg z-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <button onClick={handleUserPrev} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
-                  <ChevronLeft size={20} />
-              </button>
-              <span className="text-xs font-mono font-medium w-12 text-center text-gray-500">
-                  {currentSlideIndex + 1}/{totalSlides}
-              </span>
-              <button onClick={handleUserNext} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
-                  <ChevronRight size={20} />
-              </button>
-              <div className="w-px h-4 bg-gray-300 mx-1"></div>
-               <button onClick={toggleFullscreen} className="p-2 hover:bg-gray-100 rounded-full text-gray-700">
-                  {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-              </button>
+            <button onClick={handleUserPrev} disabled={currentSlideIndex === 0} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+              <ChevronLeft size={20} />
+            </button>
+            <span className="text-xs font-mono font-medium w-12 text-center text-gray-500">
+              {currentSlideIndex + 1}/{totalSlides}
+            </span>
+            <button onClick={handleUserNext} disabled={currentSlideIndex === totalSlides - 1} className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-30 text-gray-700">
+              <ChevronRight size={20} />
+            </button>
+            <div className="w-px h-4 bg-gray-300 mx-1"></div>
+            <button onClick={toggleFullscreen} className="p-2 hover:bg-gray-100 rounded-full text-gray-700">
+              {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
           </div>
         )}
 
@@ -515,11 +515,16 @@ const RootApp: React.FC = () => {
   const mode = params.get('mode');
   const hasPresentationQuery = Boolean(params.get('presentationId')) || Boolean(params.get('partner'));
 
-  if (mode === 'presentation' || hasPresentationQuery) {
-    return <PresentationApp />;
-  }
-
-  return <LandingApp />;
+  return (
+    <>
+      <SEOManager />
+      {mode === 'presentation' || hasPresentationQuery ? (
+        <PresentationApp />
+      ) : (
+        <LandingApp />
+      )}
+    </>
+  );
 };
 
 export default RootApp;

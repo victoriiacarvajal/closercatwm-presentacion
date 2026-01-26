@@ -7,7 +7,6 @@ import LandingEmprendedores from './components/landing/LandingEmprendedores';
 import LandingOtrasIndustrias from './components/landing/LandingOtrasIndustrias';
 import LandingPlaceholder from './components/landing/LandingPlaceholder';
 import LandingProfesionalesIndependientes from './components/landing/LandingProfesionalesIndependientes';
-
 const LandingApp: React.FC = () => {
   const segment = getSegmentFromUrl();
 
