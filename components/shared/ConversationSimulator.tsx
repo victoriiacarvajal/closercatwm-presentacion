@@ -58,6 +58,7 @@ interface ProjectionData {
   pessimisticCost: number;
   optimisticCost: number;
   expectedCost: number;
+  totalSetupCost: number;
 }
 
 const PACKAGES = [
@@ -75,18 +76,32 @@ const COSTS = {
   campaign: 66
 };
 
-const TEAM_MULTIPLIERS: Record<string, number> = {
-  '1-5': 0.00,
-  '6-10': 0.10,
-  '11-20': 0.20,
-  '21-50': 0.30,
-  '50+': 0.50
+const getTeamMultiplier = (reps: number): number => {
+  if (reps <= 5) return 0.00;
+  if (reps <= 10) return 0.10;
+  if (reps <= 20) return 0.20;
+  if (reps <= 50) return 0.30;
+  return 0.50;
 };
 
+const STRATEGY_FACTORS: Record<string, number> = {
+  decentralized: 1.0,
+  transition: 1.15,
+  mixed: 1.25,
+  institutional: 1.40,
+};
+
+const REP_BASE_FEE = 19000;
+const PERSONAL_LINE_FEE = 10000; // Fee por sincronización/custodia de línea personal
+const INSTITUTIONAL_LINE_FEE = 0; // Sin cobro mensual para líneas API
+const INSTITUTIONAL_SETUP_FEE = 450000;
+const RESIDUAL_COST = 3;
+
 const INTEGRATION_COSTS: Record<string, { monthly: number; setup: number }> = {
-  crm_custom: { monthly: 500000, setup: 3500000 },
+  crm_saas: { monthly: 0, setup: 300000 },
+  crm_custom: { monthly: 500000, setup: 2000000 }, // Legacy/A la medida
   erp_custom: { monthly: 800000, setup: 3500000 },
-  custom_webhooks: { monthly: 300000, setup: 2000000 }
+  custom_webhooks: { monthly: 0, setup: 300000 }
 };
 
 const SERVICES_COSTS = {
@@ -105,6 +120,7 @@ export default function ConversationSimulator() {
   const [visibleMessages, setVisibleMessages] = useState<ConversationTurn[]>([]);
   const [iaResponseCount, setIaResponseCount] = useState(0);
   const [estimatedAvgTurns, setEstimatedAvgTurns] = useState(6); // Default estimation
+  const [iaDelegationPercentage, setIaDelegationPercentage] = useState(70);
   const [showEstimationModal, setShowEstimationModal] = useState(false);
 
   const [multimediaStats, setMultimediaStats] = useState<MultimediaStats>({
@@ -119,9 +135,10 @@ export default function ConversationSimulator() {
   const [projection, setProjection] = useState<ProjectionData | null>(null);
 
   const [teamStructure, setTeamStructure] = useState<TeamStructureData>({
-    numberOfSalesReps: '1-5',
-    currentWhatsAppType: 'personal',
-    hasInstitutionalNumber: false,
+    numberOfSalesReps: 5,
+    whatsappOwnership: 'sellers',
+    repsPerLine: 1,
+    managementStrategy: 'decentralized',
     integrationsNeeded: [],
     needsCampaigns: false,
     campaignContacts: 0,
@@ -202,21 +219,50 @@ export default function ConversationSimulator() {
     const aiTurns = estimatedAvgTurns;
     const totalMonthlyMessages = monthlyConversations * aiTurns;
 
-    // Distribución basada en porcentajes originales
-    const audioMessages = Math.round(totalMonthlyMessages * (multimediaStats.audioPercentage / 10));
-    const imageMessages = Math.round(totalMonthlyMessages * (multimediaStats.imagePercentage / 10));
-    const documentMessages = Math.round(totalMonthlyMessages * (multimediaStats.documentPercentage / 10));
-    const textMessages = totalMonthlyMessages - audioMessages - imageMessages - documentMessages;
+    // Split traffic: IA vs Residual (Custody)
+    const iaTrafficMessages = Math.round(totalMonthlyMessages * (iaDelegationPercentage / 100));
+    const residualTrafficMessages = totalMonthlyMessages - iaTrafficMessages;
 
-    const textCost = textMessages * COSTS.text;
-    const audioCost = audioMessages * COSTS.audio;
-    const imageCost = imageMessages * COSTS.image;
-    const documentCost = documentMessages * COSTS.document;
+    // IA Distribution based on multimedia mix
+    const audioMessages = Math.round(iaTrafficMessages * (multimediaStats.audioPercentage / 10));
+    const imageMessages = Math.round(iaTrafficMessages * (multimediaStats.imagePercentage / 10));
+    const documentMessages = Math.round(iaTrafficMessages * (multimediaStats.documentPercentage / 10));
+    const textMessages = iaTrafficMessages - audioMessages - imageMessages - documentMessages;
 
-    const baseCost = textCost + audioCost + imageCost + documentCost;
+    // Audio cost proportional to duration (assuming base cost is for ~60s)
+    const audioDurationRatio = (multimediaStats.audioAvgMinutes || 60) / 60; // Now stores seconds
+    const adjustedAudioCost = COSTS.audio * audioDurationRatio;
 
-    const teamMultiplier = TEAM_MULTIPLIERS[teamData.numberOfSalesReps] || 0;
+    const iaCost = (textMessages * COSTS.text) + (audioMessages * adjustedAudioCost) + (imageMessages * COSTS.image) + (documentMessages * COSTS.document);
+    const residualCost = residualTrafficMessages * RESIDUAL_COST;
+
+    const baseCost = iaCost + residualCost;
+
+    const teamMultiplier = getTeamMultiplier(teamData.numberOfSalesReps);
     const adjustedBaseCost = baseCost * (1 + teamMultiplier);
+
+    // Fee de Líneas (Sincronización vs Control Total)
+    let lineMonthlyFee = 0;
+    let lineSetupFee = 0;
+
+    if (teamData.whatsappOwnership === 'sellers') {
+      // Líneas personales: solo fee de sincronización ($10k)
+      lineMonthlyFee = teamData.numberOfSalesReps * PERSONAL_LINE_FEE;
+    } else if (teamData.whatsappOwnership === 'company') {
+      // Líneas institucionales: fee de mantenimiento ($40k) + setup ($450k)
+      const numLines = Math.ceil(teamData.numberOfSalesReps / teamData.repsPerLine);
+      lineMonthlyFee = numLines * INSTITUTIONAL_LINE_FEE;
+      lineSetupFee = numLines * INSTITUTIONAL_SETUP_FEE;
+    } else if (teamData.whatsappOwnership === 'mixed') {
+      // Mix: Mitad personales, mitad institucionales (aprox)
+      const institutionalReps = Math.ceil(teamData.numberOfSalesReps / 2);
+      const personalReps = teamData.numberOfSalesReps - institutionalReps;
+
+      const numInstitutionalLines = Math.ceil(institutionalReps / teamData.repsPerLine);
+
+      lineMonthlyFee = (personalReps * PERSONAL_LINE_FEE) + (numInstitutionalLines * INSTITUTIONAL_LINE_FEE);
+      lineSetupFee = numInstitutionalLines * INSTITUTIONAL_SETUP_FEE;
+    }
 
     let integrationMonthlyCost = 0;
     let integrationSetupCost = 0;
@@ -229,18 +275,15 @@ export default function ConversationSimulator() {
       }
     });
 
-    const integrationSetupAmortized = integrationSetupCost / 12;
-    const totalIntegrationCost = integrationMonthlyCost + integrationSetupAmortized;
-
-    let servicesCost = 0;
+    let servicesMonthlyCost = 0;
     let servicesSetupCost = 0;
 
     if (teamData.needsCampaigns && teamData.campaignContacts && teamData.campaignsPerMonth) {
       const campaignMsgsPerMonth = teamData.campaignContacts * teamData.campaignsPerMonth;
-      servicesCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg;
+      servicesMonthlyCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg;
     }
     if (teamData.needsCustomReports) {
-      servicesCost += SERVICES_COSTS.custom_reports;
+      servicesMonthlyCost += SERVICES_COSTS.custom_reports;
     }
     if (teamData.needsMigrationAssistance) {
       servicesSetupCost += SERVICES_COSTS.migration_assisted;
@@ -249,36 +292,27 @@ export default function ConversationSimulator() {
       servicesSetupCost += SERVICES_COSTS.onboarding;
     }
 
-    const servicesSetupAmortized = servicesSetupCost / 12;
-    const totalServicesCost = servicesCost + servicesSetupAmortized;
-
-    const totalMonthlyCost = adjustedBaseCost + totalIntegrationCost + totalServicesCost;
+    // Totales separados
+    const totalMonthlyCost = adjustedBaseCost + lineMonthlyFee + integrationMonthlyCost + servicesMonthlyCost;
+    const totalSetupCost = lineSetupFee + integrationSetupCost + servicesSetupCost;
 
     let discountedBaseCost = adjustedBaseCost;
     let volumeDiscountApplied = false;
 
     if (totalMonthlyMessages >= 500000) {
-      discountedBaseCost = totalMonthlyMessages * 122;
-      volumeDiscountApplied = true;
-    } else if (totalMonthlyMessages >= 100000) {
-      discountedBaseCost = totalMonthlyMessages * 136;
-      volumeDiscountApplied = true;
-    } else if (totalMonthlyMessages >= 50000) {
-      discountedBaseCost = totalMonthlyMessages * 128;
-      volumeDiscountApplied = true;
-    } else if (totalMonthlyMessages >= 25000) {
-      discountedBaseCost = totalMonthlyMessages * 136;
-      volumeDiscountApplied = true;
+      discountedBaseCost = totalMonthlyMessages * 122; // Example volume logic
+      // In a real scenario, adjust this based on the specific volume buckets
     }
 
-    const volumeDiscount = volumeDiscountApplied ? adjustedBaseCost - discountedBaseCost : 0;
-    const finalMonthlyCost = discountedBaseCost + totalIntegrationCost + totalServicesCost;
+    const volumeDiscount = 0; // Simplified for now
+    const finalMonthlyCost = totalMonthlyCost;
 
-    const costForPERT = volumeDiscountApplied ? finalMonthlyCost : totalMonthlyCost;
-    const optimisticCost = Math.round(costForPERT * 0.8);
-    const pessimisticCost = Math.round(costForPERT * 1.3);
-    const expectedCost = Math.round((optimisticCost + (costForPERT * 4) + pessimisticCost) / 6);
+    const costForPERT = finalMonthlyCost;
+    const optimisticCost = Math.round(costForPERT * 0.9);
+    const pessimisticCost = Math.round(costForPERT * 1.1);
+    const expectedCost = costForPERT;
 
+    // Return the full projection object
     return {
       conversationsPerMonth: monthlyConversations,
       avgTurnsPerConversation: aiTurns * 2,
@@ -291,14 +325,15 @@ export default function ConversationSimulator() {
       teamMultiplier,
       adjustedBaseCost,
       integrationMonthlyCost,
-      integrationSetupAmortized,
-      totalIntegrationCost,
-      servicesCost,
-      servicesSetupAmortized,
-      totalServicesCost,
+      totalIntegrationCost: integrationMonthlyCost, // For compatibility
+      integrationSetupAmortized: 0, // No amortizing
+      servicesCost: servicesMonthlyCost,
+      totalServicesCost: servicesMonthlyCost,
+      servicesSetupAmortized: 0,
       volumeDiscount,
       volumeDiscountApplied,
-      totalMonthlyCost: volumeDiscountApplied ? finalMonthlyCost : totalMonthlyCost,
+      totalMonthlyCost: finalMonthlyCost,
+      totalSetupCost,
       pessimisticCost,
       optimisticCost,
       expectedCost
@@ -328,7 +363,13 @@ export default function ConversationSimulator() {
         simulation: {
           estimatedAvgTurns,
           multimediaStats,
-          teamStructure,
+          teamStructure: {
+            ...teamStructure,
+            numberOfSalesReps: teamStructure.numberOfSalesReps,
+            whatsappOwnership: teamStructure.whatsappOwnership,
+            managementStrategy: teamStructure.managementStrategy,
+            repsPerLine: teamStructure.repsPerLine
+          },
           projection,
         },
       };
@@ -666,14 +707,14 @@ export default function ConversationSimulator() {
             {multimediaStats.audioPercentage > 0 && (
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
-                  Duración promedio del audio (minutos)
+                  Duración promedio del audio (segundos)
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  step="0.5"
-                  value={multimediaStats.audioAvgMinutes}
-                  onChange={(e) => setMultimediaStats({ ...multimediaStats, audioAvgMinutes: Math.max(0, parseFloat(e.target.value) || 0) })}
+                  min="1"
+                  step="1"
+                  value={multimediaStats.audioAvgMinutes} // We reuse the variable name but now treat it as seconds
+                  onChange={(e) => setMultimediaStats({ ...multimediaStats, audioAvgMinutes: Math.max(1, parseInt(e.target.value) || 0) })}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
                 />
               </div>
@@ -786,6 +827,41 @@ export default function ConversationSimulator() {
         </p>
       </div>
 
+      {/* Delegación IA */}
+      <div className="mt-10 p-8 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h4 className="font-poppins font-bold text-gray-900">Estrategia de Automatización</h4>
+            <p className="text-xs text-gray-500">¿Qué porcentaje de tus conversaciones delegarás a la IA?</p>
+          </div>
+          <div className="text-right">
+            <span className="text-3xl font-mono font-bold text-purple-600">{iaDelegationPercentage}%</span>
+            <span className="block text-[10px] text-gray-400 uppercase tracking-wider">IA Activa</span>
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min="10"
+          max="100"
+          step="5"
+          value={iaDelegationPercentage}
+          onChange={(e) => setIaDelegationPercentage(parseInt(e.target.value))}
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+        />
+
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+            <p className="text-[10px] font-bold text-purple-400 uppercase mb-1">Automatización</p>
+            <p className="text-xs text-purple-700">La IA gestiona, califica y cierra por ti.</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Custodia Humana</p>
+            <p className="text-xs text-gray-600">Gestión de humanos con datos organizados y custodia.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-8 flex gap-4">
         <button onClick={() => setStep('multimedia')} className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-bold text-gray-600">
           ← Volver
@@ -815,40 +891,107 @@ export default function ConversationSimulator() {
           <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
             ¿Cuántos comerciales usan WhatsApp para vender?
           </label>
-          <select
-            value={teamStructure.numberOfSalesReps}
-            onChange={(e) => setTeamStructure({ ...teamStructure, numberOfSalesReps: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="1-5">1-5 comerciales</option>
-            <option value="6-10">6-10 comerciales</option>
-            <option value="11-20">11-20 comerciales</option>
-            <option value="21-50">21-50 comerciales</option>
-            <option value="50+">50+ comerciales</option>
-          </select>
+          <div className="flex items-center gap-4">
+            <input
+              type="number"
+              min="1"
+              max="200"
+              value={teamStructure.numberOfSalesReps}
+              onChange={(e) => setTeamStructure({ ...teamStructure, numberOfSalesReps: parseInt(e.target.value) || 1 })}
+              className="w-32 px-4 py-3 border border-gray-300 rounded-lg font-mono text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <span className="text-sm font-inter text-gray-500">comerciales activos</span>
+          </div>
         </div>
 
-        {/* Tipo de WhatsApp */}
+        {/* Propiedad de las líneas */}
         <div className="p-6 bg-gray-50 rounded-xl">
           <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-            ¿Qué tipo de WhatsApp usan actualmente?
+            ¿De quién son las líneas de WhatsApp que se usarán?
           </label>
           <div className="space-y-2">
             {[
-              { id: 'personal', label: 'WhatsApp Personal' },
-              { id: 'business', label: 'WhatsApp Business App' },
-              { id: 'mixed', label: 'Mixto (algunos personal, algunos business)' }
+              { id: 'sellers', label: 'Son personales de los vendedores' },
+              { id: 'company', label: 'Son de la empresa' },
+              { id: 'mixed', label: 'Un mix (algunas personales, otras de empresa)' }
             ].map((option) => (
               <label key={option.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                 <input
                   type="radio"
-                  name="whatsappType"
+                  name="whatsappOwnership"
                   value={option.id}
-                  checked={teamStructure.currentWhatsAppType === option.id}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, currentWhatsAppType: e.target.value })}
+                  checked={teamStructure.whatsappOwnership === option.id}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, whatsappOwnership: e.target.value as any })}
                   className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 />
                 <span className="text-sm font-inter text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Vinculación por línea (solo si son de empresa o mix) */}
+        {(teamStructure.whatsappOwnership === 'company' || teamStructure.whatsappOwnership === 'mixed') && (
+          <div className="p-6 bg-purple-50 border border-purple-100 rounded-xl">
+            <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+              En las líneas de empresa, ¿cuántos vendedores se vinculan a la misma línea?
+            </label>
+            <div className="flex items-center gap-4">
+              <select
+                value={teamStructure.repsPerLine}
+                onChange={(e) => setTeamStructure({ ...teamStructure, repsPerLine: parseInt(e.target.value) })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+              >
+                {[1, 2, 3, 4, 5].map(num => (
+                  <option key={num} value={num}>{num} {num === 1 ? 'vendedor' : 'vendedores'} por línea</option>
+                ))}
+              </select>
+            </div>
+            <p className="mt-2 text-xs text-gray-500 italic">Máximo 5 comerciales vinculados por línea para garantizar calidad.</p>
+          </div>
+        )}
+
+        {/* Estrategia de gestión */}
+        <div className="p-6 bg-gray-50 rounded-xl">
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            ¿Cuál es tu estrategia de gestión para los próximos meses?
+          </label>
+          <div className="space-y-3">
+            {[
+              {
+                id: 'decentralized',
+                label: 'Mantener control exclusivo de vendedores',
+                detail: 'Sin centralizar información, gestión exclusiva de cada comercial.'
+              },
+              {
+                id: 'transition',
+                label: 'Centralizar información con líneas propias',
+                detail: 'Vendedores usan sus WhatsApps pero la empresa centraliza logs y posiciona una línea institucional.'
+              },
+              {
+                id: 'mixed',
+                label: 'Estrategia mixta controlada',
+                detail: 'Control total de WhatsApps de vendedores e institucionales bajo supervisión.'
+              },
+              {
+                id: 'institutional',
+                label: 'Migrar 100% a línea institucional',
+                detail: 'Toda la gestión se realiza a través de línea corporativa gestionada por la empresa.'
+              }
+            ].map((option) => (
+              <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name="managementStrategy"
+                  value={option.id}
+                  checked={teamStructure.managementStrategy === option.id}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, managementStrategy: e.target.value as any })}
+                  className="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500"
+                />
+                <div>
+                  <span className="block text-sm font-bold text-gray-800">{option.label}</span>
+                  <span className="block text-xs text-gray-500 mt-1">{option.detail}</span>
+                </div>
               </label>
             ))}
           </div>
@@ -1175,152 +1318,157 @@ export default function ConversationSimulator() {
   const renderResults = () => {
     if (!projection) return null;
 
-    const recommendedPackage = PACKAGES.find(pkg => pkg.messages >= projection.totalMessages) || PACKAGES[PACKAGES.length - 1];
-
     return (
-      <div>
-        {/* Vista web (oculta al imprimir) */}
-        <div className="print:hidden">
-          {/* Botón discreto de impresión en la parte superior (solo en pantalla) */}
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg font-poppins font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <span>🖨️</span>
-              <span>Imprimir cotización</span>
-            </button>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="text-center mb-8">
+          <div className="inline-block p-4 bg-green-100 rounded-full mb-4">
+            <span className="text-4xl">✅</span>
           </div>
+          <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
+            Tu cotización personalizada
+          </h3>
+          <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
+            Hola {formData.name}, aquí está tu análisis completo
+          </p>
+        </div>
 
-          <div className="text-center mb-8">
-            <div className="inline-block p-4 bg-green-100 rounded-full mb-4">
-              <span className="text-4xl">✅</span>
-            </div>
-            <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
-              Tu cotización personalizada
-            </h3>
-            <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
-              Hola {formData.name}, aquí está tu análisis completo
-            </p>
-          </div>
+        {/* Proyección PERT (Original Design) */}
+        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-purple-200">
+          <h4 className="font-poppins font-bold mb-4 text-center" style={{ color: '#121212' }}>
+            Proyección de Inversión Mensual (PERT)
+          </h4>
 
-          {/* Proyección PERT */}
-          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-purple-200">
-            <h4 className="font-poppins font-bold mb-4 text-center" style={{ color: '#121212' }}>
-              Proyección de Inversión Mensual (PERT)
-            </h4>
-
-            <div className="grid md:grid-cols-3 gap-4 mb-4">
-              <div className="text-center p-4 bg-green-100 rounded-lg">
-                <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
-                  Escenario Optimista
-                </div>
-                <div className="text-2xl font-mono font-bold" style={{ color: '#10b981' }}>
-                  {formatCurrency(projection.optimisticCost)}
-                </div>
-                <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>-20% del base</div>
+          <div className="grid md:grid-cols-3 gap-4 mb-4">
+            <div className="text-center p-4 bg-green-100 rounded-lg">
+              <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
+                Escenario Optimista
               </div>
-
-              <div className="text-center p-4 bg-purple-100 rounded-lg border-2 border-purple-400">
-                <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
-                  Costo Esperado
-                </div>
-                <div className="text-3xl font-mono font-bold" style={{ color: '#8336FF' }}>
-                  {formatCurrency(projection.expectedCost)}
-                </div>
-                <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>Promedio ponderado</div>
+              <div className="text-2xl font-mono font-bold" style={{ color: '#10b981' }}>
+                {formatCurrency(projection.optimisticCost)}
               </div>
-
-              <div className="text-center p-4 bg-red-100 rounded-lg">
-                <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
-                  Escenario Pesimista
-                </div>
-                <div className="text-2xl font-mono font-bold" style={{ color: '#ef4444' }}>
-                  {formatCurrency(projection.pessimisticCost)}
-                </div>
-                <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>+30% del base</div>
-              </div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>-10% del esperado</div>
             </div>
 
-            <p className="text-xs text-center font-inter" style={{ color: '#6b7280' }}>
-              💡 Proyección basada en {projection.conversationsPerMonth} conversaciones/mes con {projection.avgTurnsPerConversation} turnos promedio
-            </p>
-          </div>
-
-          {/* Desglose de Inversión Mensual (espejo de la vista de impresión) */}
-          <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200">
-            <h4 className="font-poppins font-bold mb-4" style={{ color: '#121212' }}>
-              Desglose detallado de inversión
-            </h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="font-inter text-gray-600">Costo Base Operativo (Mensajes + IA)</span>
-                <span className="font-mono font-bold">{formatCurrency(projection.adjustedBaseCost)}</span>
+            <div className="text-center p-4 bg-purple-100 rounded-lg border-2 border-purple-400 relative transform scale-105 shadow-md">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white text-[10px] uppercase font-bold px-2 py-1 rounded-full">
+                Recomendado
               </div>
-              {projection.totalIntegrationCost > 0 && (
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="font-inter text-gray-600">Integraciones y Conectividad</span>
-                  <span className="font-mono font-bold">{formatCurrency(projection.totalIntegrationCost)}</span>
-                </div>
-              )}
-              {projection.totalServicesCost > 0 && (
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="font-inter text-gray-600">Servicios a Demanda</span>
-                  <span className="font-mono font-bold">{formatCurrency(projection.totalServicesCost)}</span>
-                </div>
-              )}
-              {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
-                <div className="flex justify-between items-center py-2 text-green-600">
-                  <span className="font-inter font-semibold">Descuento por Volumen</span>
-                  <span className="font-mono font-bold">-{formatCurrency(projection.volumeDiscount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
-                <span className="font-poppins font-bold text-gray-900">Total Mensual Esperado</span>
-                <span className="font-mono font-bold text-lg" style={{ color: '#8336FF' }}>{formatCurrency(projection.expectedCost)}</span>
+              <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
+                Costo Esperado
               </div>
+              <div className="text-3xl font-mono font-bold" style={{ color: '#8336FF' }}>
+                {formatCurrency(projection.expectedCost)}
+              </div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>Promedio ponderado</div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h5 className="font-poppins font-semibold mb-3 text-xs uppercase tracking-wider text-gray-500">Volumen estimado</h5>
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>Mensajes Totales:</span>
-                  <span className="font-mono">{projection.totalMessages.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>Conversaciones:</span>
-                  <span className="font-mono">{projection.conversationsPerMonth.toLocaleString()}</span>
-                </div>
+            <div className="text-center p-4 bg-red-100 rounded-lg">
+              <div className="text-xs font-poppins font-semibold mb-1" style={{ color: '#6b7280' }}>
+                Escenario Pesimista
               </div>
+              <div className="text-2xl font-mono font-bold" style={{ color: '#ef4444' }}>
+                {formatCurrency(projection.pessimisticCost)}
+              </div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>+10% del esperado</div>
             </div>
-          </div>
-
-
-
-          {/* Botones de acción */}
-          <div className="flex gap-4">
-            <button
-              onClick={() => {
-                setStep('simulator');
-                setHasAutoPrinted(false);
-              }}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              ← Recalcular
-            </button>
-            <button
-              onClick={handleRequestDemo}
-              className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
-            >
-              Agendar Demostración
-            </button>
           </div>
         </div>
 
+        {/* Desglose de Inversión Mensual */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Mensualidad Recurrente */}
+          <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <h4 className="font-poppins font-bold mb-4 text-purple-900 border-b border-purple-100 pb-2">
+              Mensualidad Recurrente
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center py-1">
+                <span className="font-inter text-gray-600">Base Operativa (IA + Residual)</span>
+                <span className="font-mono font-bold">{formatCurrency(projection.adjustedBaseCost)}</span>
+              </div>
+              {projection.integrationMonthlyCost > 0 && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="font-inter text-gray-600">Integraciones</span>
+                  <span className="font-mono font-bold">{formatCurrency(projection.integrationMonthlyCost)}</span>
+                </div>
+              )}
+              {projection.servicesCost > 0 && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="font-inter text-gray-600">Servicios Adicionales</span>
+                  <span className="font-mono font-bold">{formatCurrency(projection.servicesCost)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-100">
+                <span className="font-bold text-gray-900">Total Mensual</span>
+                <span className="font-mono font-bold text-lg text-purple-600">{formatCurrency(projection.expectedCost)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pago Único (Setup) */}
+          <div className="p-6 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
+            <h4 className="font-poppins font-bold mb-4 text-blue-900 border-b border-blue-200 pb-2">
+              Pago Único (Setup Inicial)
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center py-1">
+                <span className="font-inter text-blue-800">Habilitación de Infraestructura</span>
+                <span className="font-mono font-bold text-blue-900">
+                  {formatCurrency(projection.totalSetupCost - (SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) - (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                </span>
+              </div>
+              {(teamStructure.needsMigrationAssistance || teamStructure.needsOnboarding) && (
+                <div className="flex justify-between items-center py-1">
+                  <span className="font-inter text-blue-800">Servicios de Onboarding</span>
+                  <span className="font-mono font-bold text-blue-900">
+                    {formatCurrency((SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) + (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center pt-3 mt-2 border-t border-blue-200">
+                <span className="font-bold text-blue-900">Total Setup</span>
+                <span className="font-mono font-bold text-lg text-blue-700">{formatCurrency(projection.totalSetupCost)}</span>
+              </div>
+            </div>
+            <p className="mt-4 text-[10px] text-blue-600 italic leading-tight">
+              Incluye configuración de líneas, webhooks, entrenamiento inicial y puesta en marcha.
+            </p>
+          </div>
+        </div>
+
+        {/* Botones de acción (Original Layout Restored) */}
+        <div className="flex gap-4 print:hidden">
+          <button
+            onClick={() => {
+              setStep('simulator');
+              setHasAutoPrinted(false);
+            }}
+            className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            ← Recalcular
+          </button>
+          <button
+            onClick={handleRequestDemo}
+            className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
+          >
+            Agendar Demostración
+          </button>
+        </div>
+
+        <div className="mt-4 text-center print:hidden">
+          <button
+            onClick={() => window.print()}
+            className="text-sm text-gray-500 hover:text-purple-600 underline"
+          >
+            🖨️ Descargar cotización en PDF
+          </button>
+        </div>
+
         {/* Vista de impresión (oculta en pantalla) */}
-        {renderPrintView()}
+        <div className="hidden print:block">
+          {renderPrintView()}
+        </div>
       </div>
     );
   };

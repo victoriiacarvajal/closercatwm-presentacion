@@ -1139,3 +1139,44 @@ INDUSTRY_LIMITS = {
 **Documento creado:** Enero 2026  
 **Versión:** 1.0  
 **Para implementación por:** Equipo de desarrollo CloserCat
+---
+
+## 🚀 HEURÍSTICA DE COTIZACIÓN PARA EQUIPOS COMERCIALES (SIMULADOR)
+
+Esta lógica se aplica en el simulador de la landing de Emprendedores/Empresas para determinar el "Costo Esperado" mensual.
+
+### 1. Costo Base de Mensajería (IA vs Custodia)
+Se divide el volumen total de mensajes según el **Nivel de Delegación a la IA (%)**.
+
+- **Mensajes IA (Automatización Activa):**
+  - `iaCost = (ia_msgs_texto * 180) + (ia_msgs_audio * 256) + (ia_msgs_imagen * 247) + (ia_msgs_doc * 180)`
+- **Mensajes Residuales (Custodia y Enriquecimiento):**
+  - `residualCost = residual_msgs * 3` (Valor fijo de $3 COP para permitir margen de descuento y responsabilidad).
+
+### 1. Costo Base de Mensajería (IA vs Custodia)
+... (Igual que antes)
+
+### 2. Fee por Sincronización y Control de Líneas
+Se elimina el "factor de estrategia" complejo. Se cobra por tipo de línea conectada:
+
+- **Líneas Personales (No Institucionales):**
+    - **Costo:** $10,000 COP/mes por línea sincronizada.
+    - **Concepto:** Custodia de datos y sincronización de logs sin control total de la línea.
+- **Líneas Institucionales (WhatsApp API):**
+    - **Habilitación (Setup):** $450,000 COP (Pago Único).
+    - **Mantenimiento Mensual:** $0 (Incluido en costos operativos).
+- **Lógica de Vinculación:** Máximo 5 comerciales por cada línea institucional.
+
+### 3. Integraciones CRM/ERP
+Se diferencia entre plataformas SaaS populares y desarrollos a la medida.
+
+- **CRMs SaaS (HubSpot, Salesforce, Pipedrive, Zoho, RD Station, Kommo):**
+    - **Costo:** $300,000 COP (Pago Único - Setup Webhooks).
+    - **Mensualidad:** $0 (Incluido en planes estándar).
+- **Sistemas a la Medida / ERPs Legacy (Siesa, SAP, Oracle, Desarrollos Propios):**
+    - **Costo:** Cotización a medida (mínimo $2,000,000 setup + fee mensual de mantenimiento).
+
+### 4. Resumen de Cotización
+Se presentan dos montos separados:
+1. **Pago Único (Setup):** Habilitación de líneas + Configuración de Integraciones + Onboarding.
+2. **Mensualidad (Recurrente):** (IA + Residual) + Fee Líneas Personales + Fee Líneas Institucionales + Servicios Recurrentes.
