@@ -1,10 +1,11 @@
 import { SegmentType } from '../types';
 
-export function recommendPreset(input: { 
+export function recommendPreset(input: {
   segment?: SegmentType;
-  useCase?: string; 
-  monthlyVolumeEstimate?: string; 
+  useCase?: string;
+  monthlyVolumeEstimate?: string;
   crm?: string;
+  planInterest?: string;
 }): string {
   // Si hay segment explícito, usar mapeo directo
   if (input.segment) {
@@ -15,6 +16,12 @@ export function recommendPreset(input: {
         return 'wamedium';
       case 'otras-industrias':
         return 'wamedium';
+      case 'profesionales-independientes':
+        // Lógica basada en plan de interés
+        if (input.planInterest?.includes('CRM + IA')) {
+          return 'wamedium';
+        }
+        return 'waquick'; // Backup o CRM Personal
       default:
         return 'wamedium';
     }
@@ -34,15 +41,16 @@ export function getSegmentFromUrl(): SegmentType | null {
   if (typeof window === 'undefined') return null;
   const params = new URLSearchParams(window.location.search);
   const segment = params.get('segment') as SegmentType | null;
-  
+
   const validSegments: SegmentType[] = [
     'emprendedores',
     'formacion',
     'ecommerce',
     'b2b',
     'soporte',
-    'otras-industrias'
+    'otras-industrias',
+    'profesionales-independientes'
   ];
-  
+
   return segment && validSegments.includes(segment) ? segment : null;
 }

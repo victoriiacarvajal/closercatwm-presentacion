@@ -1,0 +1,117 @@
+  const calculateProjection = (monthlyConversations: number, teamData: TeamStructureData) => {
+    const avgTurns = conversation.length;
+    const aiTurns = conversation.filter(t => t.speaker === 'ai').length;
+    
+    // 1. Cálculo base de mensajes
+    const totalMessagesPerConversation = aiTurns;
+    const totalMonthlyMessages = monthlyConversations * totalMessagesPerConversation;
+
+    // Distribución de multimedia
+    const audioMessages = Math.round(totalMonthlyMessages * (multimediaStats.audioPercentage / 100));
+    const imageMessages = Math.round(totalMonthlyMessages * (multimediaStats.imagePercentage / 100));
+    const documentMessages = Math.round(totalMonthlyMessages * (multimediaStats.documentPercentage / 100));
+    const textMessages = totalMonthlyMessages - audioMessages - imageMessages - documentMessages;
+
+    // Costos base por tipo de mensaje
+    const textCost = textMessages * COSTS.text;
+    const audioCost = audioMessages * COSTS.audio;
+    const imageCost = imageMessages * COSTS.image;
+    const documentCost = documentMessages * COSTS.document;
+
+    const baseCost = textCost + audioCost + imageCost + documentCost;
+
+    // 2. Factor multiplicador por tamaño de equipo
+    const teamMultiplier = TEAM_MULTIPLIERS[teamData.numberOfSalesReps] || 0;
+    const adjustedBaseCost = baseCost * (1 + teamMultiplier);
+
+    // 3. Costos de integraciones
+    let integrationMonthlyCost = 0;
+    let integrationSetupCost = 0;
+
+    teamData.integrationsNeeded.forEach(integration => {
+      const integrationConfig = INTEGRATION_COSTS[integration];
+      if (integrationConfig) {
+        integrationMonthlyCost += integrationConfig.monthly;
+        integrationSetupCost += integrationConfig.setup;
+      }
+    });
+
+    const integrationSetupAmortized = integrationSetupCost / 12;
+    const totalIntegrationCost = integrationMonthlyCost + integrationSetupAmortized;
+
+    // 4. Servicios a demanda
+    let servicesCost = 0;
+    let servicesSetupCost = 0;
+
+    if (teamData.needsCampaigns && teamData.campaignContacts && teamData.campaignsPerMonth) {
+      const campaignMsgsPerMonth = teamData.campaignContacts * teamData.campaignsPerMonth;
+      servicesCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg;
+    }
+    if (teamData.needsCustomReports) {
+      servicesCost += SERVICES_COSTS.custom_reports;
+    }
+    if (teamData.needsMigrationAssistance) {
+      servicesSetupCost += SERVICES_COSTS.migration_assisted;
+    }
+    if (teamData.needsOnboarding) {
+      servicesSetupCost += SERVICES_COSTS.onboarding;
+    }
+
+    const servicesSetupAmortized = servicesSetupCost / 12;
+    const totalServicesCost = servicesCost + servicesSetupAmortized;
+
+    // 5. Costo total mensual
+    const totalMonthlyCost = adjustedBaseCost + totalIntegrationCost + totalServicesCost;
+
+    // 6. Verificar descuento por volumen
+    let discountedBaseCost = adjustedBaseCost;
+    let volumeDiscountApplied = false;
+    
+    if (totalMonthlyMessages >= 500000) {
+      discountedBaseCost = totalMonthlyMessages * 122;
+      volumeDiscountApplied = true;
+    } else if (totalMonthlyMessages >= 100000) {
+      discountedBaseCost = totalMonthlyMessages * 136;
+      volumeDiscountApplied = true;
+    } else if (totalMonthlyMessages >= 50000) {
+      discountedBaseCost = totalMonthlyMessages * 128;
+      volumeDiscountApplied = true;
+    } else if (totalMonthlyMessages >= 25000) {
+      discountedBaseCost = totalMonthlyMessages * 136;
+      volumeDiscountApplied = true;
+    }
+
+    const volumeDiscount = volumeDiscountApplied ? adjustedBaseCost - discountedBaseCost : 0;
+    const finalMonthlyCost = discountedBaseCost + totalIntegrationCost + totalServicesCost;
+
+    // 7. Proyección PERT
+    const costForPERT = volumeDiscountApplied ? finalMonthlyCost : totalMonthlyCost;
+    const optimisticCost = Math.round(costForPERT * 0.8);
+    const pessimisticCost = Math.round(costForPERT * 1.3);
+    const expectedCost = Math.round((optimisticCost + (costForPERT * 4) + pessimisticCost) / 6);
+
+    return {
+      conversationsPerMonth: monthlyConversations,
+      avgTurnsPerConversation: avgTurns,
+      textMessages,
+      audioMessages,
+      imageMessages,
+      documentMessages,
+      totalMessages: totalMonthlyMessages,
+      baseCost,
+      teamMultiplier,
+      adjustedBaseCost,
+      integrationMonthlyCost,
+      integrationSetupAmortized,
+      totalIntegrationCost,
+      servicesCost,
+      servicesSetupAmortized,
+      totalServicesCost,
+      volumeDiscount,
+      volumeDiscountApplied,
+      totalMonthlyCost: volumeDiscountApplied ? finalMonthlyCost : totalMonthlyCost,
+      pessimisticCost,
+      optimisticCost,
+      expectedCost
+    };
+  };

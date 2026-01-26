@@ -32,13 +32,14 @@ export interface SlideData {
 }
 
 // Landing page types
-export type SegmentType = 
-  | 'emprendedores' 
-  | 'formacion' 
-  | 'ecommerce' 
-  | 'b2b' 
-  | 'soporte' 
-  | 'otras-industrias';
+export type SegmentType =
+  | 'emprendedores'
+  | 'formacion'
+  | 'ecommerce'
+  | 'b2b'
+  | 'soporte'
+  | 'otras-industrias'
+  | 'profesionales-independientes';
 
 export type BadgeColor = 'blue' | 'green' | 'gray' | 'purple';
 
@@ -73,4 +74,49 @@ export interface LeadFormData {
   industria?: string; // para otras-industrias
   kpiObjetivo?: string; // para otras-industrias
   procesoActual?: string; // para otras-industrias
+}
+
+export interface ProfesionalesIndependientesFormData {
+  name: string;
+  whatsapp: string;
+  email: string;
+  profession: string;
+  contactsEstimate: string;
+  planInterest: string;
+  mainConcern?: string;
+  website?: string; // honeypot
+}
+
+// Team structure data for ConversationSimulator (Operaciones Comerciales)
+export interface TeamStructureData {
+  numberOfSalesReps: string; // select: '1-5', '6-10', '11-20', '21-50', '50+'
+  currentWhatsAppType: 'personal' | 'business' | 'mixed';
+  hasInstitutionalNumber: boolean;
+  integrationsNeeded: string[]; // 'crm_custom', 'erp_custom', 'custom_webhooks'
+  needsCampaigns: boolean;
+  campaignContacts?: number;
+  campaignsPerMonth?: number;
+  needsCustomReports: boolean;
+  needsMigrationAssistance: boolean;
+  needsOnboarding: boolean;
+  industry: string;
+  primaryUseCase: string;
+  operationDescription?: string;
+}
+
+// Form data for Emprendedores quote request
+export interface EmprendedoresQuoteFormData {
+  name: string;
+  email: string;
+  whatsapp: string;
+  company: string;
+  numberOfSalesReps: string;
+  monthlyConversationVolume: string;
+  currentWhatsAppType: 'personal' | 'business' | 'mixed';
+  integrationsNeeded: string[];
+  campaignContacts?: number;
+  campaignsPerMonth?: number;
+  primaryUseCase: string;
+  operationDescription?: string;
+  website?: string; // honeypot
 }

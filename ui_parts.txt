@@ -1,0 +1,223 @@
+  const handleContinueToTeamStructure = () => {
+    if (conversationsPerMonth < 10) {
+      alert('Por favor ingresa al menos 10 conversaciones mensuales');
+      return;
+    }
+    clarityEvent('simulator_volume_completed');
+    setStep('teamStructure');
+  };
+
+  const handleContinueToForm = () => {
+    const projectionData = calculateProjection(conversationsPerMonth, teamStructure);
+    setProjection(projectionData);
+    clarityEvent('simulator_team_structure_completed');
+    setStep('form');
+  };
+
+  // Step 4: Estructura del equipo
+  const renderTeamStructure = () => (
+    <div>
+      <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
+        Paso 4: Estructura de tu equipo comercial
+      </h3>
+      <p className="font-inter text-sm mb-8" style={{ color: '#6b7280' }}>
+        Cuéntanos sobre tu operación para darte una cotización precisa
+      </p>
+
+      <div className="space-y-6">
+        {/* Número de comerciales */}
+        <div className="p-6 bg-gray-50 rounded-xl">
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            ¿Cuántos comerciales usan WhatsApp para vender?
+          </label>
+          <select
+            value={teamStructure.numberOfSalesReps}
+            onChange={(e) => setTeamStructure({ ...teamStructure, numberOfSalesReps: e.target.value })}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="1-5">1-5 comerciales</option>
+            <option value="6-10">6-10 comerciales</option>
+            <option value="11-20">11-20 comerciales</option>
+            <option value="21-50">21-50 comerciales</option>
+            <option value="50+">50+ comerciales</option>
+          </select>
+        </div>
+
+        {/* Tipo de WhatsApp */}
+        <div className="p-6 bg-gray-50 rounded-xl">
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            ¿Qué tipo de WhatsApp usan actualmente?
+          </label>
+          <div className="space-y-2">
+            {[
+              { id: 'personal', label: 'WhatsApp Personal' },
+              { id: 'business', label: 'WhatsApp Business App' },
+              { id: 'mixed', label: 'Mixto (algunos personal, algunos business)' }
+            ].map((option) => (
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="whatsappType"
+                  value={option.id}
+                  checked={teamStructure.currentWhatsAppType === option.id}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, currentWhatsAppType: e.target.value as any })}
+                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Integraciones */}
+        <div className="p-6 bg-gray-50 rounded-xl">
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            ¿Qué integraciones necesitan?
+          </label>
+          <div className="space-y-2">
+            {[
+              { id: 'crm_custom', label: 'CRM (HubSpot, Salesforce, Zoho, etc.)' },
+              { id: 'erp_custom', label: 'ERP (SAP, Oracle, etc.)' },
+              { id: 'custom_webhooks', label: 'Sistema propio / Webhooks' }
+            ].map((option) => (
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={teamStructure.integrationsNeeded.includes(option.id)}
+                  onChange={(e) => {
+                    const newIntegrations = e.target.checked
+                      ? [...teamStructure.integrationsNeeded, option.id]
+                      : teamStructure.integrationsNeeded.filter(id => id !== option.id);
+                    setTeamStructure({ ...teamStructure, integrationsNeeded: newIntegrations });
+                  }}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Servicios adicionales */}
+        <div className="p-6 bg-gray-50 rounded-xl">
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            Servicios adicionales
+          </label>
+          <div className="space-y-4">
+            {/* Campañas */}
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={teamStructure.needsCampaigns}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, needsCampaigns: e.target.checked })}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>Campañas masivas de WhatsApp</span>
+              </label>
+              
+              {teamStructure.needsCampaigns && (
+                <div className="ml-7 grid grid-cols-2 gap-4 mt-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div>
+                    <label className="block text-xs font-inter text-gray-500 mb-1">Contactos por campaña</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={teamStructure.campaignContacts || ''}
+                      onChange={(e) => setTeamStructure({ ...teamStructure, campaignContacts: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                      placeholder="Ej: 1000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-inter text-gray-500 mb-1">Campañas al mes</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={teamStructure.campaignsPerMonth || ''}
+                      onChange={(e) => setTeamStructure({ ...teamStructure, campaignsPerMonth: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                      placeholder="Ej: 2"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {[
+              { id: 'needsCustomReports', label: 'Reportes personalizados' },
+              { id: 'needsMigrationAssistance', label: 'Migración asistida' },
+              { id: 'needsOnboarding', label: 'Onboarding profesional' }
+            ].map((option) => (
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  // @ts-ignore
+                  checked={teamStructure[option.id]}
+                  // @ts-ignore
+                  onChange={(e) => setTeamStructure({ ...teamStructure, [option.id]: e.target.checked })}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Industria y Caso de Uso */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
+              Industria
+            </label>
+            <select
+              value={teamStructure.industry}
+              onChange={(e) => setTeamStructure({ ...teamStructure, industry: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Selecciona...</option>
+              <option value="Inmobiliaria">Inmobiliaria</option>
+              <option value="Seguros">Seguros</option>
+              <option value="Educación">Educación</option>
+              <option value="Servicios Financieros">Servicios Financieros</option>
+              <option value="Retail">Retail</option>
+              <option value="Automotriz">Automotriz</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
+              Caso de uso principal
+            </label>
+            <select
+              value={teamStructure.primaryUseCase}
+              onChange={(e) => setTeamStructure({ ...teamStructure, primaryUseCase: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Selecciona...</option>
+              <option value="Ventas B2C">Ventas B2C</option>
+              <option value="Ventas B2B">Ventas B2B</option>
+              <option value="Soporte">Soporte al Cliente</option>
+              <option value="Prospección">Prospección</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex gap-4">
+        <button
+          onClick={() => setStep('volume')}
+          className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          ← Volver
+        </button>
+        <button
+          onClick={handleContinueToForm}
+          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
+        >
+          Ver cotización →
+        </button>
+      </div>
+    </div>
+  );

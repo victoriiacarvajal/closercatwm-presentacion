@@ -22,9 +22,19 @@ export default function HomepageHub() {
           <p className="text-xl font-inter mb-12" style={{ color: '#4b5563' }}>
             Elige tu perfil para ver cómo CloserCat se adapta a tus necesidades:
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Tier 1: Emprendedor */}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Profesionales Independientes */}
+            <SegmentCard
+              segment="profesionales-independientes"
+              icon="💼"
+              title="Profesional Independiente"
+              description="Backup + CRM personal de relaciones"
+              badge="Desde $19K/mes"
+              badgeColor="blue"
+            />
+
+            {/* Tier 1: Emprendedor (FEATURED) */}
             <SegmentCard
               segment="emprendedores"
               icon="🚀"
@@ -32,9 +42,10 @@ export default function HomepageHub() {
               description="Marketplace gratis o línea propia con pago único"
               badge="Desde $0 - Sin mensualidad"
               badgeColor="blue"
+              featured={true}
             />
 
-            {/* Tier 2: Formación (Featured) */}
+            {/* Tier 2: Formación */}
             <SegmentCard
               segment="formacion"
               icon="🎓"
@@ -42,7 +53,6 @@ export default function HomepageHub() {
               description="Universidades, colegios, academias, workshops, cursos"
               badge="Integración Q10 disponible"
               badgeColor="green"
-              featured={true}
             />
 
             {/* Tier 3: Pilotos */}
@@ -64,11 +74,11 @@ export default function HomepageHub() {
           <h2 className="text-3xl font-poppins font-bold text-center mb-4" style={{ color: '#121212' }}>
             Casos de uso disponibles
           </h2>
-          
+
           <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
             Independiente de tu tier, puedes usar CloserCat para:
           </p>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             <UseCaseCard
               icon="🛒"
@@ -80,7 +90,7 @@ export default function HomepageHub() {
                 'Procesamiento de pedidos'
               ]}
             />
-            
+
             <UseCaseCard
               icon="🤝"
               title="Prospección"
@@ -91,7 +101,7 @@ export default function HomepageHub() {
                 'Cotizaciones rápidas'
               ]}
             />
-            
+
             <UseCaseCard
               icon="💬"
               title="Soporte"
@@ -103,7 +113,7 @@ export default function HomepageHub() {
               ]}
             />
           </div>
-          
+
           <div className="mt-12 text-center">
             <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
               💡 <strong>Combina casos de uso:</strong> Usa Ecommerce + Soporte, o Prospección + Soporte según tus necesidades
@@ -118,7 +128,7 @@ export default function HomepageHub() {
           <h2 className="text-3xl font-poppins font-bold mb-6" style={{ color: '#121212' }}>
             La plataforma de WhatsApp Business con IA más completa de LATAM
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
             <div>
               <div className="text-4xl mb-3">🤖</div>
@@ -127,7 +137,7 @@ export default function HomepageHub() {
                 GPT-4 + Knowledge Base personalizada para respuestas precisas
               </p>
             </div>
-            
+
             <div>
               <div className="text-4xl mb-3">🔄</div>
               <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Integraciones nativas</h3>
@@ -135,7 +145,7 @@ export default function HomepageHub() {
                 Q10, HubSpot, Salesforce, o cualquier CRM vía webhooks
               </p>
             </div>
-            
+
             <div>
               <div className="text-4xl mb-3">🛡️</div>
               <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Control humano total</h3>
@@ -151,7 +161,7 @@ export default function HomepageHub() {
       <section className="py-12 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-sm font-inter mb-6" style={{ color: '#6b7280' }}>Empresas que confían en CloserCat</p>
-          
+
           <div className="grid grid-cols-3 gap-8 mt-12">
             <div>
               <div className="text-4xl font-mono font-bold" style={{ color: '#8336FF' }}>500K+</div>

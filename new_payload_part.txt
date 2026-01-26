@@ -1,0 +1,7 @@
+        lead: formData,
+        simulation: {
+          conversation,
+          multimediaStats,
+          teamStructure,
+          projection,
+        },

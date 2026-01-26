@@ -1,0 +1,110 @@
+  // Vista de impresión dedicada (oculta en pantalla, visible solo al imprimir)
+  const renderPrintView = () => {
+    if (!projection) return null;
+
+    const today = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    return (
+      <div className="hidden print:block" style={{ fontFamily: 'Inter, sans-serif', fontSize: '11px' }}>
+        {/* Header con logo y datos */}
+        <div className="flex justify-between items-start mb-4 pb-3 border-b-2 border-gray-300">
+          <div>
+            <h1 className="text-2xl font-bold mb-1" style={{ color: '#8336FF', fontFamily: 'Poppins, sans-serif' }}>CloserCat</h1>
+            <p className="text-xs text-gray-600">Automatización de WhatsApp con IA para Equipos Comerciales</p>
+          </div>
+          <div className="text-right">
+            <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>COTIZACIÓN</h2>
+            <p className="text-xs text-gray-600">{today}</p>
+          </div>
+        </div>
+
+        {/* Información del cliente */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Información del Cliente</h3>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+            <div><strong>Nombre:</strong> {formData.name}</div>
+            <div><strong>WhatsApp:</strong> {formData.whatsapp}</div>
+            <div><strong>Email:</strong> {formData.email}</div>
+            {formData.business && <div><strong>Negocio:</strong> {formData.business}</div>}
+          </div>
+        </div>
+
+        {/* Estructura del Equipo */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo</h3>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+            <div><strong>Comerciales:</strong> {teamStructure.numberOfSalesReps}</div>
+            <div><strong>Integraciones:</strong> {teamStructure.integrationsNeeded.length > 0 ? teamStructure.integrationsNeeded.map(i => i.replace('_', ' ')).join(', ') : 'Ninguna'}</div>
+            <div><strong>Industria:</strong> {teamStructure.industry || 'No especificada'}</div>
+            <div><strong>Uso Principal:</strong> {teamStructure.primaryUseCase}</div>
+          </div>
+        </div>
+
+        {/* Desglose de Inversión Mensual */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Desglose de Inversión Mensual Estimada</h3>
+          <table className="w-full text-xs">
+            <tbody>
+              <tr>
+                <td className="py-1">Costo Base Operativo (Mensajes + IA)</td>
+                <td className="text-right py-1">{formatCurrency(projection.adjustedBaseCost)}</td>
+              </tr>
+              {projection.totalIntegrationCost > 0 && (
+                <tr>
+                  <td className="py-1">Integraciones y Conectividad</td>
+                  <td className="text-right py-1">{formatCurrency(projection.totalIntegrationCost)}</td>
+                </tr>
+              )}
+              {projection.totalServicesCost > 0 && (
+                <tr>
+                  <td className="py-1">Servicios a Demanda (Campañas, Reportes)</td>
+                  <td className="text-right py-1">{formatCurrency(projection.totalServicesCost)}</td>
+                </tr>
+              )}
+              {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
+                <tr className="text-green-600 font-semibold">
+                  <td className="py-1">Descuento por Volumen Aplicado</td>
+                  <td className="text-right py-1">-{formatCurrency(projection.volumeDiscount)}</td>
+                </tr>
+              )}
+              <tr className="font-bold border-t border-gray-300 bg-gray-50">
+                <td className="py-2 pl-2">Inversión Mensual Esperada</td>
+                <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '12px' }}>{formatCurrency(projection.expectedCost)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Proyección PERT */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="text-center p-2 bg-gray-100 border border-gray-300">
+              <div className="text-xs font-semibold mb-1 text-gray-600">Optimista</div>
+              <div className="text-lg font-bold" style={{ color: '#10b981' }}>{formatCurrency(projection.optimisticCost)}</div>
+              <div className="text-xs text-gray-500">-20%</div>
+            </div>
+            <div className="text-center p-2 bg-white border-2 border-purple-500 rounded relative">
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white text-[9px] px-2 rounded-full">RECOMENDADO</div>
+              <div className="text-xs font-semibold mb-1 text-gray-600">Esperado</div>
+              <div className="text-xl font-bold" style={{ color: '#8336FF' }}>{formatCurrency(projection.expectedCost)}</div>
+              <div className="text-xs text-gray-500">Promedio</div>
+            </div>
+            <div className="text-center p-2 bg-gray-100 border border-gray-300">
+              <div className="text-xs font-semibold mb-1 text-gray-600">Pesimista</div>
+              <div className="text-lg font-bold" style={{ color: '#ef4444' }}>{formatCurrency(projection.pessimisticCost)}</div>
+              <div className="text-xs text-gray-500">+30%</div>
+            </div>
+          </div>
+          <p className="text-[9px] text-gray-500 italic mt-1">
+            * El escenario esperado es un promedio ponderado basado en patrones de uso típicos. La facturación real puede variar según el consumo exacto.
+          </p>
+        </div>
+
+        <div className="text-xs text-gray-500 border-t border-gray-300 pt-2 mt-4 text-center">
+          <p>Validez de la oferta: 15 días. Sujeto a Términos y Condiciones de CloserCat.</p>
+          <p>Generado automáticamente el {today}.</p>
+        </div>
+      </div>
+    );
+  };

@@ -6,6 +6,7 @@ import LandingFormacion from './components/landing/LandingFormacion';
 import LandingEmprendedores from './components/landing/LandingEmprendedores';
 import LandingOtrasIndustrias from './components/landing/LandingOtrasIndustrias';
 import LandingPlaceholder from './components/landing/LandingPlaceholder';
+import LandingProfesionalesIndependientes from './components/landing/LandingProfesionalesIndependientes';
 
 const LandingApp: React.FC = () => {
   const segment = getSegmentFromUrl();
@@ -25,18 +26,21 @@ const LandingApp: React.FC = () => {
   switch (segment) {
     case 'formacion':
       return <LandingFormacion />;
-    
+
     case 'emprendedores':
       return <LandingEmprendedores />;
-    
+
     case 'otras-industrias':
       return <LandingOtrasIndustrias />;
-    
+
+    case 'profesionales-independientes':
+      return <LandingProfesionalesIndependientes />;
+
     case 'ecommerce':
     case 'b2b':
     case 'soporte':
       return <LandingPlaceholder segment={segment} />;
-    
+
     default:
       // Segment inválido → volver a hub
       if (typeof window !== 'undefined') {
