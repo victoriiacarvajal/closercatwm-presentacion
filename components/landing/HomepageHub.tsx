@@ -36,7 +36,7 @@ export default function HomepageHub() {
               icon="💼"
               title="Profesional Independiente"
               description="Respaldo automático de WhatsApp, CRM personal y protección anti-bloqueo."
-              badge="Desde $19K/mes"
+              badge="Desde $19K COP/mes"
               badgeColor="blue"
             />
 
@@ -44,9 +44,9 @@ export default function HomepageHub() {
             <SegmentCard
               segment="emprendedores"
               icon="🚀"
-              title="Emprendedor / Microempresa"
+              title="Empresas y Equipos Comerciales"
               description="Centraliza los WhatsApps personales de tu equipo comercial en un solo dashboard."
-              badge="Desde $0 - Sin mensualidad"
+              badge="Cotización a medida"
               badgeColor="blue"
               featured={true}
             />

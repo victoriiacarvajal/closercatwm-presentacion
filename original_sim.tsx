@@ -1,31 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clarityEvent, getUtmParams } from '../../utils/tracking';
 import { TeamStructureData } from '../../types';
+
 
 interface ConversationTurn {
   id: string;
   speaker: 'customer' | 'ai';
   message: string;
-  type?: 'text' | 'audio' | 'image' | 'document';
-  mediaLabel?: string;
-  isIaResponse?: boolean;
 }
-
-interface DemoStep extends ConversationTurn {
-  delayMs: number;
-}
-
-const DEMO_SCRIPT: DemoStep[] = [
-  { id: '1', speaker: 'customer', message: 'Hola, información de precios', type: 'text', delayMs: 1000 },
-  { id: '2', speaker: 'ai', message: '¡Hola! Claro que sí. Tenemos planes desde $19K COP. ¿Te gustaría ver el detalle por industria?', type: 'text', isIaResponse: true, delayMs: 1500 },
-  { id: '3', speaker: 'customer', message: 'Client sends audio', type: 'audio', mediaLabel: '🎤 Audio (15s) recibido', delayMs: 2500 },
-  { id: '4', speaker: 'ai', message: 'Entendido. Procesando tu consulta de audio... 🎧', type: 'text', isIaResponse: true, delayMs: 1500 },
-  { id: '5', speaker: 'customer', message: 'Client sends photo', type: 'image', mediaLabel: '🖼️ Foto de producto recibida', delayMs: 2000 },
-  { id: '6', speaker: 'ai', message: 'Veo que es un repuesto industrial. Procesando especificaciones...', type: 'text', isIaResponse: true, delayMs: 1500 },
-  { id: '7', speaker: 'customer', message: 'Customer sends manual', type: 'document', mediaLabel: '📄 Manual.pdf (3 páginas)', delayMs: 2000 },
-  { id: '8', speaker: 'ai', message: 'Leído 📚. El manual de 3 páginas ha sido procesado exitosamente por la IA.', type: 'text', isIaResponse: true, delayMs: 1500 },
-  { id: '9', speaker: 'ai', message: 'Te he enviado la cotización oficial al correo. 🚀', type: 'text', isIaResponse: true, delayMs: 1500 },
-];
 
 interface MultimediaStats {
   audioPercentage: number;
@@ -97,15 +79,21 @@ const SERVICES_COSTS = {
   onboarding: 600000
 };
 
+// Conversación precargada de ejemplo para reducir fricción
+const DEFAULT_CONVERSATION: ConversationTurn[] = [
+  { id: '1', speaker: 'customer', message: 'Hola, me interesa automatizar WhatsApp para mi negocio' },
+  { id: '2', speaker: 'ai', message: '¡Perfecto! Con gusto te ayudo. ¿Podrías contarme un poco sobre tu negocio y qué tipo de conversaciones manejas?' },
+  { id: '3', speaker: 'customer', message: 'Vendemos productos online y recibimos muchas consultas sobre precios, disponibilidad y envíos' },
+  { id: '4', speaker: 'ai', message: 'Entiendo. CloserCat puede responder automáticamente esas consultas usando tu catálogo de productos. ¿Cuántas conversaciones aproximadamente recibes al día?' },
+  { id: '5', speaker: 'customer', message: 'Entre 20 y 30 conversaciones diarias, pero a veces perdemos mensajes porque no damos abasto' },
+  { id: '6', speaker: 'ai', message: 'Con CloserCat nunca perderás un mensaje. La IA responde 24/7 y tu equipo solo interviene cuando es necesario. ¿Te gustaría ver una demo?' },
+];
+
 export default function ConversationSimulator() {
   const [step, setStep] = useState<'simulator' | 'multimedia' | 'volume' | 'teamStructure' | 'form' | 'results'>('simulator');
-
-  // Animation State
-  const [animationStatus, setAnimationStatus] = useState<'idle' | 'playing' | 'completed'>('idle');
-  const [visibleMessages, setVisibleMessages] = useState<ConversationTurn[]>([]);
-  const [iaResponseCount, setIaResponseCount] = useState(0);
-  const [estimatedAvgTurns, setEstimatedAvgTurns] = useState(6); // Default estimation
-  const [showEstimationModal, setShowEstimationModal] = useState(false);
+  const [conversation, setConversation] = useState<ConversationTurn[]>(DEFAULT_CONVERSATION);
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [currentSpeaker, setCurrentSpeaker] = useState<'customer' | 'ai'>('customer');
 
   const [multimediaStats, setMultimediaStats] = useState<MultimediaStats>({
     audioPercentage: 0,
@@ -141,73 +129,93 @@ export default function ConversationSimulator() {
     business: ''
   });
 
-  // Cargar script de Calendly (Original Logic)
+  // Cargar script de Calendly
   useEffect(() => {
     const head = document.querySelector('head');
-    if (!document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]')) {
-      const script = document.createElement('script');
-      script.setAttribute('src', 'https://assets.calendly.com/assets/external/widget.js');
-      head?.appendChild(script);
+    const script = document.createElement('script');
+    script.setAttribute('src', 'https://assets.calendly.com/assets/external/widget.js');
+    head?.appendChild(script);
 
-      const style = document.createElement('link');
-      style.setAttribute('rel', 'stylesheet');
-      style.setAttribute('href', 'https://assets.calendly.com/assets/external/widget.css');
-      head?.appendChild(style);
-    }
+    const style = document.createElement('link');
+    style.setAttribute('rel', 'stylesheet');
+    style.setAttribute('href', 'https://assets.calendly.com/assets/external/widget.css');
+    head?.appendChild(style);
   }, []);
 
   const [hasAutoPrinted, setHasAutoPrinted] = useState(false);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll chat
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  }, [visibleMessages]);
+  const [editingTurnId, setEditingTurnId] = useState<string | null>(null);
+  const [editingMessage, setEditingMessage] = useState('');
 
-  const startSimulation = () => {
-    setAnimationStatus('playing');
-    setVisibleMessages([]);
-    setIaResponseCount(0);
+  const addTurn = () => {
+    if (!currentMessage.trim()) return;
 
-    let currentStepIndex = 0;
-
-    const playNextStep = () => {
-      if (currentStepIndex >= DEMO_SCRIPT.length) {
-        setAnimationStatus('completed');
-        return;
-      }
-
-      const stepData = DEMO_SCRIPT[currentStepIndex];
-
-      setTimeout(() => {
-        setVisibleMessages(prev => [...prev, stepData]);
-
-        if (stepData.isIaResponse) {
-          setIaResponseCount(prev => prev + 1);
-        } else if (stepData.type === 'document' && stepData.mediaLabel?.includes('3 páginas')) {
-          setIaResponseCount(prev => prev + 3);
-        }
-
-        currentStepIndex++;
-        playNextStep();
-      }, stepData.delayMs);
+    const newTurn: ConversationTurn = {
+      id: Date.now().toString(),
+      speaker: currentSpeaker,
+      message: currentMessage.trim()
     };
 
-    playNextStep();
+    setConversation([...conversation, newTurn]);
+    setCurrentMessage('');
+    setCurrentSpeaker(currentSpeaker === 'customer' ? 'ai' : 'customer');
+  };
+
+  const removeTurn = (id: string) => {
+    setConversation(conversation.filter(turn => turn.id !== id));
+  };
+
+  const startEditTurn = (id: string, currentMessage: string) => {
+    setEditingTurnId(id);
+    setEditingMessage(currentMessage);
+  };
+
+  const saveEditTurn = () => {
+    if (!editingMessage.trim() || !editingTurnId) return;
+
+    setConversation(conversation.map(turn =>
+      turn.id === editingTurnId
+        ? { ...turn, message: editingMessage.trim() }
+        : turn
+    ));
+    setEditingTurnId(null);
+    setEditingMessage('');
+  };
+
+  const cancelEditTurn = () => {
+    setEditingTurnId(null);
+    setEditingMessage('');
+  };
+
+  const handleContinueToMultimedia = () => {
+    if (conversation.length < 4) {
+      alert('Por favor simula al menos 4 turnos de conversación (2 intercambios)');
+      return;
+    }
+    clarityEvent('simulator_conversation_completed');
+    setStep('multimedia');
+  };
+
+  const handleContinueToVolume = () => {
+    clarityEvent('simulator_multimedia_completed');
+    setStep('volume');
   };
 
   const calculateProjection = (monthlyConversations: number, teamData: TeamStructureData) => {
-    const aiTurns = estimatedAvgTurns;
-    const totalMonthlyMessages = monthlyConversations * aiTurns;
+    const avgTurns = conversation.length;
+    const aiTurns = conversation.filter(t => t.speaker === 'ai').length;
 
-    // Distribución basada en porcentajes originales
-    const audioMessages = Math.round(totalMonthlyMessages * (multimediaStats.audioPercentage / 10));
-    const imageMessages = Math.round(totalMonthlyMessages * (multimediaStats.imagePercentage / 10));
-    const documentMessages = Math.round(totalMonthlyMessages * (multimediaStats.documentPercentage / 10));
+    // 1. Cálculo base de mensajes
+    const totalMessagesPerConversation = aiTurns;
+    const totalMonthlyMessages = monthlyConversations * totalMessagesPerConversation;
+
+    // Distribución de multimedia
+    const audioMessages = Math.round(totalMonthlyMessages * (multimediaStats.audioPercentage / 100));
+    const imageMessages = Math.round(totalMonthlyMessages * (multimediaStats.imagePercentage / 100));
+    const documentMessages = Math.round(totalMonthlyMessages * (multimediaStats.documentPercentage / 100));
     const textMessages = totalMonthlyMessages - audioMessages - imageMessages - documentMessages;
 
+    // Costos base por tipo de mensaje
     const textCost = textMessages * COSTS.text;
     const audioCost = audioMessages * COSTS.audio;
     const imageCost = imageMessages * COSTS.image;
@@ -215,9 +223,11 @@ export default function ConversationSimulator() {
 
     const baseCost = textCost + audioCost + imageCost + documentCost;
 
+    // 2. Factor multiplicador por tamaño de equipo
     const teamMultiplier = TEAM_MULTIPLIERS[teamData.numberOfSalesReps] || 0;
     const adjustedBaseCost = baseCost * (1 + teamMultiplier);
 
+    // 3. Costos de integraciones
     let integrationMonthlyCost = 0;
     let integrationSetupCost = 0;
 
@@ -232,6 +242,7 @@ export default function ConversationSimulator() {
     const integrationSetupAmortized = integrationSetupCost / 12;
     const totalIntegrationCost = integrationMonthlyCost + integrationSetupAmortized;
 
+    // 4. Servicios a demanda
     let servicesCost = 0;
     let servicesSetupCost = 0;
 
@@ -252,8 +263,10 @@ export default function ConversationSimulator() {
     const servicesSetupAmortized = servicesSetupCost / 12;
     const totalServicesCost = servicesCost + servicesSetupAmortized;
 
+    // 5. Costo total mensual
     const totalMonthlyCost = adjustedBaseCost + totalIntegrationCost + totalServicesCost;
 
+    // 6. Verificar descuento por volumen
     let discountedBaseCost = adjustedBaseCost;
     let volumeDiscountApplied = false;
 
@@ -274,6 +287,7 @@ export default function ConversationSimulator() {
     const volumeDiscount = volumeDiscountApplied ? adjustedBaseCost - discountedBaseCost : 0;
     const finalMonthlyCost = discountedBaseCost + totalIntegrationCost + totalServicesCost;
 
+    // 7. Proyección PERT
     const costForPERT = volumeDiscountApplied ? finalMonthlyCost : totalMonthlyCost;
     const optimisticCost = Math.round(costForPERT * 0.8);
     const pessimisticCost = Math.round(costForPERT * 1.3);
@@ -281,7 +295,7 @@ export default function ConversationSimulator() {
 
     return {
       conversationsPerMonth: monthlyConversations,
-      avgTurnsPerConversation: aiTurns * 2,
+      avgTurnsPerConversation: avgTurns,
       textMessages,
       audioMessages,
       imageMessages,
@@ -314,9 +328,11 @@ export default function ConversationSimulator() {
     }
 
     try {
+      // UTM y metadatos similares a FormSection
       const params = new URLSearchParams(window.location.search);
       const utm = getUtmParams(params);
 
+      // Preparar datos para webhook
       const payload = {
         event: 'simulator_submit',
         action: 'simulator_quote',
@@ -326,11 +342,12 @@ export default function ConversationSimulator() {
         utm,
         lead: formData,
         simulation: {
-          estimatedAvgTurns,
+          conversation,
           multimediaStats,
           teamStructure,
           projection,
         },
+
       };
 
       const webhookUrl = import.meta.env?.VITE_MAKE_WEBHOOK_URL;
@@ -355,6 +372,7 @@ export default function ConversationSimulator() {
       const params = new URLSearchParams(window.location.search);
       const utm = getUtmParams(params);
 
+      // Enviar evento a backend (opcional, para tracking)
       const payload = {
         event: 'simulator_action',
         action: 'request_demo_calendly',
@@ -376,6 +394,7 @@ export default function ConversationSimulator() {
 
       clarityEvent('simulator_demo_calendly_click');
 
+      // Abrir Calendly
       // @ts-ignore
       if (window.Calendly) {
         // @ts-ignore
@@ -390,50 +409,22 @@ export default function ConversationSimulator() {
           }
         });
       } else {
+        // Fallback si el script no cargó
         window.open('https://calendly.com/rogertovalle/30min', '_blank');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error enviando webhook de demo:', error);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleContinueToMultimedia = () => {
-    setShowEstimationModal(false);
-    setStep('multimedia');
-  };
-
-  const handleContinueToVolume = () => {
-    clarityEvent('simulator_multimedia_completed');
-    setStep('volume');
-  };
-
-  const handleContinueToTeamStructure = () => {
-    if (conversationsPerMonth < 1) {
-      alert('Por favor ingresa un volumen válido');
-      return;
-    }
-    clarityEvent('simulator_volume_completed');
-    setStep('teamStructure');
-  };
-
-  const handleContinueToForm = () => {
-    const projectionData = calculateProjection(conversationsPerMonth, teamStructure);
-    // Logic from original file to ensure volume discount check logic
-    setProjection(projectionData);
-    clarityEvent('simulator_team_structure_completed');
-    setStep('form');
-  };
-
+  // Auto-impresión al llegar a resultados (una sola vez por ciclo)
   useEffect(() => {
     if (step === 'results' && !hasAutoPrinted) {
       const timer = setTimeout(() => {
         window.print();
         setHasAutoPrinted(true);
       }, 500);
+
       return () => clearTimeout(timer);
     }
   }, [step, hasAutoPrinted]);
@@ -447,196 +438,175 @@ export default function ConversationSimulator() {
     }).format(amount);
   };
 
-  const renderProgressStepper = () => (
-    <div className="flex items-center justify-between mb-8 px-4 overflow-x-auto">
-      {[1, 2, 3, 4].map((s) => (
-        <div key={s} className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold min-w-[2rem] ${(step === 'simulator' && s === 1) ||
-            (step === 'multimedia' && s === 2) ||
-            (step === 'volume' && s === 3) ||
-            (step === 'teamStructure' && s === 4)
-            ? 'bg-purple-600 text-white'
-            : 'bg-gray-200 text-gray-500'
-            }`}>
-            {s}
-          </div>
-          {s < 4 && <div className="w-8 md:w-16 h-1 bg-gray-200 mx-1 md:mx-2" />}
-        </div>
-      ))}
-      <div className="text-sm font-poppins font-semibold text-gray-600 ml-4 hidden md:block">
-        {step === 'simulator' && 'Paso 1: ¿Qué cobramos?'}
-        {step === 'multimedia' && 'Paso 2: Multimedia'}
-        {step === 'volume' && 'Paso 3: Tu Volumen'}
-        {step === 'teamStructure' && 'Paso 4: Tu Equipo'}
-      </div>
-    </div>
-  );
+  const handlePrint = () => {
+    window.print();
+  };
 
+  // Step 1: Simulador de conversación
   const renderSimulator = () => (
-    <div className="relative">
-      {/* Estimation Modal Overlay */}
-      {showEstimationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-sm relative">
-            <button
-              onClick={() => setShowEstimationModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-
-            <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                📊
-              </div>
-              <h3 className="text-xl font-bold font-poppins text-gray-900 mb-2">Tu Estimación</h3>
-              <p className="text-sm text-gray-600 mb-6 font-inter">
-                Basado en la simulación, ¿cuántos mensajes de IA crees que respondes por venta?
-              </p>
-
-              <div className="flex items-center justify-center gap-4 mb-8">
-                <button
-                  onClick={() => setEstimatedAvgTurns(prev => Math.max(1, prev - 1))}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-xl transition-colors"
-                >
-                  -
-                </button>
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-purple-600 font-mono">{estimatedAvgTurns}</div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest mt-1">Mensajes</div>
-                </div>
-                <button
-                  onClick={() => setEstimatedAvgTurns(prev => prev + 1)}
-                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-xl transition-colors"
-                >
-                  +
-                </button>
-              </div>
-
-              <button
-                onClick={handleContinueToMultimedia}
-                className="w-full py-4 rounded-xl font-poppins font-bold text-white shadow-lg transform transition-all hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
-              >
-                Continuar al Paso 2 →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div>
       <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
-        Paso 1: Entiende cómo calculamos el costo
+        Paso 1: Simula una conversación típica
       </h3>
       <p className="font-inter text-sm mb-6" style={{ color: '#6b7280' }}>
-        En CloserCat pagas por el consumo de la IA. Mira esta simulación para entender qué cuenta.
+        Hemos precargado un ejemplo de conversación de ventas. Puedes editarla, eliminar turnos o agregar nuevos para que refleje tu negocio.
       </p>
 
-      <div className="mb-8 border border-gray-200 rounded-xl overflow-hidden bg-gray-50 flex flex-col md:flex-row h-[400px]">
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col border-r border-gray-200">
-          <div className="bg-white p-3 border-b border-gray-200 flex justify-between items-center shadow-sm z-10">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs">👤</div>
-              <div className="text-sm font-bold text-gray-700">Cliente Potencial</div>
-            </div>
-            <div className="text-xs text-gray-400">En línea</div>
+      {/* Conversation Display */}
+      <div className="mb-6 bg-gray-50 rounded-xl p-6 min-h-[300px] max-h-[400px] overflow-y-auto">
+        {conversation.length === 0 ? (
+          <div className="text-center py-12">
+            <span className="text-6xl mb-4 block">💬</span>
+            <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
+              Empieza agregando el primer mensaje del cliente
+            </p>
           </div>
-
-          <div ref={chatScrollRef} className="flex-1 p-4 overflow-y-auto space-y-4 bg-pattern relative">
-            {animationStatus === 'idle' && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm">
-                <div className="text-5xl mb-6 animate-pulse">🎬</div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">Simulación de Ventas</h4>
-                <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
-                  Dale play para ver cómo la IA gestiona texto, audio, imágenes y documentos en tiempo real.
-                </p>
-                <button
-                  onClick={startSimulation}
-                  className="px-8 py-3 bg-purple-600 text-white rounded-full font-bold hover:bg-purple-700 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
-                >
-                  ▶️ Iniciar Ahora
-                </button>
-              </div>
-            )}
-
-            {visibleMessages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.speaker === 'customer' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
-                <div className={`max-w-[75%] rounded-2xl p-3 shadow-sm ${msg.speaker === 'customer'
-                  ? 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
-                  : 'bg-purple-600 text-white rounded-br-none'
-                  }`}>
-                  {msg.type === 'audio' ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">▶️</div>
-                      <div>
-                        <div className="h-1 w-24 bg-gray-200 rounded mb-1"></div>
-                        <span className="text-xs italic opacity-70">{msg.mediaLabel || 'Audio'}</span>
+        ) : (
+          <div className="space-y-3">
+            {conversation.map((turn) => (
+              <div
+                key={turn.id}
+                className={`flex ${turn.speaker === 'customer' ? 'justify-start' : 'justify-end'}`}
+              >
+                <div className={`max-w-[80%] ${turn.speaker === 'customer' ? 'order-1' : 'order-2'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-poppins font-semibold" style={{ color: '#6b7280' }}>
+                      {turn.speaker === 'customer' ? '👤 Cliente' : '🤖 IA'}
+                    </span>
+                    <button
+                      onClick={() => startEditTurn(turn.id, turn.message)}
+                      className="text-xs text-blue-500 hover:text-blue-700"
+                      title="Editar mensaje"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => removeTurn(turn.id)}
+                      className="text-xs text-red-500 hover:text-red-700"
+                      title="Eliminar mensaje"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  {editingTurnId === turn.id ? (
+                    <div className="space-y-2">
+                      <textarea
+                        value={editingMessage}
+                        onChange={(e) => setEditingMessage(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg font-inter text-sm resize-none"
+                        rows={3}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveEditTurn}
+                          className="px-3 py-1 bg-green-500 text-white rounded text-xs font-poppins font-semibold hover:bg-green-600"
+                        >
+                          ✓ Guardar
+                        </button>
+                        <button
+                          onClick={cancelEditTurn}
+                          className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-xs font-poppins font-semibold hover:bg-gray-400"
+                        >
+                          Cancelar
+                        </button>
                       </div>
                     </div>
-                  ) : msg.type === 'image' ? (
-                    <div>
-                      <div className="w-full h-32 bg-gray-200 rounded-lg mb-2 flex items-center justify-center text-4xl">🖼️</div>
-                      <span className="text-xs italic opacity-70 block">{msg.mediaLabel || 'Imagen'}</span>
-                    </div>
-                  ) : msg.type === 'document' ? (
-                    <div className="flex items-center gap-3 bg-opacity-10 bg-white p-1 rounded">
-                      <div className="text-2xl">📄</div>
-                      <span className="text-xs font-semibold underline">{msg.mediaLabel || 'Documento'}</span>
-                    </div>
                   ) : (
-                    <p className="text-sm leading-relaxed">{msg.message}</p>
+                    <div
+                      className={`p-3 rounded-lg ${turn.speaker === 'customer'
+                        ? 'bg-white border border-gray-200'
+                        : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                        }`}
+                    >
+                      <p className="font-inter text-sm">{turn.message}</p>
+                    </div>
                   )}
                 </div>
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Input Area */}
+      <div className="space-y-4">
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={() => setCurrentSpeaker('customer')}
+            className={`flex-1 py-2 px-4 rounded-lg font-poppins font-semibold text-sm transition-all ${currentSpeaker === 'customer'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+          >
+            👤 Cliente
+          </button>
+          <button
+            onClick={() => setCurrentSpeaker('ai')}
+            className={`flex-1 py-2 px-4 rounded-lg font-poppins font-semibold text-sm transition-all ${currentSpeaker === 'ai'
+              ? 'bg-purple-500 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+          >
+            🤖 IA
+          </button>
         </div>
 
-        {/* Counters Area */}
-        <div className="w-full md:w-64 bg-white p-6 flex flex-col justify-center items-center shadow-inner relative overflow-hidden">
-          <div className="text-center z-10">
-            <h4 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Mensajes Consumidos</h4>
-            <div className={`text-7xl font-mono font-bold transition-all duration-300 ${animationStatus === 'playing' ? 'scale-110 text-purple-600' : 'text-gray-900'}`}>
-              {iaResponseCount}
-            </div>
-            <p className="text-xs text-purple-600 font-semibold mt-2 bg-purple-50 px-2 py-1 rounded-full">
-              Respuestas IA + Páginas
+        <div className="flex gap-2">
+          <textarea
+            value={currentMessage}
+            onChange={(e) => setCurrentMessage(e.target.value)}
+            placeholder={`Escribe el mensaje del ${currentSpeaker === 'customer' ? 'cliente' : 'asistente IA'}...`}
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+            rows={3}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addTurn();
+              }
+            }}
+          />
+        </div>
+
+        <div className="flex justify-between items-center">
+          <p className="text-xs font-inter" style={{ color: '#6b7280' }}>
+            💡 Presiona Enter para agregar. Shift+Enter para nueva línea.
+          </p>
+          <button
+            onClick={addTurn}
+            className="px-6 py-2 rounded-lg font-poppins font-semibold text-white"
+            style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
+          >
+            Agregar turno
+          </button>
+        </div>
+
+        {conversation.length >= 4 && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleContinueToMultimedia}
+              className="px-8 py-4 rounded-xl font-poppins font-bold text-lg text-white transition-all hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
+            >
+              Continuar al siguiente paso →
+            </button>
+            <p className="mt-2 text-xs font-inter" style={{ color: '#6b7280' }}>
+              {conversation.length} turnos simulados
             </p>
           </div>
-
-          {animationStatus === 'completed' && (
-            <div className="mt-8 w-full animate-fade-in z-10">
-              <div className="bg-yellow-50 border border-yellow-100 p-3 rounded-lg text-left mb-4">
-                <p className="text-[10px] text-yellow-800 leading-tight">
-                  💡 <strong>Insight:</strong> Procesamos audios, imágenes y PDFs automáticamente. Todo suma al contador de consumo.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowEstimationModal(true)}
-                className="w-full py-3 rounded-xl font-poppins font-bold text-white shadow-md transform transition-all hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
-              >
-                Calcular mi volumen →
-              </button>
-            </div>
-          )}
-
-          {/* Background decoration */}
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-purple-50 rounded-full blur-3xl opacity-50"></div>
-          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
-        </div>
+        )}
       </div>
     </div>
   );
 
+  // Step 2: Estadísticas de multimedia
   const renderMultimedia = () => (
     <div>
       <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
-        Paso 2: Multimedia en tus conversaciones
+        Paso 2: Características de tus conversaciones
       </h3>
       <p className="font-inter text-sm mb-8" style={{ color: '#6b7280' }}>
-        De los {estimatedAvgTurns} mensajes estimados, ¿cómo se distribuye el contenido?
+        De cada 10 conversaciones, ¿cuántas incluyen estos elementos?
       </p>
 
       <div className="space-y-6">
@@ -645,13 +615,14 @@ export default function ConversationSimulator() {
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">🎤</span>
             <div className="flex-1">
-              <h4 className="font-poppins font-bold text-gray-900">Mensajes de audio</h4>
-              <p className="text-xs font-inter text-gray-500">Notas de voz del cliente</p>
+              <h4 className="font-poppins font-bold" style={{ color: '#121212' }}>Mensajes de audio</h4>
+              <p className="text-xs font-inter" style={{ color: '#6b7280' }}>Notas de voz del cliente</p>
             </div>
           </div>
-          <div className="space-y-4">
+
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">
+              <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
                 De cada 10 conversaciones, ¿cuántas incluyen audio?
               </label>
               <input
@@ -659,13 +630,17 @@ export default function ConversationSimulator() {
                 min="0"
                 max="10"
                 value={multimediaStats.audioPercentage / 10}
-                onChange={(e) => setMultimediaStats({ ...multimediaStats, audioPercentage: Math.min(100, Math.max(0, parseInt(e.target.value) * 10)) })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                onChange={(e) => setMultimediaStats({
+                  ...multimediaStats,
+                  audioPercentage: Math.min(100, Math.max(0, parseFloat(e.target.value) * 10))
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
+
             {multimediaStats.audioPercentage > 0 && (
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">
+                <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
                   Duración promedio del audio (minutos)
                 </label>
                 <input
@@ -673,8 +648,11 @@ export default function ConversationSimulator() {
                   min="0"
                   step="0.5"
                   value={multimediaStats.audioAvgMinutes}
-                  onChange={(e) => setMultimediaStats({ ...multimediaStats, audioAvgMinutes: Math.max(0, parseFloat(e.target.value) || 0) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  onChange={(e) => setMultimediaStats({
+                    ...multimediaStats,
+                    audioAvgMinutes: Math.max(0, parseFloat(e.target.value) || 0)
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
             )}
@@ -686,12 +664,13 @@ export default function ConversationSimulator() {
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">🖼️</span>
             <div className="flex-1">
-              <h4 className="font-poppins font-bold text-gray-900">Imágenes</h4>
-              <p className="text-xs font-inter text-gray-500">Fotos de productos, capturas</p>
+              <h4 className="font-poppins font-bold" style={{ color: '#121212' }}>Imágenes</h4>
+              <p className="text-xs font-inter" style={{ color: '#6b7280' }}>Fotos de productos, capturas, etc.</p>
             </div>
           </div>
+
           <div>
-            <label className="block text-sm font-semibold mb-2 text-gray-700">
+            <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
               De cada 10 conversaciones, ¿cuántas incluyen imágenes?
             </label>
             <input
@@ -699,24 +678,28 @@ export default function ConversationSimulator() {
               min="0"
               max="10"
               value={multimediaStats.imagePercentage / 10}
-              onChange={(e) => setMultimediaStats({ ...multimediaStats, imagePercentage: Math.min(100, Math.max(0, parseInt(e.target.value) * 10)) })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              onChange={(e) => setMultimediaStats({
+                ...multimediaStats,
+                imagePercentage: Math.min(100, Math.max(0, parseFloat(e.target.value) * 10))
+              })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
         </div>
 
-        {/* Documentos */}
+        {/* Documents */}
         <div className="p-6 bg-gray-50 rounded-xl">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">📄</span>
             <div className="flex-1">
-              <h4 className="font-poppins font-bold text-gray-900">Documentos</h4>
-              <p className="text-xs font-inter text-gray-500">PDFs, contratos, presentaciones</p>
+              <h4 className="font-poppins font-bold" style={{ color: '#121212' }}>Documentos</h4>
+              <p className="text-xs font-inter" style={{ color: '#6b7280' }}>PDFs, contratos, cotizaciones</p>
             </div>
           </div>
-          <div className="space-y-4">
+
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">
+              <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
                 De cada 10 conversaciones, ¿cuántas incluyen documentos?
               </label>
               <input
@@ -724,21 +707,28 @@ export default function ConversationSimulator() {
                 min="0"
                 max="10"
                 value={multimediaStats.documentPercentage / 10}
-                onChange={(e) => setMultimediaStats({ ...multimediaStats, documentPercentage: Math.min(100, Math.max(0, parseInt(e.target.value) * 10)) })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                onChange={(e) => setMultimediaStats({
+                  ...multimediaStats,
+                  documentPercentage: Math.min(100, Math.max(0, parseFloat(e.target.value) * 10))
+                })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
+
             {multimediaStats.documentPercentage > 0 && (
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">
+                <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
                   Páginas promedio por documento
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={multimediaStats.documentAvgPages}
-                  onChange={(e) => setMultimediaStats({ ...multimediaStats, documentAvgPages: Math.max(1, parseInt(e.target.value) || 1) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  onChange={(e) => setMultimediaStats({
+                    ...multimediaStats,
+                    documentAvgPages: Math.max(1, parseInt(e.target.value) || 1)
+                  })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
             )}
@@ -747,12 +737,16 @@ export default function ConversationSimulator() {
       </div>
 
       <div className="mt-8 flex gap-4">
-        <button onClick={() => setStep('simulator')} className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-bold text-gray-600">
+        <button
+          onClick={() => setStep('simulator')}
+          className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
+        >
           ← Volver
         </button>
         <button
           onClick={handleContinueToVolume}
-          className="flex-1 px-6 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600"
+          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
         >
           Continuar →
         </button>
@@ -760,18 +754,19 @@ export default function ConversationSimulator() {
     </div>
   );
 
+  // Step 3: Volumen mensual
   const renderVolume = () => (
     <div>
       <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
-        Paso 3: Tu Volumen Estimado
+        Paso 3: Volumen mensual estimado
       </h3>
       <p className="font-inter text-sm mb-8" style={{ color: '#6b7280' }}>
-        ¿Cuántas conversaciones (leads/consultas) gestionas al mes?
+        ¿Cuántas conversaciones como la que simulaste esperas tener al mes?
       </p>
 
-      <div className="p-10 bg-gradient-to-br from-purple-50 to-white rounded-xl border border-purple-200 shadow-sm text-center">
-        <label className="block text-4xl font-bold text-purple-900 mb-6">
-          {conversationsPerMonth}
+      <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-purple-200">
+        <label className="block text-lg font-poppins font-bold mb-4 text-center" style={{ color: '#121212' }}>
+          Conversaciones mensuales estimadas
         </label>
         <input
           type="number"
@@ -787,12 +782,16 @@ export default function ConversationSimulator() {
       </div>
 
       <div className="mt-8 flex gap-4">
-        <button onClick={() => setStep('multimedia')} className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-bold text-gray-600">
+        <button
+          onClick={() => setStep('multimedia')}
+          className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
+        >
           ← Volver
         </button>
         <button
           onClick={handleContinueToTeamStructure}
-          className="flex-1 px-6 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600"
+          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
         >
           Continuar →
         </button>
@@ -800,6 +799,24 @@ export default function ConversationSimulator() {
     </div>
   );
 
+  // Step 4: Formulario
+  const handleContinueToTeamStructure = () => {
+    if (conversationsPerMonth < 10) {
+      alert('Por favor ingresa al menos 10 conversaciones mensuales');
+      return;
+    }
+    clarityEvent('simulator_volume_completed');
+    setStep('teamStructure');
+  };
+
+  const handleContinueToForm = () => {
+    const projectionData = calculateProjection(conversationsPerMonth, teamStructure);
+    setProjection(projectionData);
+    clarityEvent('simulator_team_structure_completed');
+    setStep('form');
+  };
+
+  // Step 4: Estructura del equipo
   const renderTeamStructure = () => (
     <div>
       <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
@@ -839,16 +856,16 @@ export default function ConversationSimulator() {
               { id: 'business', label: 'WhatsApp Business App' },
               { id: 'mixed', label: 'Mixto (algunos personal, algunos business)' }
             ].map((option) => (
-              <label key={option.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="radio"
                   name="whatsappType"
                   value={option.id}
                   checked={teamStructure.currentWhatsAppType === option.id}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, currentWhatsAppType: e.target.value })}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, currentWhatsAppType: e.target.value as any })}
                   className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="text-sm font-inter text-gray-700">{option.label}</span>
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
               </label>
             ))}
           </div>
@@ -857,18 +874,17 @@ export default function ConversationSimulator() {
         {/* Integraciones */}
         <div className="p-6 bg-gray-50 rounded-xl">
           <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-            ¿Necesitas integraciones? (Opcional)
+            ¿Qué integraciones necesitan?
           </label>
           <div className="space-y-2">
             {[
-              { id: 'crm_custom', label: 'CRM Personalizado / Hubspot / Salesforce' },
-              { id: 'erp_custom', label: 'ERP / Sistema Administrativo' },
-              { id: 'custom_webhooks', label: 'Webhooks Personalizados' }
+              { id: 'crm_custom', label: 'CRM (HubSpot, Salesforce, Zoho, etc.)' },
+              { id: 'erp_custom', label: 'ERP (SAP, Oracle, etc.)' },
+              { id: 'custom_webhooks', label: 'Sistema propio / Webhooks' }
             ].map((option) => (
-              <label key={option.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  value={option.id}
                   checked={teamStructure.integrationsNeeded.includes(option.id)}
                   onChange={(e) => {
                     const newIntegrations = e.target.checked
@@ -876,52 +892,117 @@ export default function ConversationSimulator() {
                       : teamStructure.integrationsNeeded.filter(id => id !== option.id);
                     setTeamStructure({ ...teamStructure, integrationsNeeded: newIntegrations });
                   }}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
                 />
-                <span className="text-sm font-inter text-gray-700">{option.label}</span>
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* Campañas */}
+        {/* Servicios adicionales */}
         <div className="p-6 bg-gray-50 rounded-xl">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={teamStructure.needsCampaigns}
-              onChange={(e) => setTeamStructure({ ...teamStructure, needsCampaigns: e.target.checked })}
-              className="w-5 h-5 text-purple-600 focus:ring-purple-500 rounded"
-            />
-            <span className="text-sm font-poppins font-semibold" style={{ color: '#121212' }}>
-              ¿Planeas enviar campañas masivas?
-            </span>
+          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
+            Servicios adicionales
           </label>
+          <div className="space-y-4">
+            {/* Campañas */}
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer mb-2">
+                <input
+                  type="checkbox"
+                  checked={teamStructure.needsCampaigns}
+                  onChange={(e) => setTeamStructure({ ...teamStructure, needsCampaigns: e.target.checked })}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>Campañas masivas de WhatsApp</span>
+              </label>
 
-          {teamStructure.needsCampaigns && (
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-inter text-gray-600 mb-1">Contactos por campaña</label>
-                <input
-                  type="number"
-                  placeholder="Ej: 1000"
-                  value={teamStructure.campaignContacts || ''}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, campaignContacts: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-inter text-gray-600 mb-1">Campañas al mes</label>
-                <input
-                  type="number"
-                  placeholder="Ej: 2"
-                  value={teamStructure.campaignsPerMonth || ''}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, campaignsPerMonth: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
+              {teamStructure.needsCampaigns && (
+                <div className="ml-7 grid grid-cols-2 gap-4 mt-2 p-3 bg-white rounded-lg border border-gray-200">
+                  <div>
+                    <label className="block text-xs font-inter text-gray-500 mb-1">Contactos por campaña</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={teamStructure.campaignContacts || ''}
+                      onChange={(e) => setTeamStructure({ ...teamStructure, campaignContacts: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                      placeholder="Ej: 1000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-inter text-gray-500 mb-1">Campañas al mes</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={teamStructure.campaignsPerMonth || ''}
+                      onChange={(e) => setTeamStructure({ ...teamStructure, campaignsPerMonth: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                      placeholder="Ej: 2"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            {[
+              { id: 'needsCustomReports', label: 'Reportes personalizados' },
+              { id: 'needsMigrationAssistance', label: 'Migración asistida' },
+              { id: 'needsOnboarding', label: 'Onboarding profesional' }
+            ].map((option) => (
+              <label key={option.id} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  // @ts-ignore
+                  checked={teamStructure[option.id]}
+                  // @ts-ignore
+                  onChange={(e) => setTeamStructure({ ...teamStructure, [option.id]: e.target.checked })}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="font-inter text-sm" style={{ color: '#4b5563' }}>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Industria y Caso de Uso */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
+              Industria
+            </label>
+            <select
+              value={teamStructure.industry}
+              onChange={(e) => setTeamStructure({ ...teamStructure, industry: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Selecciona...</option>
+              <option value="Inmobiliaria">Inmobiliaria</option>
+              <option value="Seguros">Seguros</option>
+              <option value="Educación">Educación</option>
+              <option value="Servicios Financieros">Servicios Financieros</option>
+              <option value="Retail">Retail</option>
+              <option value="Automotriz">Automotriz</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-poppins font-semibold mb-2" style={{ color: '#121212' }}>
+              Caso de uso principal
+            </label>
+            <select
+              value={teamStructure.primaryUseCase}
+              onChange={(e) => setTeamStructure({ ...teamStructure, primaryUseCase: e.target.value })}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Selecciona...</option>
+              <option value="Ventas B2C">Ventas B2C</option>
+              <option value="Ventas B2B">Ventas B2B</option>
+              <option value="Soporte">Soporte al Cliente</option>
+              <option value="Prospección">Prospección</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -934,13 +1015,15 @@ export default function ConversationSimulator() {
         </button>
         <button
           onClick={handleContinueToForm}
-          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600"
+          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
         >
-          Ver Resultado →
+          Ver cotización →
         </button>
       </div>
     </div>
   );
+
 
   const renderForm = () => (
     <div>
@@ -1035,7 +1118,6 @@ export default function ConversationSimulator() {
       </form>
     </div>
   );
-
   // Vista de impresión dedicada (oculta en pantalla, visible solo al imprimir)
   const renderPrintView = () => {
     if (!projection) return null;
@@ -1172,6 +1254,8 @@ export default function ConversationSimulator() {
     );
   };
 
+
+  // Step 5: Resultados con proyección PERT (vista web)
   const renderResults = () => {
     if (!projection) return null;
 
@@ -1326,14 +1410,17 @@ export default function ConversationSimulator() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-8 shadow-lg max-w-5xl mx-auto">
-      {step !== 'results' && step !== 'form' && renderProgressStepper()}
-      {step === 'simulator' && renderSimulator()}
-      {step === 'multimedia' && renderMultimedia()}
-      {step === 'volume' && renderVolume()}
-      {step === 'teamStructure' && renderTeamStructure()}
-      {step === 'form' && renderForm()}
-      {step === 'results' && renderResults()}
-    </div>
+    <>
+      <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-lg">
+        {step === 'simulator' && renderSimulator()}
+        {step === 'multimedia' && renderMultimedia()}
+        {step === 'volume' && renderVolume()}
+        {step === 'teamStructure' && renderTeamStructure()}
+        {step === 'form' && renderForm()}
+        {step === 'results' && renderResults()}
+      </div>
+
+      {/* Modal de confirmación de demo eliminado en favor de Calendly */}
+    </>
   );
 }
