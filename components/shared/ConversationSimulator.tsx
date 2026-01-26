@@ -59,6 +59,11 @@ interface ProjectionData {
   optimisticCost: number;
   expectedCost: number;
   totalSetupCost: number;
+  iaPercentage: number;
+  humanPercentage: number;
+  costPerConversation: number;
+  iaTrafficMessages: number;
+  residualTrafficMessages: number;
 }
 
 const PACKAGES = [
@@ -306,11 +311,13 @@ export default function ConversationSimulator() {
 
     const volumeDiscount = 0; // Simplified for now
     const finalMonthlyCost = totalMonthlyCost;
+    const optimisticCost = Math.round(finalMonthlyCost * 0.9);
+    const pessimisticCost = Math.round(finalMonthlyCost * 1.1);
+    const expectedCost = finalMonthlyCost;
 
-    const costForPERT = finalMonthlyCost;
-    const optimisticCost = Math.round(costForPERT * 0.9);
-    const pessimisticCost = Math.round(costForPERT * 1.1);
-    const expectedCost = costForPERT;
+    const iaPercentage = iaDelegationPercentage;
+    const humanPercentage = 100 - iaPercentage;
+    const costPerConversation = monthlyConversations > 0 ? expectedCost / monthlyConversations : 0;
 
     // Return the full projection object
     return {
@@ -320,6 +327,8 @@ export default function ConversationSimulator() {
       audioMessages,
       imageMessages,
       documentMessages,
+      iaTrafficMessages,
+      residualTrafficMessages,
       totalMessages: totalMonthlyMessages,
       baseCost,
       teamMultiplier,
@@ -336,7 +345,10 @@ export default function ConversationSimulator() {
       totalSetupCost,
       pessimisticCost,
       optimisticCost,
-      expectedCost
+      expectedCost,
+      iaPercentage,
+      humanPercentage,
+      costPerConversation
     };
   };
 
@@ -1278,14 +1290,41 @@ export default function ConversationSimulator() {
           </table>
         </div>
 
-        {/* Proyección PERT */}
+        {/* Análisis de Demanda y Eficiencia (Print View) */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Demanda y Eficiencia</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <table className="w-full text-[10px] border-collapse">
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1 text-gray-600">Mensajes Totales / mes</td>
+                  <td className="text-right font-bold">{projection.totalMessages.toLocaleString()}</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1 text-gray-600">Participación IA</td>
+                  <td className="text-right font-bold text-purple-700">{projection.iaPercentage}% ({projection.iaTrafficMessages.toLocaleString()} msgs)</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1 text-gray-600">Intervención Humana</td>
+                  <td className="text-right font-bold text-blue-700">{projection.humanPercentage}% ({projection.residualTrafficMessages.toLocaleString()} msgs)</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className="p-2 bg-gray-50 border border-gray-200 rounded text-center flex flex-col justify-center">
+              <div className="text-[9px] uppercase text-gray-500 font-bold">Costo Promedio por Conversación</div>
+              <div className="text-lg font-bold text-green-700">{formatCurrency(projection.costPerConversation)}</div>
+              <div className="text-[8px] text-gray-400 italic">Métrica de eficiencia operativa</div>
+            </div>
+          </div>
+        </div>
+
         <div className="mb-4">
           <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
           <div className="grid grid-cols-3 gap-2 mb-2">
             <div className="text-center p-2 bg-gray-100 border border-gray-300">
               <div className="text-xs font-semibold mb-1 text-gray-600">Optimista</div>
               <div className="text-lg font-bold" style={{ color: '#10b981' }}>{formatCurrency(projection.optimisticCost)}</div>
-              <div className="text-xs text-gray-500">-20%</div>
+              <div className="text-xs text-gray-500">-10%</div>
             </div>
             <div className="text-center p-2 bg-white border-2 border-purple-500 rounded relative">
               <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white text-[9px] px-2 rounded-full">RECOMENDADO</div>
@@ -1296,14 +1335,16 @@ export default function ConversationSimulator() {
             <div className="text-center p-2 bg-gray-100 border border-gray-300">
               <div className="text-xs font-semibold mb-1 text-gray-600">Pesimista</div>
               <div className="text-lg font-bold" style={{ color: '#ef4444' }}>{formatCurrency(projection.pessimisticCost)}</div>
-              <div className="text-xs text-gray-500">+30%</div>
+              <div className="text-xs text-gray-500">+10%</div>
             </div>
           </div>
           <p className="text-[9px] text-gray-500 italic mt-1">
             * El escenario esperado es un promedio ponderado basado en patrones de uso típicos.
           </p>
-          <div className="mt-4 p-2 bg-gray-50 border border-gray-200 rounded text-[9px] text-gray-500 text-justify">
-            <strong>Nota legal:</strong> Este documento es una simulación preliminar de costos basada en la información suministrada por el usuario. No constituye una oferta comercial vinculante ni un contrato de servicios. Los valores finales pueden variar según las condiciones técnicas específicas, volumen real de uso y términos negociados en la propuesta formal. La contratación efectiva requiere validación de requisitos y firma de contrato de servicios con CloserCat S.A.S.
+          <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-[9px] text-gray-700 text-justify">
+            <strong>Nota Importante:</strong> Los valores presentados son aproximaciones estadísticas basadas en la información suministrada.
+            <strong> La cotización oficial y configuración técnica final se reafirma en nuestra llamada consultiva gratuita.</strong>
+            Este documento no constituye una oferta comercial vinculante ni un contrato de servicios.
           </div>
         </div>
 
@@ -1436,7 +1477,63 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* Botones de acción (Original Layout Restored) */}
+        {/* Análisis de Demanda y Eficiencia */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="p-6 bg-gray-50 rounded-xl border border-gray-100">
+            <h4 className="font-poppins font-bold mb-4 text-gray-800 flex items-center gap-2">
+              <span>📊</span> Análisis de Demanda
+            </h4>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Mensajes Totales / mes:</span>
+                <span className="font-mono font-bold">{projection.totalMessages.toLocaleString()}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200">
+                <div className="p-2 bg-purple-50 rounded text-center">
+                  <div className="text-[10px] uppercase text-purple-600 font-bold">Participación IA</div>
+                  <div className="text-lg font-bold text-purple-700">{projection.iaPercentage}%</div>
+                  <div className="text-[10px] text-purple-500">{projection.iaTrafficMessages.toLocaleString()} msgs</div>
+                </div>
+                <div className="p-2 bg-blue-50 rounded text-center">
+                  <div className="text-[10px] uppercase text-blue-600 font-bold">Intervención Humana</div>
+                  <div className="text-lg font-bold text-blue-700">{projection.humanPercentage}%</div>
+                  <div className="text-[10px] text-blue-500">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
+            <h4 className="font-poppins font-bold mb-2 text-green-800 text-center">
+              Métrica de Eficiencia
+            </h4>
+            <div className="text-center">
+              <div className="text-xs text-green-600 uppercase font-bold mb-1">Costo Promedio por Conversación</div>
+              <div className="text-4xl font-poppins font-extrabold text-green-700">
+                {formatCurrency(projection.costPerConversation)}
+              </div>
+              <p className="text-[10px] text-green-600 mt-2 italic px-4">
+                * Basado en el volumen de {projection.conversationsPerMonth.toLocaleString()} conversaciones mensuales bajo la lógica de delegación configurada.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer with improved Disclaimers */}
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-8">
+          <div className="flex gap-3">
+            <span className="text-xl">⚠️</span>
+            <div>
+              <p className="text-sm font-bold text-amber-800">Nota Importante sobre Estimaciones</p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Los valores presentados son **aproximaciones estadísticas** basadas en los parámetros de industria ingresados.
+                La cotización oficial y configuración técnica final se reafirma en nuestra **Llamada Consultiva Gratuita**.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Botones de acción ... */}
         <div className="flex gap-4 print:hidden">
           <button
             onClick={() => {
