@@ -73,137 +73,79 @@ export default function LandingOtrasIndustrias() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-poppins font-extrabold mb-4" style={{ color: '#121212' }}>
-              Industrias que hemos piloteado
+              Industrias que nos interesa pilotear
             </h2>
             <p className="text-xl font-inter" style={{ color: '#4b5563' }}>
-              Ejemplos de pilotos exitosos en diferentes sectores
+              Sectores donde vemos gran potencial para automatización
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 icon: '🏥',
-                title: 'Salud',
-                desc: 'Agendamiento de citas, recordatorios automáticos, confirmaciones',
-                result: 'Reducción 65% en no-shows',
+                title: 'Salud y Clínicas',
+                desc: 'Agendamiento de citas, recordatorios, confirmaciones y seguimiento post-consulta',
               },
               {
                 icon: '🏠',
                 title: 'Real Estate',
-                desc: 'Calificación de leads, tours virtuales, seguimiento automatizado',
-                result: 'Aumento 40% en conversión',
+                desc: 'Calificación de leads, tours virtuales, seguimiento de prospectos',
               },
               {
                 icon: '💼',
                 title: 'Consultoría',
                 desc: 'Coordinación de propuestas, seguimiento de proyectos, facturación',
-                result: 'Ahorro 20 horas/semana',
               },
               {
                 icon: '🚗',
                 title: 'Automotriz',
-                desc: 'Cotizaciones automáticas, agendamiento de test drive, seguimiento',
-                result: 'Aumento 35% en test drives',
+                desc: 'Cotizaciones, agendamiento de test drives, seguimiento post-venta',
+              },
+              {
+                icon: '✈️',
+                title: 'Turismo y Hotelería',
+                desc: 'Reservas, confirmaciones, atención al huésped, recomendaciones',
+              },
+              {
+                icon: '⚖️',
+                title: 'Legal y Abogados',
+                desc: 'Agendamiento de consultas, seguimiento de casos, recordatorios',
+              },
+              {
+                icon: '🏋️',
+                title: 'Fitness y Wellness',
+                desc: 'Reservas de clases, planes personalizados, recordatorios de rutinas',
+              },
+              {
+                icon: '📦',
+                title: 'Logística',
+                desc: 'Seguimiento de envíos, coordinación de entregas, atención al cliente',
+              },
+              {
+                icon: '🏗️',
+                title: 'Construcción',
+                desc: 'Cotizaciones, seguimiento de proyectos, coordinación con clientes',
+              },
+              {
+                icon: '🎨',
+                title: 'Servicios Profesionales',
+                desc: 'Agendamiento, cotizaciones, seguimiento de proyectos creativos',
               },
             ].map((industry, index) => (
-              <div key={index} className="bg-white rounded-xl border border-gray-200 p-6">
+              <div key={index} className="bg-white rounded-xl border border-gray-200 p-6 hover:border-purple-300 transition-colors">
                 <div className="text-4xl mb-3">{industry.icon}</div>
                 <h3 className="font-bold mb-2" style={{ color: '#111827' }}>{industry.title}</h3>
-                <p className="text-sm mb-4" style={{ color: '#6b7280' }}>{industry.desc}</p>
-                <div className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                  {industry.result}
-                </div>
+                <p className="text-sm" style={{ color: '#6b7280' }}>{industry.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Opciones de Pricing del Piloto */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-poppins font-bold text-center mb-4" style={{ color: '#121212' }}>
-            Elige tu modelo de piloto
-          </h2>
 
-          <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
-            Discovery gratuito (2-3 horas) + 60 días de piloto
-          </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <PricingCard
-              title="Pago Fijo Reducido"
-              price="$2.000.000"
-              description="50% del costo real + garantía"
-              badge="Opción 1"
-              badgeColor="blue"
-              features={[
-                'Piloto de 60 días',
-                '10,000 mensajes incluidos',
-                'Reembolso 100% si no cumple KPIs',
-                'Discovery gratuito (2-3 horas)',
-                'Soporte prioritario durante piloto'
-              ]}
-            />
 
-            <PricingCard
-              title="100% Pago por Resultados"
-              price="$0"
-              description="Paga solo si cumple KPIs"
-              badge="Opción 2"
-              badgeColor="purple"
-              featured={true}
-              features={[
-                'Piloto de 60 días',
-                'Sin costo inicial',
-                '$4.000.000 solo si cumple KPIs',
-                'Discovery gratuito (2-3 horas)',
-                'Soporte prioritario durante piloto'
-              ]}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Post-Piloto */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl font-poppins font-bold text-center mb-8" style={{ color: '#121212' }}>
-            Después del piloto exitoso
-          </h2>
-
-          <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
-            Si cumples tus KPIs, puedes elegir entre 3 modelos de suscripción:
-          </p>
-
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
-              <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>1. Suscripción Estándar</h3>
-              <p className="font-inter mb-2" style={{ color: '#4b5563' }}>Mensualidad fija según plan (Growth, Pro, Enterprise)</p>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Volumen predecible</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
-              <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>2. Modelo Híbrido</h3>
-              <p className="font-inter mb-2" style={{ color: '#4b5563' }}>50% mensualidad + 10% de performance fee</p>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Compartir riesgo y upside</p>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
-              <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>3. Solo Resultados</h3>
-              <p className="font-inter mb-2" style={{ color: '#4b5563' }}>$0 base + 20% de performance fee (mínimo $2M/mes)</p>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Máxima alineación de incentivos</p>
-            </div>
-          </div>
-
-          <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <p className="text-sm font-inter" style={{ color: '#121212' }}>
-              <strong>⚠️ Importante:</strong> Integraciones custom y configuraciones especiales se cobran aparte en todos los modelos.
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Why Pilot */}
       <section className="py-20 bg-white">
@@ -297,62 +239,9 @@ export default function LandingOtrasIndustrias() {
         </div>
       </section>
 
-      {/* Why CloserCat (Moved from Hub) */}
-      <section className="bg-gray-50 py-16">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-poppins font-bold mb-6" style={{ color: '#121212' }}>
-            La plataforma de WhatsApp Business con IA más completa de LATAM
-          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
-            <div>
-              <div className="text-4xl mb-3">🤖</div>
-              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>IA que entiende tu negocio</h3>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
-                GPT-4 + Knowledge Base personalizada para respuestas precisas
-              </p>
-            </div>
 
-            <div>
-              <div className="text-4xl mb-3">🔄</div>
-              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Integraciones nativas</h3>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
-                Q10, HubSpot, Salesforce, o cualquier CRM vía webhooks
-              </p>
-            </div>
 
-            <div>
-              <div className="text-4xl mb-3">🛡️</div>
-              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Control humano total</h3>
-              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
-                Guardrails bloquean respuestas inapropiadas automáticamente
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof (Moved from Hub) */}
-      <section className="py-12 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-sm font-inter mb-6" style={{ color: '#6b7280' }}>Empresas que confían en CloserCat</p>
-
-          <div className="grid grid-cols-3 gap-8 mt-12">
-            <div>
-              <div className="text-4xl font-mono font-bold" style={{ color: '#8336FF' }}>500K+</div>
-              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Mensajes procesados</div>
-            </div>
-            <div>
-              <div className="text-4xl font-mono font-bold" style={{ color: '#08C4F4' }}>&lt;3 seg</div>
-              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Tiempo de respuesta</div>
-            </div>
-            <div>
-              <div className="text-4xl font-mono font-bold" style={{ color: '#8336FF' }}>78%</div>
-              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Conversaciones automatizadas</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* What Happens Next */}
       <section className="py-16 bg-white">

@@ -532,9 +532,9 @@ export default function ConversationSimulator() {
         En CloserCat pagas por el consumo de la IA. Mira esta simulación para entender qué cuenta.
       </p>
 
-      <div className="mb-8 border border-gray-200 rounded-xl overflow-hidden bg-gray-50 flex flex-col md:flex-row h-[400px]">
+      <div className="mb-8 border border-gray-200 rounded-xl overflow-hidden bg-gray-50 flex flex-col md:flex-row min-h-[400px] md:h-[400px]">
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col border-r border-gray-200">
+        <div className="flex-1 flex flex-col md:border-r border-gray-200 min-h-[300px] md:min-h-0">
           <div className="bg-white p-3 border-b border-gray-200 flex justify-between items-center shadow-sm z-10">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs">👤</div>
@@ -543,17 +543,17 @@ export default function ConversationSimulator() {
             <div className="text-xs text-gray-400">En línea</div>
           </div>
 
-          <div ref={chatScrollRef} className="flex-1 p-4 overflow-y-auto space-y-4 bg-pattern relative">
+          <div ref={chatScrollRef} className="flex-1 p-3 md:p-4 overflow-y-auto space-y-3 md:space-y-4 bg-pattern relative">
             {animationStatus === 'idle' && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm">
-                <div className="text-5xl mb-6 animate-pulse">🎬</div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">Simulación de Ventas</h4>
-                <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
+              <div className="h-full flex flex-col items-center justify-center text-center p-4 md:p-6 bg-white/50 backdrop-blur-sm">
+                <div className="text-4xl md:text-5xl mb-4 md:mb-6 animate-pulse">🎬</div>
+                <h4 className="text-base md:text-lg font-bold text-gray-800 mb-2">Simulación de Ventas</h4>
+                <p className="text-gray-500 text-xs md:text-sm mb-4 md:mb-6 max-w-xs mx-auto">
                   Dale play para ver cómo la IA gestiona texto, audio, imágenes y documentos en tiempo real.
                 </p>
                 <button
                   onClick={startSimulation}
-                  className="px-8 py-3 bg-purple-600 text-white rounded-full font-bold hover:bg-purple-700 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+                  className="px-6 md:px-8 py-2.5 md:py-3 bg-purple-600 text-white rounded-full font-bold hover:bg-purple-700 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 text-sm md:text-base"
                 >
                   ▶️ Iniciar Ahora
                 </button>
@@ -562,26 +562,26 @@ export default function ConversationSimulator() {
 
             {visibleMessages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.speaker === 'customer' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
-                <div className={`max-w-[75%] rounded-2xl p-3 shadow-sm ${msg.speaker === 'customer'
+                <div className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-2.5 md:p-3 shadow-sm text-sm md:text-base ${msg.speaker === 'customer'
                   ? 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
                   : 'bg-purple-600 text-white rounded-br-none'
                   }`}>
                   {msg.type === 'audio' ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">▶️</div>
+                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs md:text-sm">▶️</div>
                       <div>
-                        <div className="h-1 w-24 bg-gray-200 rounded mb-1"></div>
+                        <div className="h-1 w-20 md:w-24 bg-gray-200 rounded mb-1"></div>
                         <span className="text-xs italic opacity-70">{msg.mediaLabel || 'Audio'}</span>
                       </div>
                     </div>
                   ) : msg.type === 'image' ? (
                     <div>
-                      <div className="w-full h-32 bg-gray-200 rounded-lg mb-2 flex items-center justify-center text-4xl">🖼️</div>
+                      <div className="w-full h-24 md:h-32 bg-gray-200 rounded-lg mb-2 flex items-center justify-center text-3xl md:text-4xl">🖼️</div>
                       <span className="text-xs italic opacity-70 block">{msg.mediaLabel || 'Imagen'}</span>
                     </div>
                   ) : msg.type === 'document' ? (
-                    <div className="flex items-center gap-3 bg-opacity-10 bg-white p-1 rounded">
-                      <div className="text-2xl">📄</div>
+                    <div className="flex items-center gap-2 md:gap-3 bg-opacity-10 bg-white p-1 rounded">
+                      <div className="text-xl md:text-2xl">📄</div>
                       <span className="text-xs font-semibold underline">{msg.mediaLabel || 'Documento'}</span>
                     </div>
                   ) : (
@@ -594,7 +594,7 @@ export default function ConversationSimulator() {
         </div>
 
         {/* Counters Area */}
-        <div className="w-full md:w-64 bg-white p-6 flex flex-col justify-center items-center shadow-inner relative overflow-hidden">
+        <div className="w-full md:w-64 bg-white p-4 md:p-6 flex flex-col justify-center items-center shadow-inner relative overflow-hidden border-t md:border-t-0 md:border-l border-gray-200">
           <div className="text-center z-10">
             <h4 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3">Mensajes Consumidos</h4>
             <div className={`text-7xl font-mono font-bold transition-all duration-300 ${animationStatus === 'playing' ? 'scale-110 text-purple-600' : 'text-gray-900'}`}>
