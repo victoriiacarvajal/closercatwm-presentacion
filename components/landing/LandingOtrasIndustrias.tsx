@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import Badge from '../shared/Badge';
 import PricingCard from '../shared/PricingCard';
+import UseCaseCard from '../shared/UseCaseCard';
+import ValuePropCard from '../shared/ValuePropCard';
 import FormSection from '../shared/FormSection';
 import Header from '../shared/Header';
 import { clarityEvent } from '../../utils/tracking';
@@ -19,15 +21,15 @@ export default function LandingOtrasIndustrias() {
           <Badge color="purple" icon="🏢">
             Piloto Personalizado
           </Badge>
-          
+
           <h1 className="text-5xl font-poppins font-extrabold leading-tight mb-4 mt-4" style={{ color: '#121212' }}>
             Piloto a resultados: Paga solo si funciona
           </h1>
-          
+
           <p className="text-xl font-inter mb-8" style={{ color: '#4b5563' }}>
             ¿Tu industria no está en nuestra lista? Piloto de 60 días con 2 opciones de pricing y conversión a suscripción si cumples KPIs.
           </p>
-          
+
           <div className="bg-purple-50 border border-purple-200 rounded-2xl p-8 text-left max-w-2xl mx-auto">
             <h3 className="font-poppins font-bold mb-4" style={{ color: '#121212' }}>
               ✨ Cómo funciona el programa de pilotos
@@ -77,7 +79,7 @@ export default function LandingOtrasIndustrias() {
               Ejemplos de pilotos exitosos en diferentes sectores
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
@@ -124,11 +126,11 @@ export default function LandingOtrasIndustrias() {
           <h2 className="text-3xl font-poppins font-bold text-center mb-4" style={{ color: '#121212' }}>
             Elige tu modelo de piloto
           </h2>
-          
+
           <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
             Discovery gratuito (2-3 horas) + 60 días de piloto
           </p>
-          
+
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <PricingCard
               title="Pago Fijo Reducido"
@@ -144,7 +146,7 @@ export default function LandingOtrasIndustrias() {
                 'Soporte prioritario durante piloto'
               ]}
             />
-            
+
             <PricingCard
               title="100% Pago por Resultados"
               price="$0"
@@ -163,38 +165,38 @@ export default function LandingOtrasIndustrias() {
           </div>
         </div>
       </section>
-      
+
       {/* Post-Piloto */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-3xl font-poppins font-bold text-center mb-8" style={{ color: '#121212' }}>
             Después del piloto exitoso
           </h2>
-          
+
           <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
             Si cumples tus KPIs, puedes elegir entre 3 modelos de suscripción:
           </p>
-          
+
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
               <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>1. Suscripción Estándar</h3>
               <p className="font-inter mb-2" style={{ color: '#4b5563' }}>Mensualidad fija según plan (Growth, Pro, Enterprise)</p>
               <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Volumen predecible</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
               <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>2. Modelo Híbrido</h3>
               <p className="font-inter mb-2" style={{ color: '#4b5563' }}>50% mensualidad + 10% de performance fee</p>
               <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Compartir riesgo y upside</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-xl border-2 border-gray-200">
               <h3 className="font-poppins font-bold mb-2" style={{ color: '#121212' }}>3. Solo Resultados</h3>
               <p className="font-inter mb-2" style={{ color: '#4b5563' }}>$0 base + 20% de performance fee (mínimo $2M/mes)</p>
               <p className="text-sm font-inter" style={{ color: '#6b7280' }}>Ideal para: Máxima alineación de incentivos</p>
             </div>
           </div>
-          
+
           <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <p className="text-sm font-inter" style={{ color: '#121212' }}>
               <strong>⚠️ Importante:</strong> Integraciones custom y configuraciones especiales se cobran aparte en todos los modelos.
@@ -209,7 +211,7 @@ export default function LandingOtrasIndustrias() {
           <h2 className="text-4xl font-extrabold text-center mb-12" style={{ color: '#111827' }}>
             ¿Por qué ofrecemos pilotos a resultados?
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-3" style={{ color: '#111827' }}>
@@ -222,7 +224,7 @@ export default function LandingOtrasIndustrias() {
                 <li>• <strong>KPIs claros:</strong> Métricas medibles desde el día 1</li>
               </ul>
             </div>
-            
+
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-3" style={{ color: '#111827' }}>
                 🚀 Para nosotros
@@ -239,7 +241,7 @@ export default function LandingOtrasIndustrias() {
       </section>
 
       {/* Form Section con campos extendidos */}
-      <FormSection 
+      <FormSection
         segment="otras-industrias"
         title="Aplica al programa de pilotos"
         subtitle="Completa el formulario y te contactaremos en 24 horas para agendar la llamada de discovery"
@@ -247,13 +249,118 @@ export default function LandingOtrasIndustrias() {
         ctaText="Aplicar al programa"
       />
 
+      {/* Casos de Uso Disponibles (Moved from Hub) */}
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-3xl font-poppins font-bold text-center mb-4" style={{ color: '#121212' }}>
+            Explora casos de uso para tu piloto
+          </h2>
+
+          <p className="text-center font-inter mb-12" style={{ color: '#4b5563' }}>
+            Podemos adaptar cualquiera de estos flujos a tu industria:
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <UseCaseCard
+              icon="🛒"
+              title="Ecommerce"
+              description="Catálogo de productos, consultas de precios, gestión de inventario y pedidos por WhatsApp."
+              features={[
+                'Catálogo automatizado',
+                'Consulta de stock',
+                'Procesamiento de pedidos'
+              ]}
+            />
+
+            <UseCaseCard
+              icon="🤝"
+              title="Prospección"
+              description="Calificación automática de leads, seguimiento comercial y cierre de ventas B2B."
+              features={[
+                'Calificación de leads',
+                'Seguimiento automático',
+                'Cotizaciones rápidas'
+              ]}
+            />
+
+            <UseCaseCard
+              icon="💬"
+              title="Soporte"
+              description="Atención al cliente 24/7, resolución de FAQs y gestión de tickets de soporte."
+              features={[
+                'FAQs automatizadas',
+                'Gestión de tickets',
+                'Escalamiento a humanos'
+              ]}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Why CloserCat (Moved from Hub) */}
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-poppins font-bold mb-6" style={{ color: '#121212' }}>
+            La plataforma de WhatsApp Business con IA más completa de LATAM
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+            <div>
+              <div className="text-4xl mb-3">🤖</div>
+              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>IA que entiende tu negocio</h3>
+              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
+                GPT-4 + Knowledge Base personalizada para respuestas precisas
+              </p>
+            </div>
+
+            <div>
+              <div className="text-4xl mb-3">🔄</div>
+              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Integraciones nativas</h3>
+              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
+                Q10, HubSpot, Salesforce, o cualquier CRM vía webhooks
+              </p>
+            </div>
+
+            <div>
+              <div className="text-4xl mb-3">🛡️</div>
+              <h3 className="font-poppins font-semibold mb-2" style={{ color: '#121212' }}>Control humano total</h3>
+              <p className="text-sm font-inter" style={{ color: '#6b7280' }}>
+                Guardrails bloquean respuestas inapropiadas automáticamente
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof (Moved from Hub) */}
+      <section className="py-12 bg-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <p className="text-sm font-inter mb-6" style={{ color: '#6b7280' }}>Empresas que confían en CloserCat</p>
+
+          <div className="grid grid-cols-3 gap-8 mt-12">
+            <div>
+              <div className="text-4xl font-mono font-bold" style={{ color: '#8336FF' }}>500K+</div>
+              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Mensajes procesados</div>
+            </div>
+            <div>
+              <div className="text-4xl font-mono font-bold" style={{ color: '#08C4F4' }}>&lt;3 seg</div>
+              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Tiempo de respuesta</div>
+            </div>
+            <div>
+              <div className="text-4xl font-mono font-bold" style={{ color: '#8336FF' }}>78%</div>
+              <div className="text-sm font-inter" style={{ color: '#6b7280' }}>Conversaciones automatizadas</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* What Happens Next */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-extrabold text-center mb-12" style={{ color: '#111827' }}>
             Qué pasa después de aplicar
           </h2>
-          
+
           <div className="space-y-6">
             {[
               {
@@ -299,7 +406,7 @@ export default function LandingOtrasIndustrias() {
           <h2 className="text-4xl font-extrabold text-center mb-12" style={{ color: '#111827' }}>
             Preguntas frecuentes
           </h2>
-          
+
           <div className="space-y-6">
             {[
               {

@@ -79,7 +79,7 @@ export default function LandingProfesionalesIndependientes() {
 
     return (
         <div className="min-h-screen bg-white">
-            <Header showNav={false} ctaText="Empezar ahora" />
+            <Header showNav={false} ctaText="Empezar ahora" ctaAction={() => scrollToForm()} />
 
             {/* Hero Section */}
             <section className="py-16 px-6">

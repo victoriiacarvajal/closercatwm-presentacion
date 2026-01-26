@@ -19,7 +19,7 @@ export default function LandingEmprendedores() {
 
     return (
         <div className="min-h-screen bg-white">
-            <Header showNav={false} ctaText="Solicitar cotización" onCtaClick={scrollToSimulator} />
+            <Header showNav={false} ctaText="Solicitar cotización" ctaAction={scrollToSimulator} />
 
             {/* Hero Section */}
             <section className="py-16 px-6">
