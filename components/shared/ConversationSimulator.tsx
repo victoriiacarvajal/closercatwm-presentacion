@@ -64,13 +64,12 @@ interface ProjectionData {
   residualTrafficMessages: number;
   conversionRate: number;
   avgTicket: number;
-  estimatedRevenue: number;
-  estimatedProfit: number;
-  roi: number;
+  incrementalRev10: number;
   incrementalRev20: number;
-  incrementalRev50: number;
+  incrementalRev30: number;
+  incrementalROI10: number;
   incrementalROI20: number;
-  incrementalROI50: number;
+  incrementalROI30: number;
   annualRevenuePotential: number;
 }
 
@@ -330,25 +329,31 @@ export default function ConversationSimulator() {
     const humanPercentage = 100 - iaPercentage;
     const costPerConversation = monthlyConversations > 0 ? expectedCost / monthlyConversations : 0;
 
-    // ROI Calculations (Restructured for Incremental Impact)
+    // ROI Calculations (Restructured for Incremental Impact: 10%, 20%, 30% rel. improvements)
     const baselineRevenue = (monthlyConversations * (conversionRate / 100)) * avgTicket;
 
-    // Scenario 1: +20% Relative Improvement (Optimization)
+    // Scenario 1: +10% Relative Improvement
+    const convRate10 = (conversionRate * 1.1) / 100;
+    const rev10 = monthlyConversations * convRate10 * avgTicket;
+    const incrementalRev10 = Math.max(0, rev10 - baselineRevenue);
+    const incrementalROI10 = expectedCost > 0 ? (incrementalRev10 / expectedCost) * 100 : 0;
+
+    // Scenario 2: +20% Relative Improvement (Standard / Recommended)
     const convRate20 = (conversionRate * 1.2) / 100;
     const rev20 = monthlyConversations * convRate20 * avgTicket;
     const incrementalRev20 = Math.max(0, rev20 - baselineRevenue);
     const incrementalROI20 = expectedCost > 0 ? (incrementalRev20 / expectedCost) * 100 : 0;
 
-    // Scenario 2: +50% Relative Improvement (High Impact)
-    const convRate50 = (conversionRate * 1.5) / 100;
-    const rev50 = monthlyConversations * convRate50 * avgTicket;
-    const incrementalRev50 = Math.max(0, rev50 - baselineRevenue);
-    const incrementalROI50 = expectedCost > 0 ? (incrementalRev50 / expectedCost) * 100 : 0;
+    // Scenario 3: +30% Relative Improvement (High Impact)
+    const convRate30 = (conversionRate * 1.3) / 100;
+    const rev30 = monthlyConversations * convRate30 * avgTicket;
+    const incrementalRev30 = Math.max(0, rev30 - baselineRevenue);
+    const incrementalROI30 = expectedCost > 0 ? (incrementalRev30 / expectedCost) * 100 : 0;
 
     // Annual Growth Projection (Compound Volume Growth)
     let annualRevenuePotential = 0;
     const growthFactor = 1 + (monthlyGrowthRate / 100);
-    const targetConvRate = convRate20; // Use optimization scenario for annual potential
+    const targetConvRate = convRate20; // Use 20% scenario for annual potential
 
     for (let month = 0; month < 12; month++) {
       const monthVolume = monthlyConversations * Math.pow(growthFactor, month);
@@ -387,13 +392,13 @@ export default function ConversationSimulator() {
       costPerConversation,
       conversionRate,
       avgTicket,
-      estimatedRevenue: baselineRevenue, // Keep baseline for context
-      estimatedProfit: incrementalRev20 - expectedCost, // Profit based on incremental gain
-      roi: incrementalROI20, // Focus main ROI on optimization scenario
+      estimatedRevenue: baselineRevenue,
+      incrementalRev10,
       incrementalRev20,
-      incrementalRev50,
+      incrementalRev30,
+      incrementalROI10,
       incrementalROI20,
-      incrementalROI50,
+      incrementalROI30,
       annualRevenuePotential
     };
   };
@@ -1365,19 +1370,19 @@ export default function ConversationSimulator() {
           <table className="w-full text-xs">
             <tbody>
               <tr>
-                <td className="py-1">Costo Base Operativo (Mensajes + IA)</td>
+                <td className="py-1">Costo Base Operativo (Mensajes + IA + Residual)</td>
                 <td className="text-right py-1">{formatCurrency(projection.adjustedBaseCost)}</td>
               </tr>
-              {projection.totalIntegrationCost > 0 && (
+              {projection.integrationMonthlyCost > 0 && (
                 <tr>
                   <td className="py-1">Integraciones y Conectividad</td>
-                  <td className="text-right py-1">{formatCurrency(projection.totalIntegrationCost)}</td>
+                  <td className="text-right py-1">{formatCurrency(projection.integrationMonthlyCost)}</td>
                 </tr>
               )}
-              {projection.totalServicesCost > 0 && (
+              {projection.servicesCost > 0 && (
                 <tr>
                   <td className="py-1">Servicios a Demanda (Campañas, Reportes)</td>
-                  <td className="text-right py-1">{formatCurrency(projection.totalServicesCost)}</td>
+                  <td className="text-right py-1">{formatCurrency(projection.servicesCost)}</td>
                 </tr>
               )}
               {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
@@ -1388,7 +1393,34 @@ export default function ConversationSimulator() {
               )}
               <tr className="font-bold border-t border-gray-300 bg-gray-50">
                 <td className="py-2 pl-2">Inversión Mensual Esperada</td>
-                <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '12px' }}>{formatCurrency(projection.expectedCost)}</td>
+                <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '10px' }}>{formatCurrency(projection.expectedCost)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pago Único (Setup Inicial) en Impresión */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Pago Único (Setup Inicial)</h3>
+          <table className="w-full text-xs">
+            <tbody>
+              <tr>
+                <td className="py-1">Habilitación de Infraestructura y Líneas</td>
+                <td className="text-right py-1">
+                  {formatCurrency(projection.totalSetupCost - (SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) - (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                </td>
+              </tr>
+              {(teamStructure.needsMigrationAssistance || teamStructure.needsOnboarding) && (
+                <tr>
+                  <td className="py-1">Servicios de Onboarding y Migración</td>
+                  <td className="text-right py-1">
+                    {formatCurrency((SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) + (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                  </td>
+                </tr>
+              )}
+              <tr className="font-bold border-t border-gray-300 bg-blue-50">
+                <td className="py-2 pl-2">Total Inversión Inicial (Setup)</td>
+                <td className="text-right py-2 pr-2" style={{ color: '#1e40af', fontSize: '10px' }}>{formatCurrency(projection.totalSetupCost)}</td>
               </tr>
             </tbody>
           </table>
@@ -1422,31 +1454,53 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* ROI y Crecimiento en impresión */}
-        <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-          <h3 className="text-[10px] font-bold text-gray-900 uppercase tracking-wider mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Impacto y Proyección Anual</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-[9px] font-bold text-blue-800 mb-1">Escenario Optimización (+20% conv.)</p>
-              <table className="w-full text-[8px]">
-                <tbody>
-                  <tr>
-                    <td>Ingreso Mensual Adicional</td>
-                    <td className="text-right font-bold">+{formatCurrency(projection.incrementalRev20)}</td>
-                  </tr>
-                  <tr>
-                    <td>ROI sobre inversión</td>
-                    <td className="text-right font-bold text-green-700">{Math.round(projection.incrementalROI20)}%</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="border-l border-gray-200 pl-4">
-              <p className="text-[9px] font-bold text-purple-800 mb-1">Potencial Anual de Ingresos</p>
-              <div className="text-lg font-bold text-indigo-900">{formatCurrency(projection.annualRevenuePotential)}</div>
-              <p className="text-[7px] text-gray-500 italic">Asumiendo crecimiento de volumen del {monthlyGrowthRate}% mensual.</p>
-            </div>
-          </div>
+        {/* Comparativa de Estrategia en impresión (Multi-Escenario) */}
+        <div className="mb-4">
+          <h3 className="text-[10px] font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Comparativa de Estrategia: Actual vs CloserCat</h3>
+          <table className="w-full text-[8px] border-collapse">
+            <thead>
+              <tr className="bg-gray-100 border-b border-gray-300 text-gray-400">
+                <th className="py-2 pl-2 text-left w-1/4 uppercase">Métrica de Negocio</th>
+                <th className="py-2 text-center border-r border-gray-200">Actual</th>
+                <th className="py-2 text-center bg-gray-50 border-r border-gray-200">Opt. (+10%)</th>
+                <th className="py-2 text-center bg-purple-50 border-r border-gray-200 text-purple-900">Reco. (+20%)</th>
+                <th className="py-2 pr-2 text-center bg-gray-50">Impacto (+30%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pl-2 font-bold text-gray-700">Tasa de Conversión</td>
+                <td className="py-2 text-center italic">{projection.conversionRate}%</td>
+                <td className="py-2 text-center">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
+                <td className="py-2 text-center bg-purple-50 font-bold text-green-700">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
+                <td className="py-2 pr-2 text-center text-green-800">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pl-2 font-bold text-gray-700">Ingresos Mensuales</td>
+                <td className="py-2 text-center italic font-mono">{formatCurrency(projection.estimatedRevenue)}</td>
+                <td className="py-2 text-center font-mono">+{formatCurrency(projection.incrementalRev10)}</td>
+                <td className="py-2 text-center bg-purple-50 font-bold font-mono text-indigo-700">+{formatCurrency(projection.incrementalRev20)}</td>
+                <td className="py-2 pr-2 text-center font-mono text-indigo-800">+{formatCurrency(projection.incrementalRev30)}</td>
+              </tr>
+              <tr className="bg-gray-50/50">
+                <td className="py-3 pl-2 font-bold text-gray-900">Utilidad Operativa (Impacto)</td>
+                <td className="py-3 text-center italic font-mono text-gray-400">{formatCurrency(projection.estimatedRevenue)}</td>
+                <td className="py-3 text-center font-mono text-green-600 font-bold">+{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}</td>
+                <td className="py-3 text-center bg-purple-100/30 font-bold font-mono text-green-700">+{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}</td>
+                <td className="py-3 pr-2 text-center font-mono text-green-800 font-bold">+{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="text-[7px] text-gray-400 mt-2 italic text-center">
+            * El impacto incremental resta la inversión mensual de CloserCat sobre los ingresos adicionales generados por la mejora en conversión.
+          </p>
+        </div>
+
+        {/* Proyección Anual en impresión */}
+        <div className="mb-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
+          <p className="text-[8px] uppercase font-bold text-indigo-600 tracking-widest mb-1">Potencial Anual de Ingresos (Escenario Recomendado)</p>
+          <div className="text-xl font-bold text-indigo-900">{formatCurrency(projection.annualRevenuePotential)}</div>
+          <p className="text-[7px] text-indigo-400 mt-1 italic">Basado en un crecimiento de volumen mensual del {monthlyGrowthRate}% y una mejora del 20% en conversión.</p>
         </div>
 
         <div className="mb-4">
@@ -1650,91 +1704,85 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* Simulador de Impacto y Crecimiento (REDISEÑADO) */}
-        <div className="mb-8 p-8 bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-2xl shadow-2xl text-white relative overflow-hidden border border-white/5">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl opacity-50"></div>
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl opacity-50"></div>
-
-          <div className="relative z-10">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        {/* Comparativa de Estrategia: Actual vs CloserCat (Expanded Scenarios) */}
+        <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-50 pb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl p-2 bg-purple-100 rounded-xl">⚖️</span>
               <div>
-                <h4 className="font-poppins font-bold text-2xl flex items-center gap-3">
-                  <span className="p-2 bg-blue-500/20 rounded-lg">📈</span> Análisis de Crecimiento e Impacto
-                </h4>
-                <p className="text-xs text-blue-300 mt-1">Cómo la optimización de CloserCat impacta tu rentabilidad</p>
-              </div>
-              <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-blue-200">Baseline Actual: {projection.conversionRate}% conv.</span>
+                <h4 className="font-poppins font-bold text-xl text-gray-900">Comparativa de Estrategia</h4>
+                <p className="text-sm text-gray-500">¿Cómo escala tu rentabilidad según la eficiencia de la IA?</p>
               </div>
             </div>
-
-            <div className="grid md:grid-cols-2 gap-6 mb-10">
-              {/* Escenario Optimizacion */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] font-bold rounded-full uppercase tracking-tighter">Optimización (+20% rel.)</span>
-                  <div className="text-right">
-                    <span className="text-xs text-blue-200 block">Nueva Meta Conv.</span>
-                    <span className="text-lg font-bold">{(projection.conversionRate * 1.2).toFixed(2)}%</span>
-                  </div>
-                </div>
-                <div className="mb-6">
-                  <p className="text-[10px] uppercase text-blue-300 mb-1">Ingreso Incremental Mensual</p>
-                  <div className="text-3xl font-poppins font-extrabold text-white">
-                    +{formatCurrency(projection.incrementalRev20)}
-                  </div>
-                </div>
-                <div className="flex justify-between border-t border-white/10 pt-4">
-                  <div>
-                    <span className="text-[9px] text-gray-400 block">Real ROI</span>
-                    <span className="text-lg font-bold text-green-400">{Math.round(projection.incrementalROI20)}%</span>
-                  </div>
-                  <div className="text-right text-[10px] opacity-60 max-w-[120px]">
-                    Retorno del ingreso extra vs inversión CloserCat
-                  </div>
-                </div>
-              </div>
-
-              {/* Escenario High Impact */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-bold rounded-full uppercase tracking-tighter">Escalabilidad (+50% rel.)</span>
-                  <div className="text-right">
-                    <span className="text-xs text-blue-200 block">Nueva Meta Conv.</span>
-                    <span className="text-lg font-bold">{(projection.conversionRate * 1.5).toFixed(2)}%</span>
-                  </div>
-                </div>
-                <div className="mb-6">
-                  <p className="text-[10px] uppercase text-blue-300 mb-1">Ingreso Incremental Mensual</p>
-                  <div className="text-3xl font-poppins font-extrabold text-white">
-                    +{formatCurrency(projection.incrementalRev50)}
-                  </div>
-                </div>
-                <div className="flex justify-between border-t border-white/10 pt-4">
-                  <div>
-                    <span className="text-[9px] text-gray-400 block">Real ROI</span>
-                    <span className="text-lg font-bold text-blue-400">{Math.round(projection.incrementalROI50)}%</span>
-                  </div>
-                  <div className="text-right text-[10px] opacity-60 max-w-[120px]">
-                    Impacto por mejora de procesos y cierre 24/7
-                  </div>
-                </div>
-              </div>
+            <div className="px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-400">Baseline: {projection.conversionRate}% conv. actual</span>
             </div>
+          </div>
 
-            {/* Proyección Anual con Crecimiento */}
-            <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-8 text-center relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
-              <h5 className="font-poppins font-bold text-lg mb-2 text-blue-100 italic group-hover:scale-105 transition-transform">
-                "Potencial de Ingresos en el Primer Año"
-              </h5>
-              <div className="text-5xl font-poppins font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400 mb-2">
-                {formatCurrency(projection.annualRevenuePotential)}
-              </div>
-              <p className="text-xs text-blue-300 max-w-lg mx-auto leading-relaxed">
-                Calculado bajo un escenario de optimización del 20% y un crecimiento mensual del volumen de conversaciones del {monthlyGrowthRate}%.
-              </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-gray-400 italic">
+                  <th className="pb-4 font-semibold w-1/4">Métrica de Negocio</th>
+                  <th className="pb-4 text-center px-4 border-r border-gray-100">Status Quo</th>
+                  <th colSpan={3} className="pb-4 text-center bg-purple-50 text-purple-700 rounded-t-xl border-x border-purple-100 uppercase tracking-widest font-extrabold text-[9px]">
+                    Impacto con Estrategia CloserCat
+                  </th>
+                </tr>
+                <tr className="text-[9px] uppercase tracking-tight text-gray-500 border-b border-gray-200">
+                  <th className="py-2"></th>
+                  <th className="py-2 text-center text-gray-400 border-r border-gray-100 italic">Actual</th>
+                  <th className="py-2 text-center bg-purple-50/50 text-indigo-500 border-r border-purple-100">Optimización (+10%)</th>
+                  <th className="py-2 text-center bg-purple-50 text-indigo-600 border-r border-purple-100 font-bold">Recomendado (+20%)</th>
+                  <th className="py-2 text-center bg-purple-100/30 text-indigo-700">High Impact (+30%)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                <tr>
+                  <td className="py-5 font-semibold text-gray-700">Tasa de Conversión</td>
+                  <td className="py-5 text-center text-gray-400 border-r border-gray-100 font-mono italic">{projection.conversionRate}%</td>
+                  <td className="py-5 text-center bg-purple-50/20 font-mono">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
+                  <td className="py-5 text-center bg-purple-50 font-mono font-bold text-indigo-600">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
+                  <td className="py-5 text-center bg-purple-100/10 font-mono">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
+                </tr>
+                <tr>
+                  <td className="py-5 font-semibold text-gray-700">Ingresos Mensuales</td>
+                  <td className="py-5 text-center text-gray-400 border-r border-gray-100 font-mono italic">{formatCurrency(projection.estimatedRevenue)}</td>
+                  <td className="py-5 text-center bg-purple-50/20 font-mono">+{formatCurrency(projection.incrementalRev10)}</td>
+                  <td className="py-5 text-center bg-purple-50 font-mono font-bold text-indigo-600">+{formatCurrency(projection.incrementalRev20)}</td>
+                  <td className="py-5 text-center bg-purple-100/10 font-mono">+{formatCurrency(projection.incrementalRev30)}</td>
+                </tr>
+                <tr className="bg-gray-50/30">
+                  <td className="py-5 font-semibold text-gray-700">Costo CloserCat (Mes)</td>
+                  <td className="py-5 text-center text-gray-300 border-r border-gray-100 font-mono">$ 0</td>
+                  <td className="py-5 text-center bg-purple-50/20 font-mono text-red-400">-{formatCurrency(projection.expectedCost)}</td>
+                  <td className="py-5 text-center bg-purple-50 font-mono font-bold text-red-500">-{formatCurrency(projection.expectedCost)}</td>
+                  <td className="py-5 text-center bg-purple-100/10 font-mono text-red-600">-{formatCurrency(projection.expectedCost)}</td>
+                </tr>
+                <tr className="bg-gradient-to-r from-gray-50 to-purple-50/30">
+                  <td className="py-6 font-bold text-gray-900 border-l-4 border-purple-500 pl-4">Utilidad Operativa (Impacto)</td>
+                  <td className="py-6 text-center text-gray-400 border-r border-gray-100 font-mono italic">{formatCurrency(projection.estimatedRevenue)}</td>
+                  <td className="py-6 text-center bg-purple-50/50 font-mono text-green-600 font-bold">
+                    +{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
+                  </td>
+                  <td className="py-6 text-center bg-purple-100/50 font-mono text-green-700 font-extrabold text-lg border-x border-purple-200">
+                    +{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
+                  </td>
+                  <td className="py-6 text-center bg-purple-200/20 font-mono text-green-800 font-bold">
+                    +{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-8 p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-center">
+            <h5 className="text-[10px] uppercase font-bold text-blue-600 tracking-wider mb-2">Proyección Anual de Crecimiento (Escenario Recomendado)</h5>
+            <div className="text-3xl font-poppins font-black text-blue-900 mb-2">
+              {formatCurrency(projection.annualRevenuePotential)}
             </div>
+            <p className="text-[9px] text-blue-500 italic">
+              * Calculado con un incremento mensual sostenido del volumen de conversaciones del {monthlyGrowthRate}%.
+            </p>
           </div>
         </div>
 
