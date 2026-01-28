@@ -8,18 +8,18 @@ Este documento detalla las reglas de negocio, constantes y fórmulas matemática
 
 ### Paso 1: Estructura del Equipo
 ### Paso 1: Estructura del Equipo
-### Paso 1: Estructura del Equipo
+### Paso 1: Estructura del Equipo (Step 4 UI)
 - `personalLinesCount`: Cantidad de líneas de WhatsApp personales (Vendedores).
 - `institutionalLinesCount`: Cantidad de líneas de WhatsApp Business API (Empresa).
-- `numberOfSalesReps`: Calculado como la suma de las líneas anteriores (estimación de volumen).
-- `managementStrategy` (Descentralizada/Mixta/Institucional): **Define el modelo de costos.**
-  - **Descentralizada**: Paralelo institucional. Costo mensual $0 + 1 Setup Institucional.
-  - **Mixta**: Costo personal ($25k/línea) + 1 Setup Institucional.
-  - **Institucional**: Costo Setup ($450k/línea).
+- `numberOfSalesReps`: Calculado como la suma de las líneas anteriores.
+- `managementStrategy` (Descentralizada/Mixta/Institucional): Define costos de setup y mensualidad de líneas.
 
-### Paso 2: Integraciones y Servicios
+### Paso 2: Integraciones y Servicios (Step 5 UI)
 - `integrationsNeeded`: Lista de integraciones (CRM, ERP, etc.) con sus respectivos costos mensuales y de setup.
-- `needsCampaigns`, `campaignContacts`, `campaignsPerMonth`: Determinan el volumen de mensajes salientes (outbound).
+- `needsCampaigns`: Habilita envío de campañas masivas.
+  - `campaignContacts` * `campaignsPerMonth` = Volumen de Mensajes Outbound.
+  - **Costo CloserCat**: $66/msg (Procesamiento).
+  - **Costo Meta**: $60/msg (Pago directo a Meta - Marketing).
 - `needsMigrationAssistance`: Habilita el cálculo de costo de migración de historial.
   - `linesToMigrate`: Cantidad de líneas a procesar.
   - `migrationContactsPerLine`: Promedio de contactos por línea.
@@ -44,6 +44,16 @@ Este documento detalla las reglas de negocio, constantes y fórmulas matemática
 - **Documento**: $180
 - **Residual (Tráfico Humano)**: $3 (Costo de custodia/sincronización).
 
+### Servicios de Valor Agregado (Monthly)
+- **Asesoría de Prompting**:
+  - **Standard**: $0 (Incluido - Configuración base).
+  - **Custom/Híbrida**: **$250.000** mes (Ajuste a medida, optimización mensual).
+- **Intelligence Reports (Market Analysis)**: **$450.000** mes.
+- **Capacidad KB (Base de Conocimiento)**:
+  - **Base (0 - 500 items)**: **$0** (Incluido).
+  - **Tramo 1 (501 - 2,000 items)**: **$40.000** por cada bloque de 500 items adicionales.
+  - **Tramo 2 (> 2,000 items)**: **$120.000** por cada bloque de 1,000 items adicionales.
+
 ### Costos de Líneas y Migración
 - **Línea Personal (Protocolo Web)**: **$25.000** por línea / mes.
 - **Línea Institucional (API)**: **$0** mensual (costo absorbido en consumo).
@@ -67,8 +77,9 @@ Este documento detalla las reglas de negocio, constantes y fórmulas matemática
 3. `Base_Cost = IA_Cost + Residual_Cost`
 4. `Adjusted_Base_Cost = Base_Cost` (Sin multiplicadores de equipo).
 
-### Costo de Líneas (Mensual vs Setup)
-El costo depende de la Estrategia seleccionada:
+### Costo de Servicios de Valor Agregado (KB, Prompting, Reports)
+`Value_Added_Services = KB_Variable_Cost + Prompting_Cost + Market_Analysis_Cost`
+
 ### Costo de Líneas (Mensual vs Setup)
 El costo depende de la Estrategia seleccionada:
 - **Descentralizada**:
@@ -86,7 +97,7 @@ Si se selecciona migración para líneas institucionales:
 `Migration_Cost = LinesToMigrate * ContactsPerLine * MsgsPerContact * 50`
 
 ### Inversión Mensual Total
-`Total_Monthly_Cost = Adjusted_Base_Cost + Line_Monthly_Fees + Integration_Monthly_Fees + Service_Monthly_Fees`
+`Total_Monthly_Cost = Adjusted_Base_Cost + Line_Monthly_Fees + Value_Added_Services`
 
 ---
 

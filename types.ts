@@ -88,6 +88,7 @@ export interface ProfesionalesIndependientesFormData {
 }
 
 // Team structure data for ConversationSimulator (Operaciones Comerciales)
+// Team structure data for ConversationSimulator (Operaciones Comerciales)
 export interface TeamStructureData {
   numberOfSalesReps: number;
   personalLinesCount?: number; // New: Explicit count of personal lines
@@ -95,11 +96,17 @@ export interface TeamStructureData {
   whatsappOwnership?: 'sellers' | 'company' | 'mixed'; // Deprecated
   repsPerLine?: number; // Deprecated
   managementStrategy: 'decentralized' | 'transition' | 'mixed' | 'institutional';
-  integrationsNeeded: string[]; // 'crm_custom', 'erp_custom', 'custom_webhooks'
+
+  // New Service Model Fields
+  kbItems: number; // Base de conocimiento (Slider)
+  promptingType: 'standard' | 'custom'; // Tipo de IA
+  needsMarketAnalysis: boolean; // Intelligence Reports
+
   needsCampaigns: boolean;
   campaignContacts?: number;
   campaignsPerMonth?: number;
-  needsCustomReports: boolean;
+
+  needsCustomReports: boolean; // Kept as optional legacy or manual report
   needsMigrationAssistance: boolean;
   needsOnboarding: boolean;
   industry: string;

@@ -71,6 +71,30 @@ interface ProjectionData {
   incrementalROI20: number;
   incrementalROI30: number;
   annualRevenuePotential: number;
+  iaPercentage: number;
+  humanPercentage: number;
+  estimatedRevenue: number; // Baseline Revenue
+  metaMarketingCost: number; // Costo directo a Meta (Passthrough)
+}
+
+interface ScenarioData {
+  conversionRate: number;
+  revenue: number;
+  cost: number;
+  netAdditionalRevenue: number;
+}
+
+interface PeriodProjection {
+  period: string;
+  conversations: number;
+  statusQuo: {
+    revenue: number;
+  };
+  withCloserCat: {
+    optimistic: ScenarioData;
+    recommended: ScenarioData;
+    highImpact: ScenarioData;
+  };
 }
 
 const PACKAGES = [
@@ -85,7 +109,8 @@ const COSTS = {
   audio: 256,
   image: 247,
   document: 180,
-  campaign: 66
+  campaign: 66,
+  meta_marketing: 60 // Costo directo Meta (USD/COP aprox)
 };
 
 const getTeamMultiplier = (reps: number): number => {
@@ -103,23 +128,58 @@ const INSTITUTIONAL_SETUP_FEE = 450000;
 const HISTORICAL_MSG_COST = 50; // Costo por mensaje histórico (Parsing + Embedding)
 const RESIDUAL_COST = 3;
 
-const INTEGRATION_COSTS: Record<string, { monthly: number; setup: number }> = {
-  crm_saas: { monthly: 0, setup: 300000 },
-  crm_custom: { monthly: 500000, setup: 2000000 }, // Legacy/A la medida
-  erp_custom: { monthly: 800000, setup: 3500000 },
-  custom_webhooks: { monthly: 0, setup: 300000 }
+const VALUE_ADDED_SERVICES_COSTS = {
+  custom_prompting: 250000,
+  market_analysis: 450000,
+  kb_tramo1_block: 40000, // Por cada 500 items extra (hasta 2000)
+  kb_tramo2_block: 120000 // Por cada 1000 items extra (mas de 2000)
 };
 
 const SERVICES_COSTS = {
   campaign_msg: 66,
-  custom_reports: 200000,
   migration_assisted: 800000,
   additional_line: 100000,
   onboarding: 600000
 };
 
+// Helper para calcular costo de KB variable
+const calculateKbCost = (items: number | undefined): number => {
+  const safeItems = items || 500; // Default to 500 if undefined
+  let totalExtra = 0;
+
+  // Base incluida: 500 items. Si es menor o igual, costo es 0.
+  if (safeItems <= 500) return 0;
+
+  // Tramo 1: De 501 a 2000 items (Bloques de 500 a $40k)
+  // Max items en este tramo: 1500 (2000 - 500 base)
+  const itemsInTramo1 = Math.min(safeItems, 2000) - 500;
+  if (itemsInTramo1 > 0) {
+    const blocksTramo1 = Math.ceil(itemsInTramo1 / 500);
+    totalExtra += blocksTramo1 * VALUE_ADDED_SERVICES_COSTS.kb_tramo1_block;
+  }
+
+  // Tramo 2: Más de 2000 items (Bloques de 1000 a $120k)
+  if (safeItems > 2000) {
+    const itemsInTramo2 = safeItems - 2000;
+    const blocksTramo2 = Math.ceil(itemsInTramo2 / 1000);
+    totalExtra += blocksTramo2 * VALUE_ADDED_SERVICES_COSTS.kb_tramo2_block;
+  }
+
+  return totalExtra;
+};
+
 export default function ConversationSimulator() {
-  const [step, setStep] = useState<'simulator' | 'multimedia' | 'volume' | 'teamStructure' | 'form' | 'results'>('simulator');
+  const [step, setStep] = useState<'simulator' | 'multimedia' | 'volume' | 'teamStructure' | 'integrations' | 'form' | 'results'>('simulator');
+
+  // Safe State Migration: Ensure new fields exist if loaded from stale state
+  useEffect(() => {
+    setTeamStructure(prev => ({
+      ...prev,
+      kbItems: prev.kbItems || 500,
+      promptingType: prev.promptingType || 'standard',
+      needsMarketAnalysis: prev.needsMarketAnalysis || false
+    }));
+  }, []);
 
   // Animation State
   const [animationStatus, setAnimationStatus] = useState<'idle' | 'playing' | 'completed'>('idle');
@@ -142,13 +202,19 @@ export default function ConversationSimulator() {
   const [avgTicket, setAvgTicket] = useState<number>(50000); // Default 50k
   const [monthlyGrowthRate, setMonthlyGrowthRate] = useState<number>(10); // Default 10% monthly growth for projections
   const [projection, setProjection] = useState<ProjectionData | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<'quarterly' | 'monthly' | 'annual'>('quarterly');
 
   const [teamStructure, setTeamStructure] = useState<TeamStructureData>({
     numberOfSalesReps: 5,
     whatsappOwnership: 'sellers',
     repsPerLine: 1,
     managementStrategy: 'decentralized',
-    integrationsNeeded: [],
+
+    // Default Service Config
+    kbItems: 500,
+    promptingType: 'standard',
+    needsMarketAnalysis: false,
+
     needsCampaigns: false,
     campaignContacts: 0,
     campaignsPerMonth: 0,
@@ -293,26 +359,32 @@ export default function ConversationSimulator() {
         lineMonthlyFee = personalLines * PERSONAL_LINE_FEE;
     }
 
-    let integrationMonthlyCost = 0;
-    let integrationSetupCost = 0;
+    // Nuevos Servicios de Valor Agregado (Monthly)
+    const kbCost = calculateKbCost(teamData.kbItems || 500);
+    const promptingCost = teamData.promptingType === 'custom' ? VALUE_ADDED_SERVICES_COSTS.custom_prompting : 0;
+    const marketAnalysisCost = teamData.needsMarketAnalysis ? VALUE_ADDED_SERVICES_COSTS.market_analysis : 0;
 
-    teamData.integrationsNeeded.forEach(integration => {
-      const integrationConfig = INTEGRATION_COSTS[integration];
-      if (integrationConfig) {
-        integrationMonthlyCost += integrationConfig.monthly;
-        integrationSetupCost += integrationConfig.setup;
-      }
-    });
+    const valueAddedServicesMonthly = kbCost + promptingCost + marketAnalysisCost;
 
-    let servicesMonthlyCost = 0;
-    let servicesSetupCost = 0;
+    // Servicios Adicionales (Setup & One-Time)
+    // Removed old custom_reports logic as it is replaced by market_analysis (recurring)
+    // kept migration and onboarding
+    const migrationCost = (SERVICES_COSTS.migration_assisted * (teamData.needsMigrationAssistance ? 1 : 0));
+    const onboardingCost = (SERVICES_COSTS.onboarding * (teamData.needsOnboarding ? 1 : 0));
+
+    const servicesMonthlyCost = 0; // Legacy placeholder if needed, now rolled into valueAddedServices
+    let servicesSetupCost = migrationCost + onboardingCost;
+
+    // Fee de Integraciones (Legacy removed)
+    const integrationMonthlyCost = valueAddedServicesMonthly; // Mapping for compatibility
+    const integrationSetupCost = 0; // No setup for these new recurring services
+
+    let metaMarketingCost = 0; // Costo directo a Meta
 
     if (teamData.needsCampaigns && teamData.campaignContacts && teamData.campaignsPerMonth) {
       const campaignMsgsPerMonth = teamData.campaignContacts * teamData.campaignsPerMonth;
-      servicesMonthlyCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg;
-    }
-    if (teamData.needsCustomReports) {
-      servicesMonthlyCost += SERVICES_COSTS.custom_reports;
+      // servicesMonthlyCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg; // Moved to total calc below or keep separate
+      metaMarketingCost += campaignMsgsPerMonth * COSTS.meta_marketing; // Costo Meta (Passthrough)
     }
 
     // Migration Logic: History Enrichment
@@ -320,25 +392,18 @@ export default function ConversationSimulator() {
     // Sólo aplica para estrategias Mixta o Institucional
     const isMigrationAllowed = teamData.managementStrategy === 'mixed' || teamData.managementStrategy === 'institutional';
 
+    // Adjusted Migration Setup Logic
     if (isMigrationAllowed && teamData.needsMigrationAssistance && teamData.linesToMigrate) {
       const contacts = teamData.migrationContactsPerLine || 500;
       const msgsPerContact = teamData.migrationAvgMsgsPerContact || 50;
-
       const totalHistoricalMsgs = teamData.linesToMigrate * contacts * msgsPerContact;
-
       servicesSetupCost += totalHistoricalMsgs * HISTORICAL_MSG_COST;
-    } else if (isMigrationAllowed && teamData.needsMigrationAssistance) {
-      // Fallback if no specific data entered but checkmark is true (legacy safety)
-      servicesSetupCost += SERVICES_COSTS.migration_assisted;
-    }
-
-    if (teamData.needsOnboarding) {
-      servicesSetupCost += SERVICES_COSTS.onboarding;
     }
 
     // Totales separados
-    const totalMonthlyCost = adjustedBaseCost + lineMonthlyFee + integrationMonthlyCost + servicesMonthlyCost;
-    const totalSetupCost = lineSetupFee + integrationSetupCost + servicesSetupCost;
+    const totalMonthlyCost = adjustedBaseCost + lineMonthlyFee + valueAddedServicesMonthly + (teamData.needsCampaigns ? (teamData.campaignContacts * teamData.campaignsPerMonth * SERVICES_COSTS.campaign_msg) : 0);
+
+    const totalSetupCost = lineSetupFee + servicesSetupCost;
 
     let discountedBaseCost = adjustedBaseCost;
     let volumeDiscountApplied = false;
@@ -348,11 +413,27 @@ export default function ConversationSimulator() {
       // In a real scenario, adjust this based on the specific volume buckets
     }
 
-    const volumeDiscount = 0; // Simplified for now
-    const finalMonthlyCost = totalMonthlyCost;
-    const optimisticCost = Math.round(finalMonthlyCost * 0.9);
-    const pessimisticCost = Math.round(finalMonthlyCost * 1.1);
-    const expectedCost = finalMonthlyCost;
+    const volumeDiscount = adjustedBaseCost - discountedBaseCost;
+    if (volumeDiscount > 0) volumeDiscountApplied = true;
+
+    // Calculamos ROI y Crecimiento basado en el costo total mensual (CloserCat + Meta opcional?)
+    // Para ser conservadores, deberíamos restar también el costo de marketing de los ingresos incrementales
+    // si queremos utilidad neta real.
+    const totalOperationalCost = totalMonthlyCost + metaMarketingCost;
+
+    // let discountedBaseCost = adjustedBaseCost;
+    // let volumeDiscountApplied = false;
+
+    // if (totalMonthlyMessages >= 500000) {
+    //   discountedBaseCost = totalMonthlyMessages * 122; // Example volume logic
+    //   // In a real scenario, adjust this based on the specific volume buckets
+    // }
+
+    // const volumeDiscount = 0; // Simplified for now
+    // const finalMonthlyCost = totalMonthlyCost;
+    const optimisticCost = Math.round(totalOperationalCost * 0.9);
+    const pessimisticCost = Math.round(totalOperationalCost * 1.1);
+    const expectedCost = totalOperationalCost;
 
     const iaPercentage = iaDelegationPercentage;
     const humanPercentage = 100 - iaPercentage;
@@ -392,33 +473,34 @@ export default function ConversationSimulator() {
     // Return the full projection object
     return {
       conversationsPerMonth: monthlyConversations,
-      avgTurnsPerConversation: aiTurns * 2,
+      avgTurnsPerConversation: estimatedAvgTurns,
       textMessages,
       audioMessages,
       imageMessages,
       documentMessages,
-      iaTrafficMessages,
-      residualTrafficMessages,
       totalMessages: totalMonthlyMessages,
       baseCost,
       teamMultiplier,
       adjustedBaseCost,
       integrationMonthlyCost,
-      totalIntegrationCost: integrationMonthlyCost, // For compatibility
-      integrationSetupAmortized: 0, // No amortizing
+      integrationSetupAmortized: integrationSetupCost > 0 ? integrationSetupCost / 12 : 0,
+      totalIntegrationCost: integrationMonthlyCost,
       servicesCost: servicesMonthlyCost,
+      servicesSetupAmortized: servicesSetupCost > 0 ? servicesSetupCost / 12 : 0,
       totalServicesCost: servicesMonthlyCost,
-      servicesSetupAmortized: 0,
       volumeDiscount,
       volumeDiscountApplied,
-      totalMonthlyCost: finalMonthlyCost,
+      totalMonthlyCost, // Suscripción CloserCat
+      metaMarketingCost, // Costo directo Meta (Extra)
       totalSetupCost,
       pessimisticCost,
       optimisticCost,
       expectedCost,
+      costPerConversation,
+      iaTrafficMessages,
+      residualTrafficMessages,
       iaPercentage,
       humanPercentage,
-      costPerConversation,
       conversionRate,
       avgTicket,
       estimatedRevenue: baselineRevenue,
@@ -561,6 +643,7 @@ export default function ConversationSimulator() {
     setStep('form');
   };
 
+  /*
   useEffect(() => {
     if (step === 'results' && !hasAutoPrinted) {
       const timer = setTimeout(() => {
@@ -570,6 +653,32 @@ export default function ConversationSimulator() {
       return () => clearTimeout(timer);
     }
   }, [step, hasAutoPrinted]);
+  */
+
+  // Helper: Format period labels (Q1, Q2, Mes 1, etc.)
+  const formatPeriodLabel = (index: number, periodType: 'monthly' | 'quarterly' | 'annual'): string => {
+    switch (periodType) {
+      case 'monthly':
+        return `Mes ${index + 1}`;
+      case 'quarterly':
+        return `Q${index + 1}`;
+      case 'annual':
+        return `Año ${index + 1}`;
+      default:
+        return `Período ${index + 1}`;
+    }
+  };
+
+  // Helper: Calculate scaled cost based on volume growth
+  const calculateScaledCost = (
+    baseConversations: number,
+    projectedConversations: number,
+    baseMonthlyCost: number
+  ): number => {
+    if (baseConversations === 0) return baseMonthlyCost;
+    const volumeRatio = projectedConversations / baseConversations;
+    return baseMonthlyCost * volumeRatio;
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -580,20 +689,114 @@ export default function ConversationSimulator() {
     }).format(amount);
   };
 
+  // Calculate temporal projection with growth scenarios
+  const calculateTemporalProjection = (
+    periods: number,
+    periodType: 'monthly' | 'quarterly' | 'annual',
+    projectionData: ProjectionData
+  ): PeriodProjection[] => {
+    const projections: PeriodProjection[] = [];
+    const growthFactor = 1 + (monthlyGrowthRate / 100);
+
+    // Determine months per period
+    const monthsPerPeriod = {
+      monthly: 1,
+      quarterly: 3,
+      annual: 12
+    }[periodType];
+
+    for (let p = 0; p < periods; p++) {
+      const startMonth = p * monthsPerPeriod;
+      const endMonth = startMonth + monthsPerPeriod;
+
+      // Calculate accumulated conversations in the period
+      let periodConversations = 0;
+      for (let m = startMonth; m < endMonth; m++) {
+        periodConversations += conversationsPerMonth * Math.pow(growthFactor, m);
+      }
+
+      // Status Quo (without CloserCat)
+      const statusQuoRevenue = periodConversations * (projectionData.conversionRate / 100) * projectionData.avgTicket;
+
+      // Calculate scaled cost for this period
+      const avgConversationsInPeriod = periodConversations / monthsPerPeriod;
+      const periodCost = calculateScaledCost(
+        conversationsPerMonth,
+        avgConversationsInPeriod,
+        projectionData.totalMonthlyCost
+      ) * monthsPerPeriod;
+
+      // Scenarios with CloserCat
+      const scenarios = [
+        { name: 'optimistic', improvement: 1.1 },
+        { name: 'recommended', improvement: 1.2 },
+        { name: 'highImpact', improvement: 1.3 }
+      ];
+
+      const optimisticData = (() => {
+        const improvedConvRate = (projectionData.conversionRate * 1.1) / 100;
+        const revenue = periodConversations * improvedConvRate * projectionData.avgTicket;
+        return {
+          conversionRate: projectionData.conversionRate * 1.1,
+          revenue,
+          cost: periodCost,
+          netAdditionalRevenue: revenue - statusQuoRevenue - periodCost
+        };
+      })();
+
+      const recommendedData = (() => {
+        const improvedConvRate = (projectionData.conversionRate * 1.2) / 100;
+        const revenue = periodConversations * improvedConvRate * projectionData.avgTicket;
+        return {
+          conversionRate: projectionData.conversionRate * 1.2,
+          revenue,
+          cost: periodCost,
+          netAdditionalRevenue: revenue - statusQuoRevenue - periodCost
+        };
+      })();
+
+      const highImpactData = (() => {
+        const improvedConvRate = (projectionData.conversionRate * 1.3) / 100;
+        const revenue = periodConversations * improvedConvRate * projectionData.avgTicket;
+        return {
+          conversionRate: projectionData.conversionRate * 1.3,
+          revenue,
+          cost: periodCost,
+          netAdditionalRevenue: revenue - statusQuoRevenue - periodCost
+        };
+      })();
+
+      projections.push({
+        period: formatPeriodLabel(p, periodType),
+        conversations: Math.round(periodConversations),
+        statusQuo: { revenue: statusQuoRevenue },
+        withCloserCat: {
+          optimistic: optimisticData,
+          recommended: recommendedData,
+          highImpact: highImpactData
+        }
+      });
+    }
+
+    return projections;
+  };
+
   const renderProgressStepper = () => (
     <div className="flex items-center justify-between mb-8 px-4 overflow-x-auto">
-      {[1, 2, 3, 4].map((s) => (
+      {[1, 2, 3, 4, 5, 6].map((s) => (
         <div key={s} className="flex items-center">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold min-w-[2rem] ${(step === 'simulator' && s === 1) ||
             (step === 'multimedia' && s === 2) ||
             (step === 'volume' && s === 3) ||
-            (step === 'teamStructure' && s === 4)
+            (step === 'teamStructure' && s === 4) ||
+            (step === 'integrations' && s === 5) ||
+            (step === 'form' && s === 6)
             ? 'bg-purple-600 text-white'
             : 'bg-gray-200 text-gray-500'
             }`}>
             {s}
           </div>
-          {s < 4 && <div className="w-8 md:w-16 h-1 bg-gray-200 mx-1 md:mx-2" />}
+          {s < 6 && <div className="w-8 md:w-16 h-1 bg-gray-200 mx-1 md:mx-2" />}
         </div>
       ))}
       <div className="text-sm font-poppins font-semibold text-gray-600 ml-4 hidden md:block">
@@ -601,6 +804,8 @@ export default function ConversationSimulator() {
         {step === 'multimedia' && 'Paso 2: Multimedia'}
         {step === 'volume' && 'Paso 3: Tu Volumen'}
         {step === 'teamStructure' && 'Paso 4: Tu Equipo'}
+        {step === 'integrations' && 'Paso 5: Servicios Extra'}
+        {step === 'form' && 'Paso 6: Cotización'}
       </div>
     </div>
   );
@@ -1210,75 +1415,6 @@ export default function ConversationSimulator() {
           )}
         </div>
 
-        {/* Integraciones */}
-        <div className="p-6 bg-gray-50 rounded-xl">
-          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-            ¿Necesitas integraciones? (Opcional)
-          </label>
-          <div className="space-y-2">
-            {[
-              { id: 'crm_custom', label: 'CRM Personalizado / Hubspot / Salesforce' },
-              { id: 'erp_custom', label: 'ERP / Sistema Administrativo' },
-              { id: 'custom_webhooks', label: 'Webhooks Personalizados' }
-            ].map((option) => (
-              <label key={option.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value={option.id}
-                  checked={teamStructure.integrationsNeeded.includes(option.id)}
-                  onChange={(e) => {
-                    const newIntegrations = e.target.checked
-                      ? [...teamStructure.integrationsNeeded, option.id]
-                      : teamStructure.integrationsNeeded.filter(id => id !== option.id);
-                    setTeamStructure({ ...teamStructure, integrationsNeeded: newIntegrations });
-                  }}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="text-sm font-inter text-gray-700">{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* Campañas */}
-        <div className="p-6 bg-gray-50 rounded-xl">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={teamStructure.needsCampaigns}
-              onChange={(e) => setTeamStructure({ ...teamStructure, needsCampaigns: e.target.checked })}
-              className="w-5 h-5 text-purple-600 focus:ring-purple-500 rounded"
-            />
-            <span className="text-sm font-poppins font-semibold" style={{ color: '#121212' }}>
-              ¿Planeas enviar campañas masivas?
-            </span>
-          </label>
-
-          {teamStructure.needsCampaigns && (
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-inter text-gray-600 mb-1">Contactos por campaña</label>
-                <input
-                  type="number"
-                  placeholder="Ej: 1000"
-                  value={teamStructure.campaignContacts || ''}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, campaignContacts: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-inter text-gray-600 mb-1">Campañas al mes</label>
-                <input
-                  type="number"
-                  placeholder="Ej: 2"
-                  value={teamStructure.campaignsPerMonth || ''}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, campaignsPerMonth: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="mt-8 flex gap-4">
@@ -1289,10 +1425,207 @@ export default function ConversationSimulator() {
           ← Volver
         </button>
         <button
+          onClick={() => setStep('integrations')}
+          className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600"
+        >
+          Continuar (Integraciones) →
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderIntegrations = () => (
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="text-center mb-8">
+        <div className="inline-block p-4 bg-purple-100 rounded-full mb-4">
+          <span className="text-4xl">🧠</span>
+        </div>
+        <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
+          Paso 5: Servicios de Valor Agregado
+        </h3>
+        <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
+          Potencia tu IA con conocimientos extendidos y análisis de mercado
+        </p>
+      </div>
+
+      <div className="max-w-xl mx-auto space-y-8">
+
+        {/* 1. Asesoría de Prompting */}
+        <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
+          <label className="block text-sm font-poppins font-bold mb-4 flex items-center gap-2">
+            <span>🎭 Personalidad y Entrenamiento (Prompting)</span>
+          </label>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${teamStructure.promptingType === 'standard' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+              }`}>
+              <input
+                type="radio"
+                name="prompting"
+                className="hidden"
+                checked={teamStructure.promptingType === 'standard'}
+                onChange={() => setTeamStructure({ ...teamStructure, promptingType: 'standard' })}
+              />
+              <div className="text-sm font-bold text-gray-900 mb-1">IA Standard</div>
+              <p className="text-xs text-gray-500">Configuración base (Ecommerce, B2B, Soporte).</p>
+              <div className="mt-3 text-xs font-bold text-green-600">Incluido</div>
+            </label>
+
+            <label className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${teamStructure.promptingType === 'custom' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-200'
+              }`}>
+              <input
+                type="radio"
+                name="prompting"
+                className="hidden"
+                checked={teamStructure.promptingType === 'custom'}
+                onChange={() => setTeamStructure({ ...teamStructure, promptingType: 'custom' })}
+              />
+              <div className="text-sm font-bold text-gray-900 mb-1">IA Custom / Híbrida</div>
+              <p className="text-xs text-gray-500">Ajustes a medida, tono de voz específico y optimización mensual.</p>
+              <div className="mt-3 text-xs font-bold text-purple-700">+{formatCurrency(VALUE_ADDED_SERVICES_COSTS.custom_prompting)}/mes</div>
+            </label>
+          </div>
+        </div>
+
+        {/* 2. Capacidad de Base de Conocimiento (Variable) */}
+        <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
+          <div className="flex justify-between items-start mb-4">
+            <label className="block text-sm font-poppins font-bold flex items-center gap-2">
+              <span>📚 Base de Conocimiento (Productos/FAQs)</span>
+            </label>
+            <div className="text-right">
+              <span className="block text-2xl font-mono font-bold text-purple-600">
+                {(teamStructure.kbItems || 500).toLocaleString()}
+              </span>
+              <span className="text-xs text-gray-400 uppercase">Ítems</span>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <input
+              type="range"
+              min="100"
+              max="10000"
+              step="100"
+              value={teamStructure.kbItems || 500}
+              onChange={(e) => setTeamStructure({ ...teamStructure, kbItems: parseInt(e.target.value) })}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+            />
+            <div className="flex justify-between text-xs text-gray-400 mt-2 font-mono">
+              <span>100</span>
+              <span>2.5k</span>
+              <span>5k</span>
+              <span>7.5k</span>
+              <span>10k+</span>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex justify-between items-center text-sm py-1">
+              <span className="text-gray-600">Base Incluida (500 items):</span>
+              <span className="font-bold text-green-600">Gratis</span>
+            </div>
+            {(teamStructure.kbItems || 500) > 500 && (
+              <div className="flex justify-between items-center text-sm py-1 mt-1 border-t border-gray-200 pt-2">
+                <span className="text-gray-600">Capacidad Adicional:</span>
+                <span className="font-bold text-purple-700">+{formatCurrency(calculateKbCost(teamStructure.kbItems || 500))}/mes</span>
+              </div>
+            )}
+            <p className="text-[10px] text-gray-400 mt-2 italic leading-tight">
+              * Tarifa dinámica: +$40k/bloque (hasta 2k) y +$120k/bloque (&gt;2k items).
+            </p>
+          </div>
+        </div>
+
+        {/* 3. Market Analysis (Reportes) */}
+        <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
+          <label className="flex items-start gap-4 cursor-pointer">
+            <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center transition-colors ${teamStructure.needsMarketAnalysis ? 'bg-purple-600 border-purple-600' : 'border-gray-300 bg-white'
+              }`}>
+              {teamStructure.needsMarketAnalysis && <span className="text-white text-xs">✓</span>}
+            </div>
+            <input
+              type="checkbox"
+              className="hidden"
+              checked={teamStructure.needsMarketAnalysis}
+              onChange={(e) => setTeamStructure({ ...teamStructure, needsMarketAnalysis: e.target.checked })}
+            />
+            <div className="flex-1">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-bold text-sm text-gray-900">🔍 Intelligence Reports (Análisis de Mercado)</span>
+                <span className="text-xs font-bold text-purple-700">+{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}/mes</span>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Recibe mensualmente un reporte detallado con insights de tus conversaciones: oportunidades de producto, quejas recurrentes y efectividad comercial.
+              </p>
+            </div>
+          </label>
+        </div>
+
+        {/* 4. Campañas (Legacy kept) */}
+        <div className="p-6 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+          <label className="flex items-center gap-3 cursor-pointer mb-2">
+            <input
+              type="checkbox"
+              checked={teamStructure.needsCampaigns}
+              onChange={(e) => setTeamStructure({ ...teamStructure, needsCampaigns: e.target.checked })}
+              className="w-5 h-5 text-purple-600 focus:ring-purple-500 rounded"
+            />
+            <span className="text-sm font-poppins font-semibold" style={{ color: '#121212' }}>
+              ¿Planeas enviar campañas masivas de Marketing?
+            </span>
+          </label>
+
+          {teamStructure.needsCampaigns && (
+            <div className="mt-4 animate-fadeIn">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-inter text-gray-600 mb-1">Contactos por campaña</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Ej: 1000"
+                    value={teamStructure.campaignContacts || ''}
+                    onChange={(e) => setTeamStructure({ ...teamStructure, campaignContacts: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-inter text-gray-600 mb-1">Campañas al mes</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Ej: 2"
+                    value={teamStructure.campaignsPerMonth || ''}
+                    onChange={(e) => setTeamStructure({ ...teamStructure, campaignsPerMonth: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-800">
+                <p className="font-bold mb-1">ℹ️ Nota sobre costos de Marketing</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li><strong>CloserCat:</strong> Costo por gestión y procesamiento ({formatCurrency(SERVICES_COSTS.campaign_msg)}/msg).</li>
+                  <li><strong>Meta (Facebook):</strong> Costo directo variable (~{formatCurrency(COSTS.meta_marketing)}/msg) que se paga directamente a Meta.</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8 flex gap-4">
+        <button
+          onClick={() => setStep('teamStructure')}
+          className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          ← Volver
+        </button>
+        <button
           onClick={handleContinueToForm}
           className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600"
         >
-          Ver Resultado →
+          Finalizar y Cotizar →
         </button>
       </div>
     </div>
@@ -1302,10 +1635,10 @@ export default function ConversationSimulator() {
     <div>
       <div className="text-center mb-8">
         <div className="inline-block p-4 bg-purple-100 rounded-full mb-4">
-          <span className="text-4xl">🎯</span>
+          <span className="text-4xl">🚀</span>
         </div>
         <h3 className="text-2xl font-poppins font-bold mb-2" style={{ color: '#121212' }}>
-          Paso 4: Recibe tu cotización personalizada
+          Paso 6: Recibe tu cotización personalizada
         </h3>
         <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
           Completa estos datos para recibir tu análisis completo
@@ -1450,7 +1783,7 @@ export default function ConversationSimulator() {
           <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
             <div><strong>Comerciales:</strong> {teamStructure.numberOfSalesReps}</div>
-            <div><strong>Integraciones:</strong> {teamStructure.integrationsNeeded.length > 0 ? teamStructure.integrationsNeeded.map(i => i.replace('_', ' ')).join(', ') : 'Ninguna'}</div>
+            <div><strong>Prompting:</strong> {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}</div>
             <div><strong>Industria:</strong> {teamStructure.industry || 'No especificada'}</div>
             <div><strong>Uso Principal:</strong> {teamStructure.primaryUseCase}</div>
           </div>
@@ -1465,15 +1798,29 @@ export default function ConversationSimulator() {
                 <td className="py-1">Costo Base Operativo (Mensajes + IA + Residual)</td>
                 <td className="text-right py-1">{formatCurrency(projection.adjustedBaseCost)}</td>
               </tr>
-              {projection.integrationMonthlyCost > 0 && (
+              {/* Desglose de Servicios de Valor Agregado */}
+              {(teamStructure.kbItems || 500) > 500 && (
                 <tr>
-                  <td className="py-1">Integraciones y Conectividad</td>
-                  <td className="text-right py-1">{formatCurrency(projection.integrationMonthlyCost)}</td>
+                  <td className="py-1">Capacidad KB Adicional ({(teamStructure.kbItems || 500).toLocaleString()} items)</td>
+                  <td className="text-right py-1">{formatCurrency(calculateKbCost(teamStructure.kbItems || 500))}</td>
+                </tr>
+              )}
+              {teamStructure.promptingType === 'custom' && (
+                <tr>
+                  <td className="py-1">Asesoría de Prompting (Custom)</td>
+                  <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.custom_prompting)}</td>
+                </tr>
+              )}
+              {teamStructure.needsMarketAnalysis && (
+                <tr>
+                  <td className="py-1">Intelligence Reports (Análisis de Mercado)</td>
+                  <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}</td>
                 </tr>
               )}
               {projection.servicesCost > 0 && (
                 <tr>
-                  <td className="py-1">Servicios a Demanda (Campañas, Reportes)</td>
+                  {/* Fallback for other services currently 0 but keeping logic */}
+                  <td className="py-1">Otros Servicios (Campañas)</td>
                   <td className="text-right py-1">{formatCurrency(projection.servicesCost)}</td>
                 </tr>
               )}
@@ -1487,6 +1834,15 @@ export default function ConversationSimulator() {
                 <td className="py-2 pl-2">Inversión Mensual Esperada</td>
                 <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '10px' }}>{formatCurrency(projection.expectedCost)}</td>
               </tr>
+              {projection.metaMarketingCost > 0 && (
+                <tr className="bg-blue-50">
+                  <td className="py-2 pl-2 flex items-center gap-1">
+                    Pago Directo a Meta (Marketing)
+                    <span className="text-[8px] text-blue-600 font-normal">* Variable aprox.</span>
+                  </td>
+                  <td className="text-right py-2 pr-2 text-gray-500">{formatCurrency(projection.metaMarketingCost)}</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -1546,53 +1902,67 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* Comparativa de Estrategia en impresión (Multi-Escenario) */}
+        {/* Proyección Temporal Detallada (Reemplaza Comparativa Estática) */}
         <div className="mb-4">
-          <h3 className="text-[10px] font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Comparativa de Estrategia: Actual vs CloserCat</h3>
-          <table className="w-full text-[8px] border-collapse">
-            <thead>
-              <tr className="bg-gray-100 border-b border-gray-300 text-gray-400">
-                <th className="py-2 pl-2 text-left w-1/4 uppercase">Métrica de Negocio</th>
-                <th className="py-2 text-center border-r border-gray-200">Actual</th>
-                <th className="py-2 text-center bg-gray-50 border-r border-gray-200">Opt. (+10%)</th>
-                <th className="py-2 text-center bg-purple-50 border-r border-gray-200 text-purple-900">Reco. (+20%)</th>
-                <th className="py-2 pr-2 text-center bg-gray-50">Impacto (+30%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-100">
-                <td className="py-2 pl-2 font-bold text-gray-700">Tasa de Conversión</td>
-                <td className="py-2 text-center italic">{projection.conversionRate}%</td>
-                <td className="py-2 text-center">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
-                <td className="py-2 text-center bg-purple-50 font-bold text-green-700">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
-                <td className="py-2 pr-2 text-center text-green-800">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
-              </tr>
-              <tr className="border-b border-gray-100">
-                <td className="py-2 pl-2 font-bold text-gray-700">Ingresos Mensuales</td>
-                <td className="py-2 text-center italic font-mono">{formatCurrency(projection.estimatedRevenue)}</td>
-                <td className="py-2 text-center font-mono">+{formatCurrency(projection.incrementalRev10)}</td>
-                <td className="py-2 text-center bg-purple-50 font-bold font-mono text-indigo-700">+{formatCurrency(projection.incrementalRev20)}</td>
-                <td className="py-2 pr-2 text-center font-mono text-indigo-800">+{formatCurrency(projection.incrementalRev30)}</td>
-              </tr>
-              <tr className="bg-gray-50/50">
-                <td className="py-3 pl-2 font-bold text-gray-900">Utilidad Operativa (Impacto)</td>
-                <td className="py-3 text-center italic font-mono text-gray-400">{formatCurrency(projection.estimatedRevenue)}</td>
-                <td className="py-3 text-center font-mono text-green-600 font-bold">+{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}</td>
-                <td className="py-3 text-center bg-purple-100/30 font-bold font-mono text-green-700">+{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}</td>
-                <td className="py-3 pr-2 text-center font-mono text-green-800 font-bold">+{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}</td>
-              </tr>
-            </tbody>
-          </table>
-          <p className="text-[7px] text-gray-400 mt-2 italic text-center">
-            * El impacto incremental resta la inversión mensual de CloserCat sobre los ingresos adicionales generados por la mejora en conversión.
-          </p>
-        </div>
+          <h3 className="text-[10px] font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Proyección Financiera Trimestral (Q1-Q4)</h3>
 
-        {/* Proyección Anual en impresión */}
-        <div className="mb-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
-          <p className="text-[8px] uppercase font-bold text-indigo-600 tracking-widest mb-1">Potencial Anual de Ingresos (Escenario Recomendado)</p>
-          <div className="text-xl font-bold text-indigo-900">{formatCurrency(projection.annualRevenuePotential)}</div>
-          <p className="text-[7px] text-indigo-400 mt-1 italic">Basado en un crecimiento de volumen mensual del {monthlyGrowthRate}% y una mejora del 20% en conversión.</p>
+          {(() => {
+            // Force Quarterly view for printing
+            const projections = calculateTemporalProjection(4, 'quarterly', projection);
+            // Calculate totals
+            const totalStatusQuo = projections.reduce((sum, p) => sum + p.statusQuo.revenue, 0);
+            const totalRecommended = projections.reduce((sum, p) => sum + p.withCloserCat.recommended.netAdditionalRevenue, 0);
+
+            return (
+              <table className="w-full text-[8px] border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
+                    <th className="py-2 pl-2 text-left">Período</th>
+                    <th className="py-2 text-right">Volumen</th>
+                    <th className="py-2 text-right border-r border-gray-200">Sin CloserCat</th>
+                    <th className="py-2 text-center bg-purple-50 text-purple-900 border-b border-purple-200" colSpan={3}>Ingreso Neto Adicional (Net Revenue)</th>
+                  </tr>
+                  <tr className="bg-gray-50 text-gray-400 text-[7px]">
+                    <th colSpan={3}></th>
+                    <th className="py-1 text-right px-2">Optimista ({(projection.conversionRate * 1.1).toFixed(2)}%)</th>
+                    <th className="py-1 text-right px-2 font-bold text-purple-700">Recomendado ({(projection.conversionRate * 1.2).toFixed(2)}%)</th>
+                    <th className="py-1 text-right px-2">High Impact ({(projection.conversionRate * 1.3).toFixed(2)}%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projections.map((proj, idx) => (
+                    <tr key={idx} className="border-b border-gray-100">
+                      <td className="py-2 pl-2 font-bold text-gray-700">{proj.period}</td>
+                      <td className="py-2 text-right font-mono text-gray-500">{proj.conversations.toLocaleString()}</td>
+                      <td className="py-2 text-right font-mono border-r border-gray-100 pr-2">{formatCurrency(proj.statusQuo.revenue)}</td>
+                      <td className={`py-2 text-right font-mono px-2 ${proj.withCloserCat.optimistic.netAdditionalRevenue >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                        {proj.withCloserCat.optimistic.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.optimistic.netAdditionalRevenue)}
+                      </td>
+                      <td className={`py-2 text-right font-mono font-bold bg-purple-50/30 px-2 ${proj.withCloserCat.recommended.netAdditionalRevenue >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                        {proj.withCloserCat.recommended.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.recommended.netAdditionalRevenue)}
+                      </td>
+                      <td className={`py-2 text-right font-mono px-2 ${proj.withCloserCat.highImpact.netAdditionalRevenue >= 0 ? 'text-green-800' : 'text-red-700'}`}>
+                        {proj.withCloserCat.highImpact.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.highImpact.netAdditionalRevenue)}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-100 font-bold border-t border-gray-300">
+                    <td className="py-2 pl-2">TOTAL ANUAL</td>
+                    <td className="py-2 text-right">-</td>
+                    <td className="py-2 text-right pr-2">{formatCurrency(totalStatusQuo)}</td>
+                    <td className={`py-2 text-right px-2 ${totalStatusQuo >= 0 ? 'text-gray-400' : 'text-gray-400'}`}>-</td>
+                    <td className={`py-2 text-right bg-purple-100 px-2 ${totalRecommended >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+                      {totalRecommended > 0 ? '+' : ''}{formatCurrency(totalRecommended)}
+                    </td>
+                    <td className="py-2 text-right text-gray-400 px-2">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            );
+          })()}
+          <p className="text-[7px] text-gray-400 mt-2 italic">
+            * Proyección basada en crecimiento mensual del {monthlyGrowthRate}%. Ingreso Neto Adicional = Ingresos Nuevos - Ingresos Actuales - Costos Operativos de CloserCat (Escalados).
+          </p>
         </div>
 
         <div className="mb-4">
@@ -1704,22 +2074,51 @@ export default function ConversationSimulator() {
                 <span className="font-inter text-gray-600">Base Operativa (IA + Residual)</span>
                 <span className="font-mono font-bold">{formatCurrency(projection.adjustedBaseCost)}</span>
               </div>
-              {projection.integrationMonthlyCost > 0 && (
-                <div className="flex justify-between items-center py-1">
-                  <span className="font-inter text-gray-600">Integraciones</span>
-                  <span className="font-mono font-bold">{formatCurrency(projection.integrationMonthlyCost)}</span>
+
+              {/* Breakdown de Servicios Adicionales */}
+              {(teamStructure.kbItems || 500) > 500 && (
+                <div className="flex justify-between items-center py-1 pl-2 border-l-2 border-purple-100">
+                  <span className="font-inter text-gray-500 text-xs">Capacidad KB (+{(teamStructure.kbItems - 500).toLocaleString()})</span>
+                  <span className="font-mono font-bold text-xs text-gray-700">{formatCurrency(calculateKbCost(teamStructure.kbItems))}</span>
                 </div>
               )}
+              {teamStructure.promptingType === 'custom' && (
+                <div className="flex justify-between items-center py-1 pl-2 border-l-2 border-purple-100">
+                  <span className="font-inter text-gray-500 text-xs">Asesoría Prompting Custom</span>
+                  <span className="font-mono font-bold text-xs text-gray-700">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.custom_prompting)}</span>
+                </div>
+              )}
+              {teamStructure.needsMarketAnalysis && (
+                <div className="flex justify-between items-center py-1 pl-2 border-l-2 border-purple-100">
+                  <span className="font-inter text-gray-500 text-xs">Intelligence Reports</span>
+                  <span className="font-mono font-bold text-xs text-gray-700">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}</span>
+                </div>
+              )}
+
               {projection.servicesCost > 0 && (
                 <div className="flex justify-between items-center py-1">
-                  <span className="font-inter text-gray-600">Servicios Adicionales</span>
+                  <span className="font-inter text-gray-600">Campañas / Otros</span>
                   <span className="font-mono font-bold">{formatCurrency(projection.servicesCost)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-100">
-                <span className="font-bold text-gray-900">Total Mensual</span>
-                <span className="font-mono font-bold text-lg text-purple-600">{formatCurrency(projection.expectedCost)}</span>
+                <span className="font-bold text-gray-900">Inversión Mensual CloserCat</span>
+                <span className="font-mono font-bold text-lg text-purple-600">{formatCurrency(projection.totalMonthlyCost)}</span>
               </div>
+              {projection.metaMarketingCost > 0 && (
+                <div className="mt-3 pt-3 border-t border-dashed border-gray-300">
+                  <div className="flex justify-between items-center py-1">
+                    <span className="font-inter text-gray-600 flex items-center gap-1">
+                      Pago Directo a Meta
+                      <span className="text-[10px] bg-blue-100 text-blue-700 px-1 rounded">Marketing</span>
+                    </span>
+                    <span className="font-mono font-bold text-gray-500">{formatCurrency(projection.metaMarketingCost)}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-400 italic mt-1">
+                    * Este valor se paga directamente a Meta (Facebook) por mensajes de marketing.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1852,29 +2251,149 @@ export default function ConversationSimulator() {
                   <td className="py-5 text-center bg-purple-100/10 font-mono text-red-600">-{formatCurrency(projection.expectedCost)}</td>
                 </tr>
                 <tr className="bg-gradient-to-r from-gray-50 to-purple-50/30">
-                  <td className="py-6 font-bold text-gray-900 border-l-4 border-purple-500 pl-4">Utilidad Operativa (Impacto)</td>
-                  <td className="py-6 text-center text-gray-400 border-r border-gray-100 font-mono italic">{formatCurrency(projection.estimatedRevenue)}</td>
-                  <td className="py-6 text-center bg-purple-50/50 font-mono text-green-600 font-bold">
-                    +{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
+                  <td className="py-6 font-bold text-gray-900 border-l-4 border-purple-500 pl-4">Ingreso Residual Neto</td>
+                  <td className="py-6 text-center text-gray-400 border-r border-gray-100 font-mono italic">$ 0</td>
+                  <td className={`py-6 text-center bg-purple-50/50 font-mono font-bold ${projection.incrementalRev10 - projection.expectedCost >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {projection.incrementalRev10 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
                   </td>
-                  <td className="py-6 text-center bg-purple-100/50 font-mono text-green-700 font-extrabold text-lg border-x border-purple-200">
-                    +{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
+                  <td className={`py-6 text-center bg-purple-100/50 font-mono font-extrabold text-lg border-x border-purple-200 ${projection.incrementalRev20 - projection.expectedCost >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {projection.incrementalRev20 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
                   </td>
-                  <td className="py-6 text-center bg-purple-200/20 font-mono text-green-800 font-bold">
-                    +{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
+                  <td className={`py-6 text-center bg-purple-200/20 font-mono font-bold ${projection.incrementalRev30 - projection.expectedCost >= 0 ? 'text-green-800' : 'text-red-700'}`}>
+                    {projection.incrementalRev30 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div className="mt-8 p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-center">
-            <h5 className="text-[10px] uppercase font-bold text-blue-600 tracking-wider mb-2">Proyección Anual de Crecimiento (Escenario Recomendado)</h5>
-            <div className="text-3xl font-poppins font-black text-blue-900 mb-2">
-              {formatCurrency(projection.annualRevenuePotential)}
-            </div>
-            <p className="text-[9px] text-blue-500 italic">
-              * Calculado con un incremento mensual sostenido del volumen de conversaciones del {monthlyGrowthRate}%.
-            </p>
+
+          {/* Nueva Tabla de Proyección Temporal */}
+          <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-gray-100 shadow-sm">
+            {(() => {
+              const periodsConfig = {
+                monthly: { count: 12, label: 'Mensual (12 meses)' },
+                quarterly: { count: 4, label: 'Trimestral (Q1-Q4)' },
+                annual: { count: 1, label: 'Anual (Año 1)' }
+              };
+
+              const projections = calculateTemporalProjection(
+                periodsConfig[selectedPeriod].count,
+                selectedPeriod,
+                projection
+              );
+
+              // Calculate totals
+              const totalConversations = projections.reduce((sum, p) => sum + p.conversations, 0);
+              const totalStatusQuo = projections.reduce((sum, p) => sum + p.statusQuo.revenue, 0);
+              const totalOptimistic = projections.reduce((sum, p) => sum + p.withCloserCat.optimistic.netAdditionalRevenue, 0);
+              const totalRecommended = projections.reduce((sum, p) => sum + p.withCloserCat.recommended.netAdditionalRevenue, 0);
+              const totalHighImpact = projections.reduce((sum, p) => sum + p.withCloserCat.highImpact.netAdditionalRevenue, 0);
+
+              return (
+                <>
+                  {/* Header con selector de período */}
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl p-2 bg-blue-100 rounded-xl">📈</span>
+                      <div>
+                        <h4 className="font-poppins font-bold text-xl text-gray-900">Proyección de Impacto Financiero</h4>
+                        <p className="text-sm text-gray-500">Ingresos netos adicionales con crecimiento del {monthlyGrowthRate}% mensual</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {(Object.entries(periodsConfig) as [keyof typeof periodsConfig, typeof periodsConfig[keyof typeof periodsConfig]][]).map(([key, { label }]) => (
+                        <button
+                          key={key}
+                          onClick={() => setSelectedPeriod(key)}
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${selectedPeriod === key
+                            ? 'bg-purple-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tabla comparativa */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-gray-200">
+                          <th className="text-left py-3 px-2 font-poppins font-bold text-gray-700">Período</th>
+                          <th className="text-right py-3 px-2 font-poppins font-bold text-gray-700">Conversaciones</th>
+                          <th className="text-right py-3 px-2 bg-gray-50 font-poppins font-bold text-gray-700">Sin CloserCat</th>
+                          <th className="text-center py-3 px-2 bg-purple-50 font-poppins font-bold text-purple-900" colSpan={3}>
+                            Con CloserCat - Ingresos Netos Adicionales
+                          </th>
+                        </tr>
+                        <tr className="border-b border-gray-100 text-xs text-gray-500">
+                          <th></th>
+                          <th></th>
+                          <th className="text-right py-2 px-2 bg-gray-50 font-inter">Ingresos</th>
+                          <th className="text-right py-2 px-2 bg-purple-50/50 font-inter">{(projection.conversionRate * 1.1).toFixed(2)}%</th>
+                          <th className="text-right py-2 px-2 bg-purple-100/50 font-inter font-bold">{(projection.conversionRate * 1.2).toFixed(2)}% ⭐</th>
+                          <th className="text-right py-2 px-2 bg-purple-50/50 font-inter">{(projection.conversionRate * 1.3).toFixed(2)}%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {projections.map((proj, idx) => (
+                          <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                            <td className="py-3 px-2 font-semibold text-gray-800">{proj.period}</td>
+                            <td className="py-3 px-2 text-right font-mono text-gray-600">
+                              {proj.conversations.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-2 text-right font-mono bg-gray-50 text-gray-700">
+                              {formatCurrency(proj.statusQuo.revenue)}
+                            </td>
+                            <td className={`py-3 px-2 text-right font-mono bg-purple-50/30 ${proj.withCloserCat.optimistic.netAdditionalRevenue >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {proj.withCloserCat.optimistic.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.optimistic.netAdditionalRevenue)}
+                            </td>
+                            <td className={`py-3 px-2 text-right font-mono font-bold bg-purple-100/50 ${proj.withCloserCat.recommended.netAdditionalRevenue >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                              {proj.withCloserCat.recommended.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.recommended.netAdditionalRevenue)}
+                            </td>
+                            <td className={`py-3 px-2 text-right font-mono bg-purple-50/30 ${proj.withCloserCat.highImpact.netAdditionalRevenue >= 0 ? 'text-green-800' : 'text-red-700'}`}>
+                              {proj.withCloserCat.highImpact.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.highImpact.netAdditionalRevenue)}
+                            </td>
+                          </tr>
+                        ))}
+                        {/* Fila de totales */}
+                        <tr className="bg-gradient-to-r from-gray-100 to-purple-100 font-bold border-t-2 border-gray-300">
+                          <td className="py-4 px-2 text-gray-900 font-poppins">TOTAL</td>
+                          <td className="py-4 px-2 text-right font-mono text-gray-900">
+                            {totalConversations.toLocaleString()}
+                          </td>
+                          <td className="py-4 px-2 text-right font-mono bg-gray-100 text-gray-900">
+                            {formatCurrency(totalStatusQuo)}
+                          </td>
+                          <td className={`py-4 px-2 text-right font-mono bg-purple-100/50 ${totalOptimistic >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {totalOptimistic > 0 ? '+' : ''}{formatCurrency(totalOptimistic)}
+                          </td>
+                          <td className={`py-4 px-2 text-right font-mono text-lg bg-purple-200/50 border-x-2 border-purple-300 ${totalRecommended >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {totalRecommended > 0 ? '+' : ''}{formatCurrency(totalRecommended)}
+                          </td>
+                          <td className={`py-4 px-2 text-right font-mono bg-purple-100/50 ${totalHighImpact >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+                            {totalHighImpact > 0 ? '+' : ''}{formatCurrency(totalHighImpact)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Nota explicativa */}
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-800">
+                    <p className="font-bold mb-1">📊 Cómo leer esta tabla:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li><strong>Sin CloserCat:</strong> Ingresos proyectados manteniendo tu tasa de conversión actual ({projection.conversionRate}%)</li>
+                      <li><strong>Con CloserCat:</strong> Ingresos netos adicionales = (Ingresos con conversión mejorada) - (Ingresos actuales) - (Costo del servicio escalado)</li>
+                      <li><strong>Crecimiento:</strong> Asume {monthlyGrowthRate}% de crecimiento mensual en volumen de conversaciones</li>
+                      <li><strong>Costos:</strong> El costo de CloserCat escala proporcionalmente con el volumen de conversaciones</li>
+                    </ul>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
@@ -1936,6 +2455,7 @@ export default function ConversationSimulator() {
       {step === 'multimedia' && renderMultimedia()}
       {step === 'volume' && renderVolume()}
       {step === 'teamStructure' && renderTeamStructure()}
+      {step === 'integrations' && renderIntegrations()}
       {step === 'form' && renderForm()}
       {step === 'results' && renderResults()}
     </div>
