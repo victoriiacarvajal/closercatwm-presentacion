@@ -90,8 +90,10 @@ export interface ProfesionalesIndependientesFormData {
 // Team structure data for ConversationSimulator (Operaciones Comerciales)
 export interface TeamStructureData {
   numberOfSalesReps: number;
-  whatsappOwnership: 'sellers' | 'company' | 'mixed';
-  repsPerLine: number; // 1-5
+  personalLinesCount?: number; // New: Explicit count of personal lines
+  institutionalLinesCount?: number; // New: Explicit count of institutional lines
+  whatsappOwnership?: 'sellers' | 'company' | 'mixed'; // Deprecated
+  repsPerLine?: number; // Deprecated
   managementStrategy: 'decentralized' | 'transition' | 'mixed' | 'institutional';
   integrationsNeeded: string[]; // 'crm_custom', 'erp_custom', 'custom_webhooks'
   needsCampaigns: boolean;
@@ -103,6 +105,10 @@ export interface TeamStructureData {
   industry: string;
   primaryUseCase: string;
   operationDescription?: string;
+  linesToMigrate?: number;
+  migrationHistoryMonths?: number;
+  migrationContactsPerLine?: number;
+  migrationAvgMsgsPerContact?: number;
 }
 
 // Form data for Emprendedores quote request

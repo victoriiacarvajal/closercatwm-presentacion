@@ -96,17 +96,11 @@ const getTeamMultiplier = (reps: number): number => {
   return 0.50;
 };
 
-const STRATEGY_FACTORS: Record<string, number> = {
-  decentralized: 1.0,
-  transition: 1.15,
-  mixed: 1.25,
-  institutional: 1.40,
-};
-
 const REP_BASE_FEE = 19000;
-const PERSONAL_LINE_FEE = 10000; // Fee por sincronización/custodia de línea personal
+const PERSONAL_LINE_FEE = 25000; // Fee por protocolo WhatsApp Web
 const INSTITUTIONAL_LINE_FEE = 0; // Sin cobro mensual para líneas API
 const INSTITUTIONAL_SETUP_FEE = 450000;
+const HISTORICAL_MSG_COST = 50; // Costo por mensaje histórico (Parsing + Embedding)
 const RESIDUAL_COST = 3;
 
 const INTEGRATION_COSTS: Record<string, { monthly: number; setup: number }> = {
@@ -163,7 +157,11 @@ export default function ConversationSimulator() {
     needsOnboarding: false,
     industry: '',
     primaryUseCase: '',
-    operationDescription: ''
+    operationDescription: '',
+    linesToMigrate: 0,
+    migrationHistoryMonths: 3,
+    migrationContactsPerLine: 500,
+    migrationAvgMsgsPerContact: 50
   });
 
   const [formData, setFormData] = useState({
@@ -253,30 +251,46 @@ export default function ConversationSimulator() {
 
     const baseCost = iaCost + residualCost;
 
+    /* REMOVED: Team Multiplier Logic - transitioning to explicit line costs
     const teamMultiplier = getTeamMultiplier(teamData.numberOfSalesReps);
-    const adjustedBaseCost = baseCost * (1 + teamMultiplier);
+    const adjustedBaseCost = baseCost * (1 + teamMultiplier); 
+    */
+    const adjustedBaseCost = baseCost; // No multiplier, direct message/process costs.
 
-    // Fee de Líneas (Sincronización vs Control Total)
+    const teamMultiplier = 0; // Keeping variable for legacy return compatibility if needed
+
+    // Fee de Líneas (Protocolo Web $25k vs Institucional $0 + Setup)
     let lineMonthlyFee = 0;
     let lineSetupFee = 0;
 
-    if (teamData.whatsappOwnership === 'sellers') {
-      // Líneas personales: solo fee de sincronización ($10k)
-      lineMonthlyFee = teamData.numberOfSalesReps * PERSONAL_LINE_FEE;
-    } else if (teamData.whatsappOwnership === 'company') {
-      // Líneas institucionales: fee de mantenimiento ($40k) + setup ($450k)
-      const numLines = Math.ceil(teamData.numberOfSalesReps / teamData.repsPerLine);
-      lineMonthlyFee = numLines * INSTITUTIONAL_LINE_FEE;
-      lineSetupFee = numLines * INSTITUTIONAL_SETUP_FEE;
-    } else if (teamData.whatsappOwnership === 'mixed') {
-      // Mix: Mitad personales, mitad institucionales (aprox)
-      const institutionalReps = Math.ceil(teamData.numberOfSalesReps / 2);
-      const personalReps = teamData.numberOfSalesReps - institutionalReps;
+    const personalLines = teamData.personalLinesCount || 0;
+    const institutionalLines = teamData.institutionalLinesCount || 0;
 
-      const numInstitutionalLines = Math.ceil(institutionalReps / teamData.repsPerLine);
+    switch (teamData.managementStrategy) {
+      case 'decentralized':
+        // Estrategia Descentralizada: Control exclusivo de vendedor.
+        // Operan paralelo con 1 línea institucional (solo setup). No fee mensual por personales.
+        lineMonthlyFee = 0;
+        lineSetupFee = 1 * INSTITUTIONAL_SETUP_FEE;
+        break;
 
-      lineMonthlyFee = (personalReps * PERSONAL_LINE_FEE) + (numInstitutionalLines * INSTITUTIONAL_LINE_FEE);
-      lineSetupFee = numInstitutionalLines * INSTITUTIONAL_SETUP_FEE;
+      case 'mixed':
+        // Estrategia Mixta: Se cobran las personales ($25k) + 1 Línea Institucional (Setup)
+        lineMonthlyFee = personalLines * PERSONAL_LINE_FEE;
+        lineSetupFee = 1 * INSTITUTIONAL_SETUP_FEE;
+        break;
+
+      case 'institutional':
+        // Estrategia Institucional: Setup según cantidad de líneas definidas en inventario
+        // Si no definió líneas institucionales, asumimos al menos 1
+        const linesToSetup = institutionalLines > 0 ? institutionalLines : 1;
+        lineMonthlyFee = 0; // $0 monthly
+        lineSetupFee = linesToSetup * INSTITUTIONAL_SETUP_FEE;
+        break;
+
+      default:
+        // Fallback
+        lineMonthlyFee = personalLines * PERSONAL_LINE_FEE;
     }
 
     let integrationMonthlyCost = 0;
@@ -300,9 +314,24 @@ export default function ConversationSimulator() {
     if (teamData.needsCustomReports) {
       servicesMonthlyCost += SERVICES_COSTS.custom_reports;
     }
-    if (teamData.needsMigrationAssistance) {
+
+    // Migration Logic: History Enrichment
+    // Formula: Lines * Contacts * Msgs/Contact * Cost
+    // Sólo aplica para estrategias Mixta o Institucional
+    const isMigrationAllowed = teamData.managementStrategy === 'mixed' || teamData.managementStrategy === 'institutional';
+
+    if (isMigrationAllowed && teamData.needsMigrationAssistance && teamData.linesToMigrate) {
+      const contacts = teamData.migrationContactsPerLine || 500;
+      const msgsPerContact = teamData.migrationAvgMsgsPerContact || 50;
+
+      const totalHistoricalMsgs = teamData.linesToMigrate * contacts * msgsPerContact;
+
+      servicesSetupCost += totalHistoricalMsgs * HISTORICAL_MSG_COST;
+    } else if (isMigrationAllowed && teamData.needsMigrationAssistance) {
+      // Fallback if no specific data entered but checkmark is true (legacy safety)
       servicesSetupCost += SERVICES_COSTS.migration_assisted;
     }
+
     if (teamData.needsOnboarding) {
       servicesSetupCost += SERVICES_COSTS.onboarding;
     }
@@ -1007,70 +1036,69 @@ export default function ConversationSimulator() {
       </p>
 
       <div className="space-y-6">
-        {/* Número de comerciales */}
+        {/* Inventario de Líneas */}
         <div className="p-6 bg-gray-50 rounded-xl">
-          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-            ¿Cuántos comerciales usan WhatsApp para vender?
+          <label className="block text-sm font-poppins font-semibold mb-4" style={{ color: '#121212' }}>
+            Inventario de conectividad actual (O deseada)
           </label>
-          <div className="flex items-center gap-4">
-            <input
-              type="number"
-              min="1"
-              max="200"
-              value={teamStructure.numberOfSalesReps}
-              onChange={(e) => setTeamStructure({ ...teamStructure, numberOfSalesReps: parseInt(e.target.value) || 1 })}
-              className="w-32 px-4 py-3 border border-gray-300 rounded-lg font-mono text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <span className="text-sm font-inter text-gray-500">comerciales activos</span>
-          </div>
-        </div>
-
-        {/* Propiedad de las líneas */}
-        <div className="p-6 bg-gray-50 rounded-xl">
-          <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-            ¿De quién son las líneas de WhatsApp que se usarán?
-          </label>
-          <div className="space-y-2">
-            {[
-              { id: 'sellers', label: 'Son personales de los vendedores' },
-              { id: 'company', label: 'Son de la empresa' },
-              { id: 'mixed', label: 'Un mix (algunas personales, otras de empresa)' }
-            ].map((option) => (
-              <label key={option.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input
-                  type="radio"
-                  name="whatsappOwnership"
-                  value={option.id}
-                  checked={teamStructure.whatsappOwnership === option.id}
-                  onChange={(e) => setTeamStructure({ ...teamStructure, whatsappOwnership: e.target.value as any })}
-                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                />
-                <span className="text-sm font-inter text-gray-700">{option.label}</span>
+          <div className="grid gap-6">
+            {/* Líneas Personales */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-2">
+                ¿Cuántos vendedores usarán su línea personal?
               </label>
-            ))}
+              <div className="flex items-center gap-4">
+                <input
+                  type="number"
+                  min="0"
+                  value={teamStructure.personalLinesCount || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const totalReps = val + (teamStructure.institutionalLinesCount || 0); // Simplified total
+                    setTeamStructure({
+                      ...teamStructure,
+                      personalLinesCount: val,
+                      numberOfSalesReps: totalReps
+                    });
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <span className="text-sm font-inter text-gray-500 whitespace-nowrap">líneas personales</span>
+              </div>
+            </div>
+
+            {/* Líneas Institucionales */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-2">
+                ¿Cuántas líneas de WhatsApp Business API (Empresa) se habilitarán?
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="number"
+                  min="0"
+                  value={teamStructure.institutionalLinesCount || 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    const totalReps = (teamStructure.personalLinesCount || 0) + val; // Simplified total
+                    setTeamStructure({
+                      ...teamStructure,
+                      institutionalLinesCount: val,
+                      numberOfSalesReps: totalReps
+                    });
+                  }}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <span className="text-sm font-inter text-gray-500 whitespace-nowrap">líneas empresa</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400 italic">
+              * El "Total de Comerciales" se calculará como la suma de estas líneas para efectos de volumen.
+            </p>
           </div>
         </div>
 
-        {/* Vinculación por línea (solo si son de empresa o mix) */}
-        {(teamStructure.whatsappOwnership === 'company' || teamStructure.whatsappOwnership === 'mixed') && (
-          <div className="p-6 bg-purple-50 border border-purple-100 rounded-xl">
-            <label className="block text-sm font-poppins font-semibold mb-3" style={{ color: '#121212' }}>
-              En las líneas de empresa, ¿cuántos vendedores se vinculan a la misma línea?
-            </label>
-            <div className="flex items-center gap-4">
-              <select
-                value={teamStructure.repsPerLine}
-                onChange={(e) => setTeamStructure({ ...teamStructure, repsPerLine: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg font-inter text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-              >
-                {[1, 2, 3, 4, 5].map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'vendedor' : 'vendedores'} por línea</option>
-                ))}
-              </select>
-            </div>
-            <p className="mt-2 text-xs text-gray-500 italic">Máximo 5 comerciales vinculados por línea para garantizar calidad.</p>
-          </div>
-        )}
+
 
         {/* Estrategia de gestión */}
         <div className="p-6 bg-gray-50 rounded-xl">
@@ -1082,17 +1110,12 @@ export default function ConversationSimulator() {
               {
                 id: 'decentralized',
                 label: 'Mantener control exclusivo de vendedores',
-                detail: 'Sin centralizar información, gestión exclusiva de cada comercial.'
-              },
-              {
-                id: 'transition',
-                label: 'Centralizar información con líneas propias',
-                detail: 'Vendedores usan sus WhatsApps pero la empresa centraliza logs y posiciona una línea institucional.'
+                detail: 'Sin centralizar información (WhatsApps personales). Operación paralela con 1 línea institucional (Solo pagas Setup).'
               },
               {
                 id: 'mixed',
-                label: 'Estrategia mixta controlada',
-                detail: 'Control total de WhatsApps de vendedores e institucionales bajo supervisión.'
+                label: 'Estrategia Mixta Controlada',
+                detail: 'Control total de WhatsApps (personales + empresa) bajo supervisión y centralización.'
               },
               {
                 id: 'institutional',
@@ -1116,6 +1139,75 @@ export default function ConversationSimulator() {
               </label>
             ))}
           </div>
+
+          {/* Migración de Historial (Solo si Estrategia Mixta o Institucional) */}
+          {(teamStructure.managementStrategy === 'mixed' || teamStructure.managementStrategy === 'institutional') && (
+            <div className="p-6 bg-blue-50 border border-blue-100 rounded-xl mt-4 animate-fadeIn">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="needsMigrationAssistance"
+                  checked={teamStructure.needsMigrationAssistance}
+                  onChange={(e) => setTeamStructure({
+                    ...teamStructure,
+                    needsMigrationAssistance: e.target.checked,
+                    linesToMigrate: e.target.checked && !teamStructure.linesToMigrate
+                      ? (teamStructure.managementStrategy === 'mixed' ? 1 : Math.ceil(teamStructure.numberOfSalesReps))
+                      : teamStructure.linesToMigrate
+                  })}
+                  className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <div className="flex-1">
+                  <label htmlFor="needsMigrationAssistance" className="block text-sm font-poppins font-semibold text-blue-900 cursor-pointer">
+                    ¿Necesitas migrar el historial de chats existentes?
+                  </label>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Enriquecemos y estructuramos tu data actual (IA Vectorizada) para que sea consultable.
+                  </p>
+
+                  {teamStructure.needsMigrationAssistance && (
+                    <div className="mt-4 grid gap-4 bg-white p-4 rounded-lg border border-blue-100 shadow-sm animate-fadeIn">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Líneas a Migrar</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={teamStructure.linesToMigrate || 0}
+                            onChange={(e) => setTeamStructure({ ...teamStructure, linesToMigrate: parseInt(e.target.value) })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Contactos prom. / línea</label>
+                          <input
+                            type="number"
+                            min="10"
+                            value={teamStructure.migrationContactsPerLine || 500}
+                            onChange={(e) => setTeamStructure({ ...teamStructure, migrationContactsPerLine: parseInt(e.target.value) })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Mensajes promedio por contacto (Total Histórico)</label>
+                        <input
+                          type="number"
+                          min="10"
+                          value={teamStructure.migrationAvgMsgsPerContact || 50}
+                          onChange={(e) => setTeamStructure({ ...teamStructure, migrationAvgMsgsPerContact: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 italic">
+                          * Estimación para cálculo de costo de procesamiento y storage.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Integraciones */}
