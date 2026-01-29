@@ -75,6 +75,13 @@ interface ProjectionData {
   humanPercentage: number;
   estimatedRevenue: number; // Baseline Revenue
   metaMarketingCost: number; // Costo directo a Meta (Passthrough)
+  campaignCost: number; // Costo CloserCat por mensajes de campaña
+  campaignMessages: number; // Total mensajes de campaña mensuales
+  textCost: number;
+  audioCost: number;
+  imageCost: number;
+  documentCost: number;
+  residualCostMonthly: number;
 }
 
 interface ScenarioData {
@@ -252,7 +259,8 @@ export default function ConversationSimulator() {
     }
   }, []);
 
-  const [hasAutoPrinted, setHasAutoPrinted] = useState(false);
+  const [hasAutoPrinted, setHasAutoPrinted] = useState(true); // Set to true to disable auto-print by default as requested
+
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll chat
@@ -378,13 +386,14 @@ export default function ConversationSimulator() {
     // Fee de Integraciones (Legacy removed)
     const integrationMonthlyCost = valueAddedServicesMonthly; // Mapping for compatibility
     const integrationSetupCost = 0; // No setup for these new recurring services
-
+    let campaignMessages = 0;
+    let campaignCost = 0;
     let metaMarketingCost = 0; // Costo directo a Meta
 
     if (teamData.needsCampaigns && teamData.campaignContacts && teamData.campaignsPerMonth) {
-      const campaignMsgsPerMonth = teamData.campaignContacts * teamData.campaignsPerMonth;
-      // servicesMonthlyCost += campaignMsgsPerMonth * SERVICES_COSTS.campaign_msg; // Moved to total calc below or keep separate
-      metaMarketingCost += campaignMsgsPerMonth * COSTS.meta_marketing; // Costo Meta (Passthrough)
+      campaignMessages = teamData.campaignContacts * teamData.campaignsPerMonth;
+      campaignCost = campaignMessages * SERVICES_COSTS.campaign_msg;
+      metaMarketingCost += campaignMessages * COSTS.meta_marketing; // Costo Meta (Passthrough)
     }
 
     // Migration Logic: History Enrichment
@@ -401,7 +410,7 @@ export default function ConversationSimulator() {
     }
 
     // Totales separados
-    const totalMonthlyCost = adjustedBaseCost + lineMonthlyFee + valueAddedServicesMonthly + (teamData.needsCampaigns ? (teamData.campaignContacts * teamData.campaignsPerMonth * SERVICES_COSTS.campaign_msg) : 0);
+    const totalMonthlyCost = adjustedBaseCost + lineMonthlyFee + valueAddedServicesMonthly + campaignCost;
 
     const totalSetupCost = lineSetupFee + servicesSetupCost;
 
@@ -510,7 +519,14 @@ export default function ConversationSimulator() {
       incrementalROI10,
       incrementalROI20,
       incrementalROI30,
-      annualRevenuePotential
+      annualRevenuePotential,
+      campaignCost,
+      campaignMessages,
+      textCost: textMessages * COSTS.text,
+      audioCost: audioMessages * adjustedAudioCost,
+      imageCost: imageMessages * COSTS.image,
+      documentCost: documentMessages * COSTS.document,
+      residualCostMonthly: residualCost
     };
   };
 
@@ -1737,40 +1753,40 @@ export default function ConversationSimulator() {
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
-            /* Allow multi-page printing for Letter size */
+            /* Strict container constraint to eliminate ghost pages */
             html, body {
-              height: auto !important;
-              overflow: visible !important;
+              height: 100% !important;
+              overflow: hidden !important;
               margin: 0 !important;
               padding: 0 !important;
+              visibility: hidden !important;
+              background: white !important;
             }
-            
-            body * {
-              visibility: hidden;
+
+            .print-container {
+              visibility: visible !important;
+              display: block !important;
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              /* Do NOT set height: 100% here, let it be auto but constrained by body overflow */
+              height: auto !important;
+              background: white !important;
+              padding: 15mm !important;
+              z-index: 99999 !important;
             }
 
             .print-container, .print-container * {
               visibility: visible !important;
             }
 
-            .print-container {
-              position: absolute !important;
-              top: 0 !important;
-              left: 0 !important;
-              width: 100% !important;
-              height: auto !important;
-              background: white !important;
-              z-index: 9999 !important;
-              display: block !important;
-            }
-
             @page {
-              size: letter; /* Carta */
-              margin: 10mm;
+              size: letter;
+              margin: 0;
             }
 
-            /* Avoid breaking inside cards/tables */
-            .mb-4 {
+            .mb-4, .mb-6 {
               page-break-inside: avoid;
             }
           }
@@ -1778,7 +1794,7 @@ export default function ConversationSimulator() {
         {/* Header con logo y datos */}
         <div className="flex justify-between items-start mb-4 pb-3 border-b-2 border-gray-300">
           <div>
-            <img src="/logo-closercat.png" alt="CloserCat" className="h-8 mb-1" />
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-10 mb-1" />
             <p className="text-xs text-gray-600">Automatización de WhatsApp para Equipos Comerciales</p>
           </div>
           <div className="text-right">
@@ -1798,14 +1814,24 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* Estructura del Equipo */}
+        {/* Estructura del Equipo (Mejorada) */}
         <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo</h3>
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo y Estrategia</h3>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-            <div><strong>Comerciales:</strong> {teamStructure.numberOfSalesReps}</div>
-            <div><strong>Prompting:</strong> {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}</div>
-            <div><strong>Industria:</strong> {teamStructure.industry || 'No especificada'}</div>
-            <div><strong>Uso Principal:</strong> {teamStructure.primaryUseCase}</div>
+            <div><strong>Líneas Vendedores:</strong> {teamStructure.personalLinesCount || 0}</div>
+            <div><strong>Líneas Empresa:</strong> {teamStructure.institutionalLinesCount || 0}</div>
+            <div className="col-span-2"><strong>Estrategia:</strong> {
+              teamStructure.managementStrategy === 'decentralized' ? 'Descentralizada (Control de vendedores)' :
+                teamStructure.managementStrategy === 'mixed' ? 'Mixta (Control total centralizado)' :
+                  'Institucional (100% corporativo)'
+            }</div>
+            <div><strong>Asesoría Prompting:</strong> {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}</div>
+            <div><strong>Migración Historial:</strong> {teamStructure.needsMigrationAssistance ? 'Sí' : 'No'}</div>
+            {teamStructure.needsMigrationAssistance && (
+              <div className="col-span-2 mt-1 p-2 bg-blue-50/50 rounded border border-blue-100 italic text-[10px]">
+                <strong>Detalles de Migración:</strong> {teamStructure.linesToMigrate} líneas, ~{teamStructure.migrationContactsPerLine} contactos/línea, ~{teamStructure.migrationAvgMsgsPerContact} msgs/contacto.
+              </div>
+            )}
           </div>
         </div>
 
@@ -1837,11 +1863,10 @@ export default function ConversationSimulator() {
                   <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}</td>
                 </tr>
               )}
-              {projection.servicesCost > 0 && (
+              {projection.campaignCost > 0 && (
                 <tr>
-                  {/* Fallback for other services currently 0 but keeping logic */}
-                  <td className="py-1">Otros Servicios (Campañas)</td>
-                  <td className="text-right py-1">{formatCurrency(projection.servicesCost)}</td>
+                  <td className="py-1">Gestión de Campañas ({teamStructure.campaignContacts.toLocaleString()} cont. x {teamStructure.campaignsPerMonth} envíos/mes)</td>
+                  <td className="text-right py-1">{formatCurrency(projection.campaignCost)}</td>
                 </tr>
               )}
               {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
@@ -1867,9 +1892,9 @@ export default function ConversationSimulator() {
           </table>
         </div>
 
-        {/* Pago Único (Setup Inicial) en Impresión */}
+        {/* Pago Único (Setup Inicial) */}
         <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Pago Único (Setup Inicial)</h3>
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Inversión Única (Setup Inicial)</h3>
           <table className="w-full text-xs">
             <tbody>
               <tr>
@@ -1922,154 +1947,257 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
-        {/* Comparativa de Estrategia (Condensed for Print) */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Comparativa de Estrategia (Impacto en Conversión)</h3>
-          <table className="w-full text-[9px] border-collapse text-left">
-            <thead>
-              <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
-                <th className="py-2 pl-2 font-semibold w-1/4">Métrica</th>
-                <th className="py-2 text-center border-r border-gray-200">Status Quo</th>
-                <th className="py-2 text-center bg-purple-50 text-indigo-500 border-r border-purple-200">+10% Opt.</th>
-                <th className="py-2 text-center bg-purple-100 text-indigo-700 border-r border-purple-200 font-bold">+20% Rec.</th>
-                <th className="py-2 text-center bg-purple-50 text-indigo-800">+30% High</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-100">
-                <td className="py-2 pl-2 font-semibold text-[10px]">Tasa de Conversión</td>
-                <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{projection.conversionRate}%</td>
-                <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
-                <td className="py-2 text-center bg-purple-100/30 font-bold">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
-                <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
-              </tr>
-              <tr className="border-b border-gray-100">
-                <td className="py-2 pl-2 font-semibold text-[10px]">Ingresos Mensuales</td>
-                <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{formatCurrency(projection.estimatedRevenue)}</td>
-                <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev10)}</td>
-                <td className="py-2 text-center bg-purple-100/30 font-bold">+{formatCurrency(projection.incrementalRev20)}</td>
-                <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev30)}</td>
-              </tr>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <td className="py-2 pl-2 font-semibold text-[10px]">Costo CloserCat (Mes)</td>
-                <td className="py-2 text-center text-gray-400 border-r border-gray-100 font-mono italic">$ 0</td>
-                <td className="py-2 text-center bg-purple-50/20 text-red-500">-{formatCurrency(projection.expectedCost)}</td>
-                <td className="py-2 text-center bg-purple-100/30 text-red-600 font-bold">-{formatCurrency(projection.expectedCost)}</td>
-                <td className="py-2 text-center bg-purple-50/20 text-red-700">-{formatCurrency(projection.expectedCost)}</td>
-              </tr>
-              <tr className="bg-purple-50/30 font-bold border-t border-purple-200">
-                <td className="py-2 pl-2 text-purple-900 text-[10px]">Ingreso Residual Neto</td>
-                <td className="py-2 text-center text-gray-400 border-r border-gray-100 italic">$ 0</td>
-                <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev10 - projection.expectedCost >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                  {projection.incrementalRev10 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
-                </td>
-                <td className={`py-2 text-center bg-purple-100/50 text-indigo-900 border-x border-purple-200 ${projection.incrementalRev20 - projection.expectedCost >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                  {projection.incrementalRev20 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
-                </td>
-                <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev30 - projection.expectedCost >= 0 ? 'text-green-800' : 'text-red-700'}`}>
-                  {projection.incrementalRev30 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {/* PÁGINA 2: Impacto, Escenarios y Proyección */}
+        <div className="mb-4" style={{ pageBreakBefore: 'always', paddingTop: '10mm' }}>
+          <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-purple-200">
+            <h3 className="text-sm font-bold" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Impacto y Proyecciones</h3>
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-6" />
+          </div>
 
-        {/* Proyección Temporal Detallada (Reemplaza Comparativa Estática) */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Proyección Financiera Trimestral (Q1-Q4)</h3>
-
-          {(() => {
-            // Force Quarterly view for printing
-            const projections = calculateTemporalProjection(4, 'quarterly', projection);
-            // Calculate totals
-            const totalStatusQuo = projections.reduce((sum, p) => sum + p.statusQuo.revenue, 0);
-            const totalRecommended = projections.reduce((sum, p) => sum + p.withCloserCat.recommended.netAdditionalRevenue, 0);
-
-            return (
-              <table className="w-full text-[9px] border-collapse">
-                <thead>
-                  <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
-                    <th className="py-2 pl-2 text-left">Período</th>
-                    <th className="py-2 text-right">Volumen</th>
-                    <th className="py-2 text-right border-r border-gray-200">Sin CloserCat</th>
-                    <th className="py-2 text-center bg-purple-50 text-purple-900 border-b border-purple-200" colSpan={3}>Ingreso Neto Adicional (Net Revenue)</th>
-                  </tr>
-                  <tr className="bg-gray-50 text-gray-400 text-[8px]">
-                    <th colSpan={3}></th>
-                    <th className="py-1 text-right px-2">Optimista ({(projection.conversionRate * 1.1).toFixed(2)}%)</th>
-                    <th className="py-1 text-right px-2 font-bold text-purple-700">Recomendado ({(projection.conversionRate * 1.2).toFixed(2)}%)</th>
-                    <th className="py-1 text-right px-2 text-[7px]">High Impact ({(projection.conversionRate * 1.3).toFixed(2)}%)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projections.map((proj, idx) => (
-                    <tr key={idx} className="border-b border-gray-100">
-                      <td className="py-2 pl-2 font-bold text-gray-700">{proj.period}</td>
-                      <td className="py-2 text-right font-mono text-gray-500">{proj.conversations.toLocaleString()}</td>
-                      <td className="py-2 text-right font-mono border-r border-gray-100 pr-2">{formatCurrency(proj.statusQuo.revenue)}</td>
-                      <td className={`py-2 text-right font-mono px-2 ${proj.withCloserCat.optimistic.netAdditionalRevenue >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                        {proj.withCloserCat.optimistic.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.optimistic.netAdditionalRevenue)}
-                      </td>
-                      <td className={`py-2 text-right font-mono font-bold bg-purple-50/30 px-2 ${proj.withCloserCat.recommended.netAdditionalRevenue >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                        {proj.withCloserCat.recommended.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.recommended.netAdditionalRevenue)}
-                      </td>
-                      <td className={`py-2 text-right font-mono px-2 ${proj.withCloserCat.highImpact.netAdditionalRevenue >= 0 ? 'text-green-800' : 'text-red-700'}`}>
-                        {proj.withCloserCat.highImpact.netAdditionalRevenue > 0 ? '+' : ''}{formatCurrency(proj.withCloserCat.highImpact.netAdditionalRevenue)}
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="bg-gray-100 font-bold border-t border-gray-300">
-                    <td className="py-2 pl-2">TOTAL ANUAL</td>
-                    <td className="py-2 text-right">-</td>
-                    <td className="py-2 text-right pr-2">{formatCurrency(totalStatusQuo)}</td>
-                    <td className={`py-2 text-right px-2 ${totalStatusQuo >= 0 ? 'text-gray-400' : 'text-gray-400'}`}>-</td>
-                    <td className={`py-2 text-right bg-purple-100 px-2 ${totalRecommended >= 0 ? 'text-green-800' : 'text-red-800'}`}>
-                      {totalRecommended > 0 ? '+' : ''}{formatCurrency(totalRecommended)}
-                    </td>
-                    <td className="py-2 text-right text-gray-400 px-2">-</td>
-                  </tr>
-                </tbody>
-              </table>
-            );
-          })()}
-          <p className="text-[7px] text-gray-400 mt-2 italic">
-            * Proyección basada en crecimiento mensual del {monthlyGrowthRate}%. Ingreso Neto Adicional = Ingresos Nuevos - Ingresos Actuales - Costos Operativos de CloserCat (Escalados).
-          </p>
-        </div>
-
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <div className="text-center p-2 bg-gray-100 border border-gray-300">
-              <div className="text-xs font-semibold mb-1 text-gray-600">Optimista</div>
-              <div className="text-lg font-bold" style={{ color: '#10b981' }}>{formatCurrency(projection.optimisticCost)}</div>
-              <div className="text-xs text-gray-500">-10%</div>
-            </div>
-            <div className="text-center p-2 bg-white border-2 border-purple-500 rounded relative">
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white text-[9px] px-2 rounded-full">RECOMENDADO</div>
-              <div className="text-xs font-semibold mb-1 text-gray-600">Esperado</div>
-              <div className="text-xl font-bold" style={{ color: '#8336FF' }}>{formatCurrency(projection.expectedCost)}</div>
-              <div className="text-xs text-gray-500">Promedio</div>
-            </div>
-            <div className="text-center p-2 bg-gray-100 border border-gray-300">
-              <div className="text-xs font-semibold mb-1 text-gray-600">Pesimista</div>
-              <div className="text-lg font-bold" style={{ color: '#ef4444' }}>{formatCurrency(projection.pessimisticCost)}</div>
-              <div className="text-xs text-gray-500">+10%</div>
+          {/* Detalle de Consumo Mensual (Moved to P2) */}
+          <div className="mb-6">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Detalle de Consumo Mensual</h3>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="p-2 border border-gray-100 rounded">
+                <div className="text-[8px] text-gray-400 uppercase font-bold">Texto</div>
+                <div className="text-[10px] font-bold">{projection.textMessages.toLocaleString()} msgs</div>
+                <div className="text-[9px] text-purple-600">{formatCurrency(projection.textCost)}</div>
+              </div>
+              <div className="p-2 border border-gray-100 rounded">
+                <div className="text-[8px] text-gray-400 uppercase font-bold">Audio IA</div>
+                <div className="text-[10px] font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
+                <div className="text-[9px] text-purple-600">{formatCurrency(projection.audioCost)}</div>
+              </div>
+              <div className="p-2 border border-gray-100 rounded">
+                <div className="text-[8px] text-gray-400 uppercase font-bold">Multimedia</div>
+                <div className="text-[10px] font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
+                <div className="text-[9px] text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
+              </div>
+              <div className="p-2 border border-gray-100 rounded">
+                <div className="text-[8px] text-gray-400 uppercase font-bold">Int. Humana</div>
+                <div className="text-[10px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+                <div className="text-[9px] text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+              </div>
             </div>
           </div>
-          <p className="text-[9px] text-gray-500 italic mt-1">
-            * El escenario esperado es un promedio ponderado basado en patrones de uso típicos.
-          </p>
-          <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-[9px] text-gray-700 text-justify">
-            <strong>Nota Importante:</strong> Los valores presentados son aproximaciones estadísticas basadas en la información suministrada.
-            <strong> La cotización oficial y configuración técnica final se reafirma en nuestra llamada consultiva gratuita.</strong>
-            Este documento no constituye una oferta comercial vinculante ni un contrato de servicios.
+
+          {/* 1. PERT (Moved to top of P2) */}
+          <div className="mb-6">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <div className="text-center p-2 bg-gray-100 border border-gray-300">
+                <div className="text-xs font-semibold mb-1 text-gray-600">Optimista</div>
+                <div className="text-lg font-bold" style={{ color: '#10b981' }}>{formatCurrency(projection.optimisticCost)}</div>
+                <div className="text-xs text-gray-500">-10%</div>
+              </div>
+              <div className="text-center p-2 bg-white border-2 border-purple-500 rounded relative">
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white text-[9px] px-2 rounded-full">RECOMENDADO</div>
+                <div className="text-xs font-semibold mb-1 text-gray-600">Esperado</div>
+                <div className="text-xl font-bold" style={{ color: '#8336FF' }}>{formatCurrency(projection.expectedCost)}</div>
+                <div className="text-xs text-gray-500">Promedio</div>
+              </div>
+              <div className="text-center p-2 bg-gray-100 border border-gray-300">
+                <div className="text-xs font-semibold mb-1 text-gray-600">Pesimista</div>
+                <div className="text-lg font-bold" style={{ color: '#ef4444' }}>{formatCurrency(projection.pessimisticCost)}</div>
+                <div className="text-xs text-gray-500">+10%</div>
+              </div>
+            </div>
+            <p className="text-[9px] text-gray-500 italic">
+              * El escenario esperado es un promedio ponderado basado en patrones de uso típicos.
+            </p>
+          </div>
+
+          {/* 2. Comparativa de Estrategia */}
+          <div className="mb-6">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Comparativa de Estrategia (Impacto en Conversión)</h3>
+            <table className="w-full text-[9px] border-collapse text-left">
+              <thead>
+                <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
+                  <th className="py-2 pl-2 font-semibold w-1/4">Métrica</th>
+                  <th className="py-2 text-center border-r border-gray-200">Status Quo</th>
+                  <th className="py-2 text-center bg-purple-50 text-indigo-500 border-r border-purple-200">+10% Opt.</th>
+                  <th className="py-2 text-center bg-purple-100 text-indigo-700 border-r border-purple-200 font-bold">+20% Rec.</th>
+                  <th className="py-2 text-center bg-purple-50 text-indigo-800">+30% High</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 pl-2 font-semibold text-[10px]">Tasa de Conversión</td>
+                  <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{projection.conversionRate}%</td>
+                  <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
+                  <td className="py-2 text-center bg-purple-100/30 font-bold">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
+                  <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-2 pl-2 font-semibold text-[10px]">Ingresos Mensuales</td>
+                  <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{formatCurrency(projection.estimatedRevenue)}</td>
+                  <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev10)}</td>
+                  <td className="py-2 text-center bg-purple-100/30 font-bold">+{formatCurrency(projection.incrementalRev20)}</td>
+                  <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev30)}</td>
+                </tr>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <td className="py-2 pl-2 font-semibold text-[10px]">Costo CloserCat (Mes)</td>
+                  <td className="py-2 text-center text-gray-400 border-r border-gray-100 font-mono italic">$ 0</td>
+                  <td className="py-2 text-center bg-purple-50/20 text-red-500">-{formatCurrency(projection.expectedCost)}</td>
+                  <td className="py-2 text-center bg-purple-100/30 text-red-600 font-bold">-{formatCurrency(projection.expectedCost)}</td>
+                  <td className="py-2 text-center bg-purple-50/20 text-red-700">-{formatCurrency(projection.expectedCost)}</td>
+                </tr>
+                <tr className="bg-purple-50/30 font-bold border-t border-purple-200">
+                  <td className="py-2 pl-2 text-purple-900 text-[10px]">Ingreso Residual Neto</td>
+                  <td className="py-2 text-center text-gray-400 border-r border-gray-100 italic">$ 0</td>
+                  <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev10 - projection.expectedCost >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    {projection.incrementalRev10 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
+                  </td>
+                  <td className={`py-2 text-center bg-purple-100/50 text-indigo-900 border-x border-purple-200 ${projection.incrementalRev20 - projection.expectedCost >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {projection.incrementalRev20 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
+                  </td>
+                  <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev30 - projection.expectedCost >= 0 ? 'text-green-800' : 'text-red-700'}`}>
+                    {projection.incrementalRev30 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* 3. Proyección Temporal (Condensed table) */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Proyección Financiera Trimestral (Q1-Q4)</h3>
+            {(() => {
+              const projections = calculateTemporalProjection(4, 'quarterly', projection);
+              const totalRecommended = projections.reduce((sum, p) => sum + p.withCloserCat.recommended.netAdditionalRevenue, 0);
+
+              return (
+                <div>
+                  <table className="w-full text-[8px] border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-gray-300 text-gray-500">
+                        <th className="py-1 pl-2 text-left">Período</th>
+                        <th className="py-1 text-right">Sin CC</th>
+                        <th className="py-1 text-right bg-purple-50 text-purple-900" colSpan={3}>Ingreso Neto Adicional (Net Revenue)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {projections.map((proj, idx) => (
+                        <tr key={idx} className="border-b border-gray-100">
+                          <td className="py-1 pl-2 font-bold">{proj.period}</td>
+                          <td className="py-1 text-right">{formatCurrency(proj.statusQuo.revenue)}</td>
+                          <td className="py-1 text-right px-2 text-green-600">{formatCurrency(proj.withCloserCat.optimistic.netAdditionalRevenue)}</td>
+                          <td className="py-1 text-right px-2 font-bold text-purple-700 bg-purple-50/30">{formatCurrency(proj.withCloserCat.recommended.netAdditionalRevenue)}</td>
+                          <td className="py-1 text-right px-2 text-green-800">{formatCurrency(proj.withCloserCat.highImpact.netAdditionalRevenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-2 p-2 bg-purple-100/50 rounded text-right">
+                    <span className="text-[10px] font-bold text-purple-900">Total Neto Adicional (Anual Recomendado): {formatCurrency(totalRecommended)}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
+        <p className="text-[7px] text-gray-400 mt-2 italic">
+          * Proyección basada en crecimiento mensual del {monthlyGrowthRate}%. Ingreso Neto Adicional = Ingresos Nuevos - Ingresos Actuales - Costos Operativos de CloserCat (Escalados).
+        </p>
 
-        <div className="text-xs text-gray-500 border-t border-gray-300 pt-2 mt-4 text-center">
-          <p>Validez de la oferta: 15 días. Sujeto a Términos y Condiciones de CloserCat.</p>
-          <p>Generado automáticamente el {today}.</p>
+        {/* PÁGINA 3: Glosario y Detalles de Servicio */}
+        <div style={{ pageBreakBefore: 'always', paddingTop: '10mm' }}>
+          <div className="flex items-center gap-3 mb-6 pb-2 border-b-2 border-purple-500">
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-10" />
+            <h2 className="text-lg font-bold uppercase tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>Glosario de Servicios y Compromiso</h2>
+          </div>
+
+          <div className="space-y-6 text-xs text-gray-700 leading-relaxed">
+            <section>
+              <h3 className="text-sm font-bold text-purple-900 mb-1">1. Base Operativa (IA + Residual)</h3>
+              <p>
+                Incluye la infraestructura necesaria para el procesamiento de mensajes mediante Inteligencia Artificial y la custodia de conversaciones por agentes humanos.
+                El motor de IA está optimizado para interpretar lenguaje natural, intenciones de compra y gestión de objeciones 24/7.
+                La "Intervención Humana" (Residual) garantiza que casos complejos sean derivados automáticamente a su equipo comercial.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-purple-900 mb-1">2. Capacidad de Base de Conocimiento (KB)</h3>
+              <p>
+                Representa el cerebro de su asistente. Cada ítem de la KB es un dato específico (precio, stock, política, FAQ) que la IA domina.
+                Una mayor capacidad permite que la IA responda con precisión quirúrgica sobre catálogos extensos sin inventar información ("alucinaciones").
+              </p>
+            </section>
+
+            {teamStructure.promptingType === 'custom' && (
+              <section className="p-3 bg-purple-50 rounded-lg border border-purple-100">
+                <h3 className="text-sm font-bold text-purple-900 mb-1">3. Asesoría de Prompting Custom (Activo)</h3>
+                <p>
+                  Servicio especializado donde nuestros ingenieros diseñan una personalidad y tono de voz único para su marca.
+                  Incluye ingeniería de prompts avanzada para guiar al usuario a través de embudos de venta específicos y técnicas de cierre persuasivo personalizadas.
+                </p>
+              </section>
+            )}
+
+            {teamStructure.needsMarketAnalysis && (
+              <section className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <h3 className="text-sm font-bold text-blue-900 mb-1">4. Intelligence Reports (Activo)</h3>
+                <p>
+                  Acceso a análisis avanzados de "Sentiment" y tendencias de mercado.
+                  Transformamos miles de conversaciones en datos accionables: qué preguntan más sus clientes, por qué no están comprando y cuáles son las oportunidades de mejora en su producto/servicio.
+                </p>
+              </section>
+            )}
+
+            {teamStructure.needsCampaigns && (
+              <section className="p-3 bg-green-50 rounded-lg border border-green-100">
+                <h3 className="text-sm font-bold text-green-900 mb-1">5. Gestión de Campañas Masivas (Activo)</h3>
+                <p>
+                  Automatización total de envíos proactivos por WhatsApp.
+                  Ideal para lanzamientos, promociones o seguimientos de leads fríos.
+                  La IA se encarga de recibir todas las respuestas de la campaña, calificando a los interesados en tiempo real sin saturar a sus vendedores.
+                </p>
+              </section>
+            )}
+
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-sm font-bold mb-3">Compromiso de Servicio:</h3>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><strong>Soporte Técnico:</strong> Acompañamiento continuo en la optimización del modelo.</li>
+                <li><strong>Privacidad:</strong> Los datos de sus clientes están cifrados y se utilizan exclusivamente para su operación comercial.</li>
+                <li><strong>Escalabilidad:</strong> El sistema crece con su demanda sin necesidad de contratar más personal administrativo.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center text-[10px] text-gray-400">
+            <p>CloserCat - Inteligencia Artificial para el Cierre de Ventas</p>
+            <p>www.closercat.com</p>
+          </div>
+
+          {/* CTA Creativo Final */}
+          <div className="mt-10 p-8 rounded-2xl text-center relative overflow-hidden bg-white border-2 border-purple-100 shadow-sm" style={{ pageBreakInside: 'avoid' }}>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#08C4F4] to-[#8336FF]"></div>
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-12 mx-auto mb-6 opacity-90" />
+
+            <h3 className="text-xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              ¿Listo para ver la magia en acción con {formData.business || 'tu negocio'}?
+            </h3>
+
+            <p className="text-sm text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+              Hemos diseñado este análisis exclusivamente para potenciar los resultados de su equipo comercial. El siguiente paso es una experiencia en vivo.
+            </p>
+
+            <div className="inline-block p-4 rounded-xl bg-purple-50 border border-purple-200 mb-4">
+              <p className="text-[10px] text-purple-400 uppercase font-bold tracking-widest mb-1">Tu Acceso Personalizado</p>
+              <p className="text-lg font-mono font-bold text-purple-900">closercat.com/demo/{formData.name.toLowerCase().replace(/\s+/g, '-')}</p>
+            </div>
+
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-purple-600 text-white flex items-center justify-center text-xl shadow-lg animate-pulse mb-2">
+                🚀
+              </div>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">
+                Escanea o haz clic para transformar tu departamento de ventas
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -2090,6 +2218,38 @@ export default function ConversationSimulator() {
           <p className="font-inter text-sm" style={{ color: '#6b7280' }}>
             Hola {formData.name}, aquí está tu análisis completo
           </p>
+        </div>
+
+        {/* Resumen de Configuración (Nuevo para visibilidad Step 4) */}
+        <div className="mb-6 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <h4 className="font-poppins font-bold mb-4 text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
+            <span className="text-blue-600">👥</span> Configuración del Equipo y Estrategia
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-3 bg-blue-50/50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">WhatsApp Personales</div>
+              <div className="text-lg font-bold text-blue-900">{teamStructure.personalLinesCount || 0} líneas</div>
+            </div>
+            <div className="p-3 bg-blue-50/50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">WhatsApp Empresa</div>
+              <div className="text-lg font-bold text-blue-900">{teamStructure.institutionalLinesCount || 0} líneas</div>
+            </div>
+            <div className="p-3 bg-purple-50/50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Estrategia</div>
+              <div className="text-sm font-bold text-purple-900">
+                {teamStructure.managementStrategy === 'decentralized' ? 'Descentralizada' :
+                  teamStructure.managementStrategy === 'mixed' ? 'Mixta (Control Total)' :
+                    'Institucional'}
+              </div>
+            </div>
+            <div className="p-3 bg-purple-50/50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Servicios Extra</div>
+              <div className="text-[11px] font-semibold text-purple-900">
+                • Prompting {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}<br />
+                • Migración: {teamStructure.needsMigrationAssistance ? 'Activa' : 'No requerida'}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Proyección PERT (Original Design) */}
@@ -2134,6 +2294,35 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
+        {/* Desglose de Consumo por Tipo (Nuevo) */}
+        <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <h4 className="font-poppins font-bold mb-4 text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
+            <span className="text-purple-600">📊</span> Consumo Mensual Estimado
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Texto</div>
+              <div className="text-sm font-bold">{projection.textMessages.toLocaleString()} msgs</div>
+              <div className="text-xs text-purple-600">{formatCurrency(projection.textCost)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Audio (IA)</div>
+              <div className="text-sm font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
+              <div className="text-xs text-purple-600">{formatCurrency(projection.audioCost)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Multimedia</div>
+              <div className="text-sm font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
+              <div className="text-xs text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Int. Humana</div>
+              <div className="text-sm font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+              <div className="text-xs text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+            </div>
+          </div>
+        </div>
+
         {/* Desglose de Inversión Mensual */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Mensualidad Recurrente */}
@@ -2167,10 +2356,12 @@ export default function ConversationSimulator() {
                 </div>
               )}
 
-              {projection.servicesCost > 0 && (
-                <div className="flex justify-between items-center py-1">
-                  <span className="font-inter text-gray-600">Campañas / Otros</span>
-                  <span className="font-mono font-bold">{formatCurrency(projection.servicesCost)}</span>
+              {projection.campaignCost > 0 && (
+                <div className="flex justify-between items-center py-1 pl-2 border-l-2 border-purple-100">
+                  <span className="font-inter text-gray-500 text-xs text-left">
+                    Gestión Campañas ({teamStructure.campaignContacts.toLocaleString()} cont. x {teamStructure.campaignsPerMonth} envíos)
+                  </span>
+                  <span className="font-mono font-bold text-xs text-gray-700">{formatCurrency(projection.campaignCost)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-100">
@@ -2512,10 +2703,6 @@ export default function ConversationSimulator() {
           </button>
         </div>
 
-        {/* Vista de impresión (oculta en pantalla) */}
-        <div className="hidden print:block">
-          {renderPrintView()}
-        </div>
       </div>
     );
   };
@@ -2532,15 +2719,20 @@ export default function ConversationSimulator() {
   }, [step]);
 
   return (
-    <div ref={containerRef} className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-8 shadow-lg max-w-5xl mx-auto scroll-mt-20">
-      {step !== 'results' && step !== 'form' && renderProgressStepper()}
-      {step === 'simulator' && renderSimulator()}
-      {step === 'multimedia' && renderMultimedia()}
-      {step === 'volume' && renderVolume()}
-      {step === 'teamStructure' && renderTeamStructure()}
-      {step === 'integrations' && renderIntegrations()}
-      {step === 'form' && renderForm()}
-      {step === 'results' && renderResults()}
-    </div>
+    <>
+      <div ref={containerRef} className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-8 shadow-lg max-w-5xl mx-auto scroll-mt-20 print:hidden no-print">
+        {step !== 'results' && step !== 'form' && renderProgressStepper()}
+        {step === 'simulator' && renderSimulator()}
+        {step === 'multimedia' && renderMultimedia()}
+        {step === 'volume' && renderVolume()}
+        {step === 'teamStructure' && renderTeamStructure()}
+        {step === 'integrations' && renderIntegrations()}
+        {step === 'form' && renderForm()}
+        {step === 'results' && renderResults()}
+      </div>
+      <div className="hidden print:block">
+        {renderPrintView()}
+      </div>
+    </>
   );
 }
