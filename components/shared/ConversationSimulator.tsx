@@ -1733,25 +1733,45 @@ export default function ConversationSimulator() {
 
     return (
 
-      <div className="hidden print:block fixed top-0 left-0 w-full h-full bg-white z-[9999]" style={{ margin: 0, padding: '20px' }}>
+      <div className="hidden print:block absolute top-0 left-0 w-full bg-white z-[9999] print-container" style={{ margin: 0, padding: '15mm' }}>
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
+            /* Allow multi-page printing for Letter size */
+            html, body {
+              height: auto !important;
+              overflow: visible !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            
             body * {
               visibility: hidden;
             }
-            .print\\:block, .print\\:block * {
-              visibility: visible;
+
+            .print-container, .print-container * {
+              visibility: visible !important;
             }
-            .print\\:block {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
+
+            .print-container {
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              background: white !important;
+              z-index: 9999 !important;
+              display: block !important;
             }
+
             @page {
-              size: auto;
-              margin: 0mm;
+              size: letter; /* Carta */
+              margin: 10mm;
+            }
+
+            /* Avoid breaking inside cards/tables */
+            .mb-4 {
+              page-break-inside: avoid;
             }
           }
         `}} />
@@ -1902,9 +1922,61 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
+        {/* Comparativa de Estrategia (Condensed for Print) */}
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Comparativa de Estrategia (Impacto en Conversión)</h3>
+          <table className="w-full text-[9px] border-collapse text-left">
+            <thead>
+              <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
+                <th className="py-2 pl-2 font-semibold w-1/4">Métrica</th>
+                <th className="py-2 text-center border-r border-gray-200">Status Quo</th>
+                <th className="py-2 text-center bg-purple-50 text-indigo-500 border-r border-purple-200">+10% Opt.</th>
+                <th className="py-2 text-center bg-purple-100 text-indigo-700 border-r border-purple-200 font-bold">+20% Rec.</th>
+                <th className="py-2 text-center bg-purple-50 text-indigo-800">+30% High</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pl-2 font-semibold text-[10px]">Tasa de Conversión</td>
+                <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{projection.conversionRate}%</td>
+                <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.1).toFixed(2)}%</td>
+                <td className="py-2 text-center bg-purple-100/30 font-bold">{(projection.conversionRate * 1.2).toFixed(2)}%</td>
+                <td className="py-2 text-center bg-purple-50/20">{(projection.conversionRate * 1.3).toFixed(2)}%</td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pl-2 font-semibold text-[10px]">Ingresos Mensuales</td>
+                <td className="py-2 text-center text-gray-500 border-r border-gray-100 italic">{formatCurrency(projection.estimatedRevenue)}</td>
+                <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev10)}</td>
+                <td className="py-2 text-center bg-purple-100/30 font-bold">+{formatCurrency(projection.incrementalRev20)}</td>
+                <td className="py-2 text-center bg-purple-50/20">+{formatCurrency(projection.incrementalRev30)}</td>
+              </tr>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                <td className="py-2 pl-2 font-semibold text-[10px]">Costo CloserCat (Mes)</td>
+                <td className="py-2 text-center text-gray-400 border-r border-gray-100 font-mono italic">$ 0</td>
+                <td className="py-2 text-center bg-purple-50/20 text-red-500">-{formatCurrency(projection.expectedCost)}</td>
+                <td className="py-2 text-center bg-purple-100/30 text-red-600 font-bold">-{formatCurrency(projection.expectedCost)}</td>
+                <td className="py-2 text-center bg-purple-50/20 text-red-700">-{formatCurrency(projection.expectedCost)}</td>
+              </tr>
+              <tr className="bg-purple-50/30 font-bold border-t border-purple-200">
+                <td className="py-2 pl-2 text-purple-900 text-[10px]">Ingreso Residual Neto</td>
+                <td className="py-2 text-center text-gray-400 border-r border-gray-100 italic">$ 0</td>
+                <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev10 - projection.expectedCost >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  {projection.incrementalRev10 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev10 - projection.expectedCost)}
+                </td>
+                <td className={`py-2 text-center bg-purple-100/50 text-indigo-900 border-x border-purple-200 ${projection.incrementalRev20 - projection.expectedCost >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                  {projection.incrementalRev20 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev20 - projection.expectedCost)}
+                </td>
+                <td className={`py-2 text-center bg-purple-50/50 ${projection.incrementalRev30 - projection.expectedCost >= 0 ? 'text-green-800' : 'text-red-700'}`}>
+                  {projection.incrementalRev30 - projection.expectedCost > 0 ? '+' : ''}{formatCurrency(projection.incrementalRev30 - projection.expectedCost)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         {/* Proyección Temporal Detallada (Reemplaza Comparativa Estática) */}
         <div className="mb-4">
-          <h3 className="text-[10px] font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Proyección Financiera Trimestral (Q1-Q4)</h3>
+          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300 uppercase tracking-widest text-gray-700" style={{ fontFamily: 'Poppins, sans-serif' }}>Proyección Financiera Trimestral (Q1-Q4)</h3>
 
           {(() => {
             // Force Quarterly view for printing
@@ -1914,7 +1986,7 @@ export default function ConversationSimulator() {
             const totalRecommended = projections.reduce((sum, p) => sum + p.withCloserCat.recommended.netAdditionalRevenue, 0);
 
             return (
-              <table className="w-full text-[8px] border-collapse">
+              <table className="w-full text-[9px] border-collapse">
                 <thead>
                   <tr className="bg-gray-100 border-b border-gray-300 text-gray-500 uppercase tracking-wider">
                     <th className="py-2 pl-2 text-left">Período</th>
@@ -1922,11 +1994,11 @@ export default function ConversationSimulator() {
                     <th className="py-2 text-right border-r border-gray-200">Sin CloserCat</th>
                     <th className="py-2 text-center bg-purple-50 text-purple-900 border-b border-purple-200" colSpan={3}>Ingreso Neto Adicional (Net Revenue)</th>
                   </tr>
-                  <tr className="bg-gray-50 text-gray-400 text-[7px]">
+                  <tr className="bg-gray-50 text-gray-400 text-[8px]">
                     <th colSpan={3}></th>
                     <th className="py-1 text-right px-2">Optimista ({(projection.conversionRate * 1.1).toFixed(2)}%)</th>
                     <th className="py-1 text-right px-2 font-bold text-purple-700">Recomendado ({(projection.conversionRate * 1.2).toFixed(2)}%)</th>
-                    <th className="py-1 text-right px-2">High Impact ({(projection.conversionRate * 1.3).toFixed(2)}%)</th>
+                    <th className="py-1 text-right px-2 text-[7px]">High Impact ({(projection.conversionRate * 1.3).toFixed(2)}%)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2448,8 +2520,19 @@ export default function ConversationSimulator() {
     );
   };
 
+  /* Scroll Management */
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to top of container when step changes
+    if (containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+    // Removed window.scrollTo(0) to avoid jumping to page top on mobile
+  }, [step]);
+
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-8 shadow-lg max-w-5xl mx-auto">
+    <div ref={containerRef} className="bg-white rounded-2xl border-2 border-gray-200 p-4 md:p-8 shadow-lg max-w-5xl mx-auto scroll-mt-20">
       {step !== 'results' && step !== 'form' && renderProgressStepper()}
       {step === 'simulator' && renderSimulator()}
       {step === 'multimedia' && renderMultimedia()}
