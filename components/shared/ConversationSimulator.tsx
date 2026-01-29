@@ -1749,7 +1749,7 @@ export default function ConversationSimulator() {
 
     return (
 
-      <div className="hidden print:block absolute top-0 left-0 w-full bg-white z-[9999] print-container" style={{ margin: 0, padding: '15mm' }}>
+      <div className="hidden print:block absolute top-0 left-0 w-full bg-white z-[9999] print-container" style={{ margin: 0, padding: 0 }}>
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
@@ -1773,7 +1773,7 @@ export default function ConversationSimulator() {
               /* Do NOT set height: 100% here, let it be auto but constrained by body overflow */
               height: auto !important;
               background: white !important;
-              padding: 15mm !important;
+              padding: 0 !important;
               z-index: 99999 !important;
             }
 
@@ -1789,222 +1789,269 @@ export default function ConversationSimulator() {
             .mb-4, .mb-6 {
               page-break-inside: avoid;
             }
+
+            .print-container div {
+              box-sizing: border-box !important;
+            }
+
+            /* Page 5 Centering logic */
+            .last-page-container {
+              min-height: 275mm !important;
+              height: 275mm !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: center !important;
+              page-break-before: always !important;
+              overflow: hidden !important;
+            }
           }
         `}} />
-        {/* Header con logo y datos */}
-        <div className="flex justify-between items-start mb-4 pb-3 border-b-2 border-gray-300">
-          <div>
-            <img src="/logo-closercat.png" alt="CloserCat" className="h-10 mb-1" />
-            <p className="text-xs text-gray-600">Automatización de WhatsApp para Equipos Comerciales</p>
+        {/* PÁGINA 1: PORTADA PREMIUM */}
+        <div style={{ height: '279.4mm', width: '215.9mm', position: 'relative', overflow: 'hidden', margin: 0, padding: '15mm', background: '#000' }}>
+          {/* Background Image */}
+          <div className="absolute inset-0 opacity-80">
+            <img src="/cover-bg.png" alt="" className="w-full h-full object-cover" />
           </div>
-          <div className="text-right">
-            <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>COTIZACIÓN</h2>
-            <p className="text-xs text-gray-600">{today}</p>
-          </div>
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#000]/20 to-[#000]"></div>
 
-        {/* Información del cliente */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Información del Cliente</h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-            <div><strong>Nombre:</strong> {formData.name}</div>
-            <div><strong>WhatsApp:</strong> {formData.whatsapp}</div>
-            <div><strong>Email:</strong> {formData.email}</div>
-            {formData.business && <div><strong>Negocio:</strong> {formData.business}</div>}
-          </div>
-        </div>
+          <div className="relative h-full flex flex-col justify-between z-10">
+            <div className="pt-10">
+              <img src="/logo-closercat.png" alt="CloserCat" className="h-16 mb-4 filter brightness-0 invert" />
+              <div className="w-20 h-1 bg-gradient-to-r from-[#08C4F4] to-[#8336FF]"></div>
+            </div>
 
-        {/* Estructura del Equipo (Mejorada) */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo y Estrategia</h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-            <div><strong>Líneas Vendedores:</strong> {teamStructure.personalLinesCount || 0}</div>
-            <div><strong>Líneas Empresa:</strong> {teamStructure.institutionalLinesCount || 0}</div>
-            <div className="col-span-2"><strong>Estrategia:</strong> {
-              teamStructure.managementStrategy === 'decentralized' ? 'Descentralizada (Control de vendedores)' :
-                teamStructure.managementStrategy === 'mixed' ? 'Mixta (Control total centralizado)' :
-                  'Institucional (100% corporativo)'
-            }</div>
-            <div><strong>Asesoría Prompting:</strong> {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}</div>
-            <div><strong>Migración Historial:</strong> {teamStructure.needsMigrationAssistance ? 'Sí' : 'No'}</div>
-            {teamStructure.needsMigrationAssistance && (
-              <div className="col-span-2 mt-1 p-2 bg-blue-50/50 rounded border border-blue-100 italic text-[10px]">
-                <strong>Detalles de Migración:</strong> {teamStructure.linesToMigrate} líneas, ~{teamStructure.migrationContactsPerLine} contactos/línea, ~{teamStructure.migrationAvgMsgsPerContact} msgs/contacto.
+            <div className="mb-20">
+              <h1 className="text-6xl font-black text-white mb-2 tracking-tighter" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                CloserCat <span style={{ color: '#08C4F4' }}>Pro</span>
+              </h1>
+              <p className="text-xl text-gray-300 font-medium tracking-wide uppercase">
+                Propuesta Estratégica de Automatización
+              </p>
+              <div className="mt-8 flex items-center gap-4">
+                <div className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                  <span className="text-white text-sm font-bold tracking-widest">{formData.business || 'SOLUCIÓN PERSONALIZADA'}</span>
+                </div>
+                <div className="text-gray-400 text-sm">{today}</div>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Desglose de Inversión Mensual */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Desglose de Inversión Mensual Estimada</h3>
-          <table className="w-full text-xs">
-            <tbody>
-              <tr>
-                <td className="py-1">Costo Base Operativo (Mensajes + IA + Residual)</td>
-                <td className="text-right py-1">{formatCurrency(projection.adjustedBaseCost)}</td>
-              </tr>
-              {/* Desglose de Servicios de Valor Agregado */}
-              {(teamStructure.kbItems || 500) > 500 && (
-                <tr>
-                  <td className="py-1">Capacidad KB Adicional ({(teamStructure.kbItems || 500).toLocaleString()} items)</td>
-                  <td className="text-right py-1">{formatCurrency(calculateKbCost(teamStructure.kbItems || 500))}</td>
-                </tr>
-              )}
-              {teamStructure.promptingType === 'custom' && (
-                <tr>
-                  <td className="py-1">Asesoría de Prompting (Custom)</td>
-                  <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.custom_prompting)}</td>
-                </tr>
-              )}
-              {teamStructure.needsMarketAnalysis && (
-                <tr>
-                  <td className="py-1">Intelligence Reports (Análisis de Mercado)</td>
-                  <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}</td>
-                </tr>
-              )}
-              {projection.campaignCost > 0 && (
-                <tr>
-                  <td className="py-1">Gestión de Campañas ({teamStructure.campaignContacts.toLocaleString()} cont. x {teamStructure.campaignsPerMonth} envíos/mes)</td>
-                  <td className="text-right py-1">{formatCurrency(projection.campaignCost)}</td>
-                </tr>
-              )}
-              {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
-                <tr className="text-green-600 font-semibold">
-                  <td className="py-1">Descuento por Volumen Aplicado</td>
-                  <td className="text-right py-1">-{formatCurrency(projection.volumeDiscount)}</td>
-                </tr>
-              )}
-              <tr className="font-bold border-t border-gray-300 bg-gray-50">
-                <td className="py-2 pl-2">Inversión Mensual Esperada</td>
-                <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '10px' }}>{formatCurrency(projection.expectedCost)}</td>
-              </tr>
-              {projection.metaMarketingCost > 0 && (
-                <tr className="bg-blue-50">
-                  <td className="py-2 pl-2 flex items-center gap-1">
-                    Pago Directo a Meta (Marketing)
-                    <span className="text-[8px] text-blue-600 font-normal">* Variable aprox.</span>
-                  </td>
-                  <td className="text-right py-2 pr-2 text-gray-500">{formatCurrency(projection.metaMarketingCost)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pago Único (Setup Inicial) */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Inversión Única (Setup Inicial)</h3>
-          <table className="w-full text-xs">
-            <tbody>
-              <tr>
-                <td className="py-1">Habilitación de Infraestructura y Líneas</td>
-                <td className="text-right py-1">
-                  {formatCurrency(projection.totalSetupCost - (SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) - (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
-                </td>
-              </tr>
-              {(teamStructure.needsMigrationAssistance || teamStructure.needsOnboarding) && (
-                <tr>
-                  <td className="py-1">Servicios de Onboarding y Migración</td>
-                  <td className="text-right py-1">
-                    {formatCurrency((SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) + (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
-                  </td>
-                </tr>
-              )}
-              <tr className="font-bold border-t border-gray-300 bg-blue-50">
-                <td className="py-2 pl-2">Total Inversión Inicial (Setup)</td>
-                <td className="text-right py-2 pr-2" style={{ color: '#1e40af', fontSize: '10px' }}>{formatCurrency(projection.totalSetupCost)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Análisis de Demanda y Eficiencia (Print View) */}
-        <div className="mb-4">
-          <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Demanda y Eficiencia</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <table className="w-full text-[10px] border-collapse">
-              <tbody>
-                <tr className="border-b border-gray-100">
-                  <td className="py-1 text-gray-600">Mensajes Totales / mes</td>
-                  <td className="text-right font-bold">{projection.totalMessages.toLocaleString()}</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-1 text-gray-600">Participación IA</td>
-                  <td className="text-right font-bold text-purple-700">{projection.iaPercentage}% ({projection.iaTrafficMessages.toLocaleString()} msgs)</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-1 text-gray-600">Intervención Humana</td>
-                  <td className="text-right font-bold text-blue-700">{projection.humanPercentage}% ({projection.residualTrafficMessages.toLocaleString()} msgs)</td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="p-2 bg-gray-50 border border-gray-200 rounded text-center flex flex-col justify-center">
-              <div className="text-[9px] uppercase text-gray-500 font-bold">Costo Promedio por Conversación</div>
-              <div className="text-lg font-bold text-green-700">{formatCurrency(projection.costPerConversation)}</div>
-              <div className="text-[8px] text-gray-400 italic">Métrica de eficiencia operativa</div>
+            <div className="pb-10 border-t border-white/10 pt-6">
+              <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-2">Preparado exclusivamente para:</p>
+              <p className="text-2xl font-bold text-white tracking-tight">{formData.name}</p>
             </div>
           </div>
         </div>
 
-        {/* PÁGINA 2: Impacto, Escenarios y Proyección */}
-        <div className="mb-4" style={{ pageBreakBefore: 'always', paddingTop: '10mm' }}>
+        {/* PÁGINA 2: Resumen Operativo y Financiero */}
+        <div style={{ pageBreakBefore: 'always', paddingTop: '10mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
+          {/* Header con logo y datos */}
+          <div className="flex justify-between items-start mb-4 pb-3 border-b-2 border-gray-300">
+            <div>
+              <img src="/logo-closercat.png" alt="CloserCat" className="h-10 mb-1" />
+              <p className="text-xs text-gray-600">Automatización de WhatsApp para Equipos Comerciales</p>
+            </div>
+            <div className="text-right">
+              <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>RESUMEN OPERATIVO</h2>
+              <p className="text-xs text-gray-600">{today}</p>
+            </div>
+          </div>
+
+          {/* Información del cliente */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Información del Cliente</h3>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+              <div><strong>Nombre:</strong> {formData.name}</div>
+              <div><strong>WhatsApp:</strong> {formData.whatsapp}</div>
+              <div><strong>Email:</strong> {formData.email}</div>
+              {formData.business && <div><strong>Negocio:</strong> {formData.business}</div>}
+            </div>
+          </div>
+
+          {/* Estructura del Equipo (Mejorada) */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Estructura del Equipo y Estrategia</h3>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+              <div><strong>Líneas Vendedores:</strong> {teamStructure.personalLinesCount || 0}</div>
+              <div><strong>Líneas Empresa:</strong> {teamStructure.institutionalLinesCount || 0}</div>
+              <div className="col-span-2"><strong>Estrategia:</strong> {
+                teamStructure.managementStrategy === 'decentralized' ? 'Descentralizada (Control de vendedores)' :
+                  teamStructure.managementStrategy === 'mixed' ? 'Mixta (Control total centralizado)' :
+                    'Institucional (100% corporativo)'
+              }</div>
+              <div><strong>Asesoría Prompting:</strong> {teamStructure.promptingType === 'custom' ? 'Custom' : 'Estándar'}</div>
+              <div><strong>Migración Historial:</strong> {teamStructure.needsMigrationAssistance ? 'Sí' : 'No'}</div>
+              {teamStructure.needsMigrationAssistance && (
+                <div className="col-span-2 mt-1 p-2 bg-blue-50/50 rounded border border-blue-100 italic text-[10px]">
+                  <strong>Detalles de Migración:</strong> {teamStructure.linesToMigrate} líneas, ~{teamStructure.migrationContactsPerLine} contactos/línea, ~{teamStructure.migrationAvgMsgsPerContact} msgs/contacto.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desglose de Inversión Mensual */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Desglose de Inversión Mensual Estimada</h3>
+            <table className="w-full text-xs">
+              <tbody>
+                <tr>
+                  <td className="py-1">Costo Base Operativo (Mensajes + IA + Residual)</td>
+                  <td className="text-right py-1">{formatCurrency(projection.adjustedBaseCost)}</td>
+                </tr>
+                {/* Desglose de Servicios de Valor Agregado */}
+                {(teamStructure.kbItems || 500) > 500 && (
+                  <tr>
+                    <td className="py-1">Capacidad KB Adicional ({(teamStructure.kbItems || 500).toLocaleString()} items)</td>
+                    <td className="text-right py-1">{formatCurrency(calculateKbCost(teamStructure.kbItems || 500))}</td>
+                  </tr>
+                )}
+                {teamStructure.promptingType === 'custom' && (
+                  <tr>
+                    <td className="py-1">Asesoría de Prompting (Custom)</td>
+                    <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.custom_prompting)}</td>
+                  </tr>
+                )}
+                {teamStructure.needsMarketAnalysis && (
+                  <tr>
+                    <td className="py-1">Intelligence Reports (Análisis de Mercado)</td>
+                    <td className="text-right py-1">{formatCurrency(VALUE_ADDED_SERVICES_COSTS.market_analysis)}</td>
+                  </tr>
+                )}
+                {projection.campaignCost > 0 && (
+                  <tr>
+                    <td className="py-1">Gestión de Campañas ({teamStructure.campaignContacts.toLocaleString()} cont. x {teamStructure.campaignsPerMonth} envíos/mes)</td>
+                    <td className="text-right py-1">{formatCurrency(projection.campaignCost)}</td>
+                  </tr>
+                )}
+                {projection.volumeDiscountApplied && projection.volumeDiscount > 0 && (
+                  <tr className="text-green-600 font-semibold">
+                    <td className="py-1">Descuento por Volumen Aplicado</td>
+                    <td className="text-right py-1">-{formatCurrency(projection.volumeDiscount)}</td>
+                  </tr>
+                )}
+                <tr className="font-bold border-t border-gray-300 bg-gray-50">
+                  <td className="py-2 pl-2">Inversión Mensual Esperada</td>
+                  <td className="text-right py-2 pr-2" style={{ color: '#8336FF', fontSize: '10px' }}>{formatCurrency(projection.expectedCost)}</td>
+                </tr>
+                {projection.metaMarketingCost > 0 && (
+                  <tr className="bg-blue-50">
+                    <td className="py-2 pl-2 flex items-center gap-1">
+                      Pago Directo a Meta (Marketing)
+                      <span className="text-[8px] text-blue-600 font-normal">* Variable aprox.</span>
+                    </td>
+                    <td className="text-right py-2 pr-2 text-gray-500">{formatCurrency(projection.metaMarketingCost)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pago Único (Setup Inicial) */}
+          <div className="mb-4">
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Inversión Única (Setup Inicial)</h3>
+            <table className="w-full text-xs">
+              <tbody>
+                <tr>
+                  <td className="py-1">Habilitación de Infraestructura y Líneas</td>
+                  <td className="text-right py-1">
+                    {formatCurrency(projection.totalSetupCost - (SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) - (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                  </td>
+                </tr>
+                {(teamStructure.needsMigrationAssistance || teamStructure.needsOnboarding) && (
+                  <tr>
+                    <td className="py-1">Servicios de Onboarding y Migración</td>
+                    <td className="text-right py-1">
+                      {formatCurrency((SERVICES_COSTS.migration_assisted * (teamStructure.needsMigrationAssistance ? 1 : 0)) + (SERVICES_COSTS.onboarding * (teamStructure.needsOnboarding ? 1 : 0)))}
+                    </td>
+                  </tr>
+                )}
+                <tr className="font-bold border-t border-gray-300 bg-blue-50">
+                  <td className="py-2 pl-2">Total Inversión Inicial (Setup)</td>
+                  <td className="text-right py-2 pr-2" style={{ color: '#1e40af', fontSize: '10px' }}>{formatCurrency(projection.totalSetupCost)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Detalle de Consumo Mensual (Moved from P3) */}
+          <div className="mb-3">
+            <h3 className="text-[11px] font-bold mb-1 pb-0.5 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Detalle de Consumo Mensual</h3>
+            <div className="grid grid-cols-4 gap-2">
+              <div className="p-1.5 border border-gray-100 rounded">
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Texto</div>
+                <div className="text-[9px] font-bold">{projection.textMessages.toLocaleString()} msgs</div>
+                <div className="text-[8px] text-purple-600">{formatCurrency(projection.textCost)}</div>
+              </div>
+              <div className="p-1.5 border border-gray-100 rounded">
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Audio IA</div>
+                <div className="text-[9px] font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
+                <div className="text-[8px] text-purple-600">{formatCurrency(projection.audioCost)}</div>
+              </div>
+              <div className="p-1.5 border border-gray-100 rounded">
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Multimedia</div>
+                <div className="text-[9px] font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
+                <div className="text-[8px] text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
+              </div>
+              <div className="p-1.5 border border-gray-100 rounded">
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Int. Humana</div>
+                <div className="text-[9px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+                <div className="text-[8px] text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Escenarios de Inversión (PERT) (Moved from P3) */}
+          <div className="mb-3">
+            <h3 className="text-[11px] font-bold mb-1 pb-0.5 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center p-1.5 bg-gray-50 border border-gray-200">
+                <div className="text-[8px] font-semibold text-gray-600">Optimista</div>
+                <div className="text-xs font-bold text-green-600">{formatCurrency(projection.optimisticCost)}</div>
+              </div>
+              <div className="text-center p-1.5 bg-white border-2 border-purple-400 rounded">
+                <div className="text-[8px] font-semibold text-gray-600">RECOMENDADO</div>
+                <div className="text-sm font-bold text-purple-700">{formatCurrency(projection.expectedCost)}</div>
+              </div>
+              <div className="text-center p-1.5 bg-gray-50 border border-gray-200">
+                <div className="text-[8px] font-semibold text-gray-600">Pesimista</div>
+                <div className="text-xs font-bold text-red-600">{formatCurrency(projection.pessimisticCost)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PÁGINA 3: Impacto, Escenarios y Proyección */}
+        <div style={{ pageBreakBefore: 'always', paddingTop: '10mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
           <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-purple-200">
             <h3 className="text-sm font-bold" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Impacto y Proyecciones</h3>
             <img src="/logo-closercat.png" alt="CloserCat" className="h-6" />
           </div>
 
-          {/* Detalle de Consumo Mensual (Moved to P2) */}
+          {/* Análisis de Demanda y Eficiencia (Moved from P2) */}
           <div className="mb-6">
-            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Detalle de Consumo Mensual</h3>
-            <div className="grid grid-cols-4 gap-2">
-              <div className="p-2 border border-gray-100 rounded">
-                <div className="text-[8px] text-gray-400 uppercase font-bold">Texto</div>
-                <div className="text-[10px] font-bold">{projection.textMessages.toLocaleString()} msgs</div>
-                <div className="text-[9px] text-purple-600">{formatCurrency(projection.textCost)}</div>
-              </div>
-              <div className="p-2 border border-gray-100 rounded">
-                <div className="text-[8px] text-gray-400 uppercase font-bold">Audio IA</div>
-                <div className="text-[10px] font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
-                <div className="text-[9px] text-purple-600">{formatCurrency(projection.audioCost)}</div>
-              </div>
-              <div className="p-2 border border-gray-100 rounded">
-                <div className="text-[8px] text-gray-400 uppercase font-bold">Multimedia</div>
-                <div className="text-[10px] font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
-                <div className="text-[9px] text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
-              </div>
-              <div className="p-2 border border-gray-100 rounded">
-                <div className="text-[8px] text-gray-400 uppercase font-bold">Int. Humana</div>
-                <div className="text-[10px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
-                <div className="text-[9px] text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Análisis de Demanda y Eficiencia</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <table className="w-full text-[10px] border-collapse">
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-1 text-gray-600">Mensajes Totales / mes</td>
+                    <td className="text-right font-bold">{projection.totalMessages.toLocaleString()}</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-1 text-gray-600">Participación IA</td>
+                    <td className="text-right font-bold text-purple-700">{projection.iaPercentage}% ({projection.iaTrafficMessages.toLocaleString()} msgs)</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="py-1 text-gray-600">Intervención Humana</td>
+                    <td className="text-right font-bold text-blue-700">{projection.humanPercentage}% ({projection.residualTrafficMessages.toLocaleString()} msgs)</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="p-2 bg-gray-50 border border-gray-200 rounded text-center flex flex-col justify-center">
+                <div className="text-[9px] uppercase text-gray-500 font-bold">Costo Promedio por Conversación</div>
+                <div className="text-lg font-bold text-green-700">{formatCurrency(projection.costPerConversation)}</div>
+                <div className="text-[8px] text-gray-400 italic">Métrica de eficiencia operativa</div>
               </div>
             </div>
-          </div>
-
-          {/* 1. PERT (Moved to top of P2) */}
-          <div className="mb-6">
-            <h3 className="text-sm font-bold mb-2 pb-1 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Escenarios de Inversión (PERT)</h3>
-            <div className="grid grid-cols-3 gap-2 mb-2">
-              <div className="text-center p-2 bg-gray-100 border border-gray-300">
-                <div className="text-xs font-semibold mb-1 text-gray-600">Optimista</div>
-                <div className="text-lg font-bold" style={{ color: '#10b981' }}>{formatCurrency(projection.optimisticCost)}</div>
-                <div className="text-xs text-gray-500">-10%</div>
-              </div>
-              <div className="text-center p-2 bg-white border-2 border-purple-500 rounded relative">
-                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white text-[9px] px-2 rounded-full">RECOMENDADO</div>
-                <div className="text-xs font-semibold mb-1 text-gray-600">Esperado</div>
-                <div className="text-xl font-bold" style={{ color: '#8336FF' }}>{formatCurrency(projection.expectedCost)}</div>
-                <div className="text-xs text-gray-500">Promedio</div>
-              </div>
-              <div className="text-center p-2 bg-gray-100 border border-gray-300">
-                <div className="text-xs font-semibold mb-1 text-gray-600">Pesimista</div>
-                <div className="text-lg font-bold" style={{ color: '#ef4444' }}>{formatCurrency(projection.pessimisticCost)}</div>
-                <div className="text-xs text-gray-500">+10%</div>
-              </div>
-            </div>
-            <p className="text-[9px] text-gray-500 italic">
-              * El escenario esperado es un promedio ponderado basado en patrones de uso típicos.
-            </p>
           </div>
 
           {/* 2. Comparativa de Estrategia */}
@@ -2095,13 +2142,13 @@ export default function ConversationSimulator() {
               );
             })()}
           </div>
+          <p className="text-[7px] text-gray-400 mt-4 italic">
+            * Proyección basada en crecimiento mensual del {monthlyGrowthRate}%. Ingreso Neto Adicional = Ingresos Nuevos - Ingresos Actuales - Costos Operativos de CloserCat (Escalados).
+          </p>
         </div>
-        <p className="text-[7px] text-gray-400 mt-2 italic">
-          * Proyección basada en crecimiento mensual del {monthlyGrowthRate}%. Ingreso Neto Adicional = Ingresos Nuevos - Ingresos Actuales - Costos Operativos de CloserCat (Escalados).
-        </p>
 
-        {/* PÁGINA 3: Glosario y Detalles de Servicio */}
-        <div style={{ pageBreakBefore: 'always', paddingTop: '10mm' }}>
+        {/* PÁGINA 4: Glosario y Detalles de Servicio */}
+        <div style={{ pageBreakBefore: 'always', paddingTop: '10mm', paddingLeft: '15mm', paddingRight: '15mm' }}>
           <div className="flex items-center gap-3 mb-6 pb-2 border-b-2 border-purple-500">
             <img src="/logo-closercat.png" alt="CloserCat" className="h-10" />
             <h2 className="text-lg font-bold uppercase tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>Glosario de Servicios y Compromiso</h2>
@@ -2170,36 +2217,41 @@ export default function ConversationSimulator() {
             <p>CloserCat - Inteligencia Artificial para el Cierre de Ventas</p>
             <p>www.closercat.com</p>
           </div>
+        </div>
 
-          {/* CTA Creativo Final */}
-          <div className="mt-10 p-8 rounded-2xl text-center relative overflow-hidden bg-white border-2 border-purple-100 shadow-sm" style={{ pageBreakInside: 'avoid' }}>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#08C4F4] to-[#8336FF]"></div>
-            <img src="/logo-closercat.png" alt="CloserCat" className="h-12 mx-auto mb-6 opacity-90" />
+        {/* PÁGINA 5: CTA Creativo Final (Centered) */}
+        <div className="last-page-container">
+          <div className="p-12 rounded-[2rem] text-center relative overflow-hidden bg-white border-2 border-purple-100 shadow-xl mx-6">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#08C4F4] to-[#8336FF]"></div>
+            <img src="/logo-closercat.png" alt="CloserCat" className="h-16 mx-auto mb-8" />
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
               ¿Listo para ver la magia en acción con {formData.business || 'tu negocio'}?
             </h3>
 
-            <p className="text-sm text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
+            <p className="text-lg text-gray-600 mb-10 max-w-lg mx-auto leading-relaxed">
               Hemos diseñado este análisis exclusivamente para potenciar los resultados de su equipo comercial. El siguiente paso es una experiencia en vivo.
             </p>
 
-            <div className="inline-block p-4 rounded-xl bg-purple-50 border border-purple-200 mb-4">
-              <p className="text-[10px] text-purple-400 uppercase font-bold tracking-widest mb-1">Tu Acceso Personalizado</p>
-              <p className="text-lg font-mono font-bold text-purple-900">closercat.com/demo/{formData.name.toLowerCase().replace(/\s+/g, '-')}</p>
+            <div className="inline-block p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 mb-8 shadow-sm">
+              <p className="text-xs text-purple-400 uppercase font-black tracking-[0.2em] mb-2">Tu Acceso Personalizado</p>
+              <p className="text-2xl font-mono font-bold text-purple-900 tracking-tight">closercat.com/demo/{formData.name.toLowerCase().replace(/\s+/g, '-')}</p>
             </div>
 
-            <div className="mt-6 flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-full bg-purple-600 text-white flex items-center justify-center text-xl shadow-lg animate-pulse mb-2">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#08C4F4] to-[#8336FF] text-white flex items-center justify-center text-3xl shadow-xl animate-bounce">
                 🚀
               </div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">
-                Escanea o haz clic para transformar tu departamento de ventas
-              </p>
+              <div>
+                <p className="text-sm font-black text-gray-900 uppercase tracking-tighter mb-1">
+                  TRANSFORMA TU DEPARTAMENTO DE VENTAS
+                </p>
+                <p className="text-xs text-gray-400">Haz clic o escanea para agendar tu demostración hoy mismo</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </div >
     );
   };
 
