@@ -175,6 +175,44 @@ const calculateKbCost = (items: number | undefined): number => {
   return totalExtra;
 };
 
+// Utilities for Quote Persistence
+const getBrowserId = () => {
+  if (typeof window === 'undefined') return 'server';
+  let id = localStorage.getItem('closercat_browser_id');
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('closercat_browser_id', id);
+  }
+  return id;
+};
+
+const generateQuoteId = (formData: any, teamStructure: any, projection: any) => {
+  const browserId = getBrowserId();
+  const timestamp = new Date().toISOString();
+  const seed = `${browserId}-${timestamp}-${JSON.stringify(formData)}-${JSON.stringify(teamStructure)}`;
+
+  // Simple hash for a short unique ID
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36).toUpperCase() + Date.now().toString(36).toUpperCase();
+};
+
+const encodeQuoteData = (data: any) => {
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data))))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  } catch (e) {
+    console.error('Error encoding quote data:', e);
+    return '';
+  }
+};
+
 export default function ConversationSimulator() {
   const [step, setStep] = useState<'simulator' | 'multimedia' | 'volume' | 'teamStructure' | 'integrations' | 'form' | 'results'>('simulator');
 
@@ -243,6 +281,8 @@ export default function ConversationSimulator() {
     email: '',
     business: ''
   });
+
+  const [quoteId, setQuoteId] = useState<string | null>(null);
 
   // Cargar script de Calendly (Original Logic)
   useEffect(() => {
@@ -572,6 +612,20 @@ export default function ConversationSimulator() {
           body: JSON.stringify(payload),
         });
       }
+
+      // Local Persistence Logic
+      const newQuoteId = generateQuoteId(formData, teamStructure, projection);
+      const quoteData = {
+        id: newQuoteId,
+        formData,
+        teamStructure,
+        projection,
+        timestamp: new Date().toISOString(),
+        browserId: getBrowserId()
+      };
+
+      localStorage.setItem(`cc_quote_${newQuoteId}`, JSON.stringify(quoteData));
+      setQuoteId(newQuoteId);
 
       clarityEvent('simulator_form_submitted');
       setStep('results');
@@ -2235,7 +2289,12 @@ export default function ConversationSimulator() {
 
             <div className="inline-block p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 mb-8 shadow-sm">
               <p className="text-xs text-purple-400 uppercase font-black tracking-[0.2em] mb-2">Tu Acceso Personalizado</p>
-              <p className="text-2xl font-mono font-bold text-purple-900 tracking-tight">closercat.com/demo/{formData.name.toLowerCase().replace(/\s+/g, '-')}</p>
+              <a
+                href={`?presentationId=prodemo&quoteId=${quoteId}`}
+                className="text-2xl font-mono font-bold text-purple-900 tracking-tight hover:underline"
+              >
+                closercat.com/prodemo/{quoteId || 'loading...'}
+              </a>
             </div>
 
             <div className="flex flex-col items-center gap-4">
@@ -2727,7 +2786,7 @@ export default function ConversationSimulator() {
         </div>
 
         {/* Botones de acción ... */}
-        <div className="flex gap-4 print:hidden">
+        <div className="flex flex-col md:flex-row gap-4 print:hidden">
           <button
             onClick={() => {
               setStep('simulator');
@@ -2736,6 +2795,23 @@ export default function ConversationSimulator() {
             className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg font-poppins font-semibold text-gray-700 hover:bg-gray-50"
           >
             ← Recalcular
+          </button>
+          <button
+            onClick={() => {
+              const quoteData = {
+                id: quoteId,
+                formData,
+                teamStructure,
+                projection,
+                timestamp: new Date().toISOString(),
+                browserId: getBrowserId()
+              };
+              const qdata = encodeQuoteData(quoteData);
+              window.open(`?presentationId=prodemo&quoteId=${quoteId}&qdata=${qdata}`, '_blank');
+            }}
+            className="flex-1 px-6 py-3 border-2 border-purple-600 rounded-lg font-poppins font-bold text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+          >
+            Ver Demo de Producto 🎬
           </button>
           <button
             onClick={handleRequestDemo}

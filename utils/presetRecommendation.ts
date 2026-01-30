@@ -39,8 +39,6 @@ export function recommendPreset(input: {
 
 export function getSegmentFromUrl(): SegmentType | null {
   if (typeof window === 'undefined') return null;
-  const params = new URLSearchParams(window.location.search);
-  const segment = params.get('segment') as SegmentType | null;
 
   const validSegments: SegmentType[] = [
     'emprendedores',
@@ -51,6 +49,16 @@ export function getSegmentFromUrl(): SegmentType | null {
     'otras-industrias',
     'profesionales-independientes'
   ];
+
+  // 1. Check pathname (semantic URL: /formacion)
+  const path = window.location.pathname.replace(/^\/|\/$/g, '');
+  if (validSegments.includes(path as SegmentType)) {
+    return path as SegmentType;
+  }
+
+  // 2. Check query params (legacy: ?segment=formacion)
+  const params = new URLSearchParams(window.location.search);
+  const segment = params.get('segment') as SegmentType | null;
 
   return segment && validSegments.includes(segment) ? segment : null;
 }

@@ -89,7 +89,7 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({
 
   return (
     <div
-      className="w-full h-full flex flex-col relative bg-white overflow-hidden shadow-2xl rounded-none md:rounded-xl border border-gray-100"
+      className="w-full h-full flex flex-col relative bg-transparent overflow-hidden rounded-none md:rounded-[2rem]"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -98,23 +98,23 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({
       <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 bg-brand-purple/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
       {/* Header Area */}
-      <div className="w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-30 h-12 md:h-16 relative">
+      <div className="w-full px-4 md:px-8 py-3 md:py-4 flex justify-between items-center z-30 h-12 md:h-16 relative glass-panel">
         {/* Izquierda: Logo */}
         <div className="flex items-center gap-2 md:gap-4">
-            {/* Logo (oculto en slide 1 para dar protagonismo al logo principal de portada) */}
-            {slideNumber !== 1 && (
-              <>
-                <img src={LOGO_URL} alt="CloserCat Logo" className="h-8 md:h-12 w-auto object-contain" />
-                {partnerLogoUrl && showPartnerInHeader && (
-                  <img
-                    src={partnerLogoUrl}
-                    alt="Partner Logo"
-                    className="h-8 md:h-12 w-auto object-contain"
-                    onError={() => setShowPartnerInHeader(false)}
-                  />
-                )}
-              </>
-            )}
+          {/* Logo (oculto en slide 1 para dar protagonismo al logo principal de portada) */}
+          {slideNumber !== 1 && (
+            <>
+              <img src={LOGO_URL} alt="CloserCat Logo" className="h-8 md:h-12 w-auto object-contain" />
+              {partnerLogoUrl && showPartnerInHeader && (
+                <img
+                  src={partnerLogoUrl}
+                  alt="Partner Logo"
+                  className="h-8 md:h-12 w-auto object-contain"
+                  onError={() => setShowPartnerInHeader(false)}
+                />
+              )}
+            </>
+          )}
         </div>
 
         {/* Derecha: Botón Empezar O Indicador de slides */}
@@ -148,7 +148,7 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({
                   </button>
 
                   {showCtaOptions && (
-                    <div 
+                    <div
                       className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-3 px-3 text-left z-[100]"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -192,32 +192,48 @@ const SlideLayout: React.FC<SlideLayoutProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto md:overflow-hidden relative z-10" ref={contentRef}>
+      <div className={`flex-1 overflow-y-auto md:overflow-hidden relative z-10 slide-entry-animation`} key={slideNumber} ref={contentRef}>
         {children}
       </div>
 
-      <div className={`absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2 md:px-6 z-20 pointer-events-none ${canNavigate ? '' : 'opacity-0'}`}>
-        <button
-          onClick={onPrevSlide}
-          disabled={!onPrevSlide || slideNumber === 1}
-          className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
-        >
-          <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
-        </button>
-        <button
-          onClick={onNextSlide}
-          disabled={!onNextSlide || slideNumber === totalSlides}
-          className="pointer-events-auto flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-brand-purple to-brand-cyan text-white shadow-lg hover:opacity-90 disabled:opacity-30 disabled:shadow-none"
-        >
-          <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
-        </button>
+      {/* Pronounced Navigation Arrows */}
+      <div className={`absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 md:px-8 z-50 pointer-events-none transition-opacity duration-500 ${canNavigate ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Previous Button */}
+        <div className="flex flex-col items-center gap-2 group">
+          <button
+            onClick={onPrevSlide}
+            disabled={!onPrevSlide || slideNumber === 1}
+            className="pointer-events-auto flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-white text-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:text-brand-purple"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" strokeWidth={3} />
+          </button>
+          {slideNumber !== 1 && (
+            <span className="hidden md:block text-[10px] font-bold text-gray-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Anterior</span>
+          )}
+        </div>
+
+        {/* Next Button */}
+        <div className="flex flex-col items-center gap-2 group">
+          <button
+            onClick={onNextSlide}
+            disabled={!onNextSlide || slideNumber === totalSlides}
+            className={`pointer-events-auto flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-white text-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:text-brand-purple ${slideNumber === 1 ? 'animate-pulse ring-4 ring-brand-purple/20' : ''}`}
+            aria-label="Siguiente"
+          >
+            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" strokeWidth={3} />
+          </button>
+          {slideNumber !== totalSlides && (
+            <span className="hidden md:block text-[10px] font-bold text-gray-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Siguiente</span>
+          )}
+        </div>
       </div>
 
-      {/* Footer Line */}
-      <div className="h-1.5 w-full bg-gray-100 mt-auto">
-        <div 
-            className="h-full bg-gradient-to-r from-brand-cyan to-brand-purple transition-all duration-500 ease-out" 
-            style={{ width: `${(slideNumber / totalSlides) * 100}%` }}
+      {/* Premium Progress Bar */}
+      <div className="h-1.5 w-full bg-gray-100/30 mt-auto relative overflow-hidden backdrop-blur-sm">
+        <div
+          className="h-full bg-gradient-to-r from-brand-cyan to-brand-purple transition-all duration-700 ease-out shadow-[0_0_12px_rgba(131,54,255,0.6)]"
+          style={{ width: `${(slideNumber / totalSlides) * 100}%` }}
         />
       </div>
     </div>

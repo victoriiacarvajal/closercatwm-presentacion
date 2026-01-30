@@ -179,7 +179,7 @@ export const SLIDES: SlideData[] = [
   },
 
   {
-    id: 44,
+    id: 48,
     type: SlideType.STANDARD,
     title: "Cómo funciona CloserCat en 60 segundos",
     subtitle: "De mensaje en WhatsApp a respuesta con IA y datos listos para tu CRM",
@@ -868,5 +868,14 @@ export const SLIDES: SlideData[] = [
     type: SlideType.TRANSITION,
     title: "¿Escalamos juntos tu operación de ventas en WhatsApp?",
     subtitle: "Agendemos una sesión para ver tu caso, tus datos actuales y cómo configurar CloserCat para tu negocio."
+  },
+
+  // SLIDE 44: CALENDLY CTA (Para prodemo)
+  {
+    id: 49,
+    type: SlideType.CALENDLY,
+    title: "Agendemos una sesión de resolución de dudas",
+    subtitle: "Elige el horario que mejor te funcione y hablemos de cómo CloserCat puede transformar tu negocio.",
+    content: "https://calendly.com/rogertovalle?hide_event_type_details=1&hide_gdpr_banner=1"
   },
 ];

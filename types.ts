@@ -9,7 +9,8 @@ export enum SlideType {
   DASHBOARD = 'DASHBOARD', // For large screenshots
   COMPARISON_TABLE = 'COMPARISON_TABLE',
   PRICING = 'PRICING',
-  TIMELINE = 'TIMELINE'
+  TIMELINE = 'TIMELINE',
+  CALENDLY = 'CALENDLY',
 }
 
 export interface SlideData {

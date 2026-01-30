@@ -6,7 +6,7 @@ import LandingApp from './LandingApp';
 import {
   CoverSlide, AgendaSlide, TransitionSlide, StandardSlide,
   SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide,
-  ComparisonTableSlide, PricingSlide, TimelineSlide
+  ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 import SEOManager from './components/shared/SEOManager';
@@ -18,11 +18,26 @@ const SECRET_KEY = 'closercat-2025';
 
 function claritySet(key: string, value: unknown) {
   if (typeof window === 'undefined') return;
-  const w = (window as any);
-  if (typeof w.clarity === 'function') {
-    w.clarity('set', key, value);
-  }
+  // @ts-ignore
+  if (window.clarity) window.clarity('set', key, value);
 }
+
+function clarityEvent(name: string, data?: any) {
+  if (typeof window === 'undefined') return;
+  // @ts-ignore
+  if (window.clarity) window.clarity('event', name, data);
+}
+
+const decodeQuoteData = (str: string) => {
+  try {
+    // URL safe base64 decode
+    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(decodeURIComponent(escape(atob(base64))));
+  } catch (e) {
+    console.error('Error decoding quote data:', e);
+    return null;
+  }
+};
 
 // Configuración por partner: URLs separadas para partner y cliente
 const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
@@ -106,9 +121,26 @@ const PRESENTATION_PRESETS: Record<string, {
       36,  // CTA
     ],
   },
+  // Nueva Versión: Post-Cotización / Foco Producto (Para llevar desde el simulador)
+  prodemo: {
+    hidePricing: false,
+    showCtaButton: true,
+    slideOrder: [
+      1,   // Portada
+      9,   // Dashboard (Centro de comando)
+      24,  // Todo comienza con una conversación
+      25,  // Configura una IA
+      14,  // IA vs Manual
+      16,  // Guardrails (Confianza)
+      28,  // Contact Enrichment (Valor de data)
+      32,  // Integraciones
+      49,  // Calendly Resolution
+      36,  // Cierre / CTA
+    ]
+  },
 };
 
-const PresentationApp: React.FC = () => {
+const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [partnerLogoUrl, setPartnerLogoUrl] = useState<string | null>(null);
@@ -145,15 +177,15 @@ const PresentationApp: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Normalizar rutas del dominio: cualquier path distinto de la raíz se considera 404 y vuelve a '/'
+    // Normalizar rutas: removimos la redirección agresiva para permitir rutas "a la medida"
     const { pathname } = window.location;
-    if (pathname !== '/' && pathname !== '/index.html') {
-      window.location.replace('/');
-      return;
-    }
+    const path = pathname.replace(/^\/|\/$/g, '');
 
     const params = new URLSearchParams(window.location.search);
-    const rawPresentationId = params.get('presentationId');
+    const queryPresentationId = params.get('presentationId') || params.get('partner');
+
+    // Priorizamos el path (waquick-wsi) sobre el query param (?presentationId=...)
+    const rawPresentationId = path || queryPresentationId;
 
     let basePresetId: string | null = null;
     let partnerSlugFromPreset: string | null = null;
@@ -318,7 +350,7 @@ const PresentationApp: React.FC = () => {
       const padding = 32;
       const availableW = innerWidth - padding;
       const availableH = innerHeight - padding;
-      const designW = 1920;
+      const designW = 2200;
       const designH = 1080;
       const scaleX = availableW / designW;
       const scaleY = availableH / designH;
@@ -408,60 +440,75 @@ const PresentationApp: React.FC = () => {
     };
   }, [currentSlideIndex, hasAutoDemoRun, hasUserNavigated, nextSlide, prevSlide]);
 
+  // Tracking de progreso de diapositivas
+  useEffect(() => {
+    if (!currentSlideData) return;
+    clarityEvent('presentacion_slide_view', {
+      slide_id: currentSlideData.id,
+      slide_index: currentSlideIndex,
+      slide_title: currentSlideData.title,
+      presentation_id: window.location.search.includes('prodemo') ? 'prodemo' : 'standard'
+    });
+  }, [currentSlideIndex, currentSlideData]);
+
   const renderSlideContent = () => {
     const data = currentSlideData;
+    const commonProps = {
+      data,
+      personalizedData: quoteData
+    };
+
     switch (data.type) {
       case SlideType.COVER:
         return (
           <CoverSlide
-            data={data}
+            {...commonProps}
             partnerLogoUrl={partnerLogoUrl || undefined}
             rootPartnerCtaUrl={!canNavigate ? rootPartnerCtaUrl || undefined : undefined}
             rootCustomerCtaUrl={!canNavigate ? rootCustomerCtaUrl || undefined : undefined}
           />
         );
-      case SlideType.AGENDA: return <AgendaSlide data={data} />;
+      case SlideType.AGENDA: return <AgendaSlide {...commonProps} />;
       case SlideType.TRANSITION: {
         const isCtaSlide = data.id === 36;
         if (isCtaSlide) {
-          // Si hay partner asociado (config encontrado), usamos solo el CTA del partner (cliente)
           if (hasPartnerConfig) {
-            return <TransitionSlide data={data} ctaUrl={ctaUrl || undefined} />;
+            return <TransitionSlide {...commonProps} ctaUrl={ctaUrl || undefined} />;
           }
-          // Si no hay partner asociado, reutilizamos el mismo menú doble de la portada
           return (
             <TransitionSlide
-              data={data}
+              {...commonProps}
               rootPartnerCtaUrl={rootPartnerCtaUrl || undefined}
               rootCustomerCtaUrl={rootCustomerCtaUrl || undefined}
             />
           );
         }
-        return <TransitionSlide data={data} />;
+        return <TransitionSlide {...commonProps} />;
       }
-      case SlideType.STANDARD: return <StandardSlide data={data} />;
-      case SlideType.SPLIT_IMAGE: return <SplitImageSlide data={data} />;
-      case SlideType.DASHBOARD: return <DashboardSlide data={data} />;
-      case SlideType.GRID: return <GridSlide data={data} />;
-      case SlideType.SPLIT_TEXT: return <SplitTextSlide data={data} />;
-      case SlideType.COMPARISON_TABLE: return <ComparisonTableSlide data={data} />;
-      case SlideType.PRICING: return <PricingSlide data={data} />;
-      case SlideType.TIMELINE: return <TimelineSlide data={data} />;
+      case SlideType.STANDARD: return <StandardSlide {...commonProps} />;
+      case SlideType.SPLIT_IMAGE: return <SplitImageSlide {...commonProps} />;
+      case SlideType.DASHBOARD: return <DashboardSlide {...commonProps} />;
+      case SlideType.GRID: return <GridSlide {...commonProps} />;
+      case SlideType.SPLIT_TEXT: return <SplitTextSlide {...commonProps} />;
+      case SlideType.COMPARISON_TABLE: return <ComparisonTableSlide {...commonProps} />;
+      case SlideType.PRICING: return <PricingSlide {...commonProps} />;
+      case SlideType.TIMELINE: return <TimelineSlide {...commonProps} />;
+      case SlideType.CALENDLY: return <CalendlySlide {...commonProps} />;
       default: return <div className="p-10">Unknown Slide Type</div>;
     }
   };
 
   return (
-    <div className="w-screen h-screen bg-gray-200 flex items-center justify-center font-sans overflow-hidden">
+    <div className="w-screen h-screen mesh-gradient flex items-center justify-center font-sans overflow-hidden">
       {/* Mobile: full screen fluido | Desktop: frame fijo 1920x1080 escalado */}
       <div
-        className={`relative shadow-2xl overflow-hidden bg-white ${isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
+        className={`relative shadow-[0_0_120px_rgba(131,54,255,0.3)] overflow-hidden bg-white/10 backdrop-blur-3xl ${isMobile ? 'w-full h-full rounded-none' : 'rounded-[3rem] border border-white/20'
           }`}
         style={
           isMobile
             ? undefined
             : {
-              width: 1920,
+              width: 2200,
               height: 1080,
               transform: `scale(${scale})`,
               transformOrigin: 'center center',
@@ -512,14 +559,58 @@ const RootApp: React.FC = () => {
   if (typeof window === 'undefined') return <LandingApp />;
 
   const params = new URLSearchParams(window.location.search);
+  const path = window.location.pathname.replace(/^\/|\/$/g, '');
+
+  // 1. Detect Mode
   const mode = params.get('mode');
-  const hasPresentationQuery = Boolean(params.get('presentationId')) || Boolean(params.get('partner'));
+
+  // 2. Detect Presentation (Path prioritized over Query)
+  const presentationFromPath = path && (PRESENTATION_PRESETS[path] || path.includes('-')) ? path : null;
+  const presentationFromQuery = params.get('presentationId') || params.get('partner');
+  const activePresentationId = presentationFromPath || presentationFromQuery;
+
+  // 3. Detect Segment (Path prioritized over Query)
+  const validSegments = [
+    'emprendedores', 'formacion', 'ecommerce', 'b2b', 'soporte',
+    'otras-industrias', 'profesionales-independientes'
+  ];
+  const segmentFromPath = validSegments.includes(path) ? path : null;
+  const segmentFromQuery = params.get('segment');
+  const activeSegment = segmentFromPath || segmentFromQuery;
+
+  // 4. Quote Resolution (For prodemo)
+  const quoteId = params.get('quoteId');
+  const qdata = params.get('qdata');
+  let resolvedQuote = null;
+
+  if (qdata) {
+    resolvedQuote = decodeQuoteData(qdata);
+  }
+
+  if (!resolvedQuote && quoteId) {
+    const stored = localStorage.getItem(`cc_quote_${quoteId}`);
+    if (stored) {
+      try {
+        resolvedQuote = JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored quote:', e);
+      }
+    }
+  }
+
+  // 5. Decision Logic
+  const isPresentation = mode === 'presentation' || Boolean(activePresentationId);
+
+  // Si es prodemo pero no hay datos válidos (ni en URL ni en localStorage), enviar a landing
+  if (activePresentationId === 'prodemo' && !resolvedQuote) {
+    return <LandingApp />;
+  }
 
   return (
     <>
       <SEOManager />
-      {mode === 'presentation' || hasPresentationQuery ? (
-        <PresentationApp />
+      {isPresentation ? (
+        <PresentationApp quoteData={resolvedQuote} />
       ) : (
         <LandingApp />
       )}
