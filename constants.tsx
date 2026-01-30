@@ -12,8 +12,8 @@ export const SLIDES: SlideData[] = [
   {
     id: 1,
     type: SlideType.COVER,
-    title: "CloserCat",
-    subtitle: "Convierte el caos de WhatsApp en una oportunidad para escalar tu operación de ventas",
+    title: "CloserCat Pro: Propuesta Estratégica",
+    subtitle: "Descubre el ecosistema diseñado para escalar tu operación de ventas con IA. Usa las flechas para explorar.",
     imagePlaceholder: "Screenshot del Dashboard de CloserCat",
     imageUrl: "/closercat-dashboard.png",
     videoUrl: "/vista-global-closercat.mp4",
@@ -214,7 +214,7 @@ export const SLIDES: SlideData[] = [
     subtitle: "Un solo panel para gestionar todas tus conversaciones comerciales, sin abrir WhatsApp.",
     imagePlaceholder: "DASHBOARD COMPLETO: Barra superior (Plantillas, Cierre), Panel de conversaciones, Filtros",
     imageUrl: "/closercat-dashboard.png",
-    videoUrl: "/vista-global-closercat.mp4",
+    videoUrl: "",
   },
 
   // SLIDE 10: DIFERENCIADORES
@@ -865,17 +865,17 @@ export const SLIDES: SlideData[] = [
   // SLIDE 25: CIERRE Y CTA
   {
     id: 36,
-    type: SlideType.TRANSITION,
-    title: "¿Escalamos juntos tu operación de ventas en WhatsApp?",
-    subtitle: "Agendemos una sesión para ver tu caso, tus datos actuales y cómo configurar CloserCat para tu negocio."
+    type: SlideType.CALENDLY,
+    title: "Agendemos una sesión estratégica 📅",
+    subtitle: "Esta es una sesión de cierre estratégico diseñada para resolver dudas finales y configurar tu operación. Elige el mejor momento para tu equipo.",
   },
 
   // SLIDE 44: CALENDLY CTA (Para prodemo)
   {
     id: 49,
     type: SlideType.CALENDLY,
-    title: "Agendemos una sesión de resolución de dudas",
-    subtitle: "Elige el horario que mejor te funcione y hablemos de cómo CloserCat puede transformar tu negocio.",
+    title: "Agendemos una sesión estratégica 📅",
+    subtitle: "Esta es una sesión de cierre estratégico diseñada para resolver dudas finales y configurar tu operación. Elige el mejor momento para tu equipo.",
     content: "https://calendly.com/rogertovalle?hide_event_type_details=1&hide_gdpr_banner=1"
   },
 ];

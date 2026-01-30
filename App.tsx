@@ -9,7 +9,7 @@ import {
   ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
-import { clarityEvent, sendWebhookEvent, trackFunnelEvent, decodeQuoteData } from './utils/tracking';
+import { clarityEvent, sendWebhookEvent, trackFunnelEvent, decodeQuoteData, isValidQuoteId } from './utils/tracking';
 import SEOManager from './components/shared/SEOManager';
 
 // URLs genéricas por defecto (puedes reemplazarlas por las reales)
@@ -111,15 +111,25 @@ const PRESENTATION_PRESETS: Record<string, {
     hidePricing: false,
     showCtaButton: true,
     slideOrder: [
-      9,   // Dashboard (Centro de comando) - INICIO
+      1,   // Portada
       24,  // Todo comienza con una conversación
-      25,  // Configura una IA
+      26,  // La IA entiende texto, imágenes y audios
+      12,  // Nuevas conversaciones en 3 clics
+      8,   // TRANSITION: Con CloserCat... (BOTÓN AGENDAR)
+      27,  // Estado de cada conversación en tiempo real
+      13,  // Encuentra cualquier conversación en segundos
+      18,  // Nunca más pierdas una conversación importante
+      19,  // Seguimientos automáticos
       14,  // IA vs Manual
-      16,  // Guardrails (Confianza)
-      28,  // Contact Enrichment (Valor de data)
+      15,  // Plantillas WABA
+      41,  // Media Gallery
+      16,  // Guardrails
+      35,  // TRANSITION: De la operación diaria... (BOTÓN AGENDAR)
+      28,  // Contact Enrichment
+      40,  // 11+ campos extraídos
+      31,  // Mide cada campaña en tiempo real
       32,  // Integraciones
-      49,  // Calendly Resolution
-      36,  // Cierre / CTA
+      49,  // Próximos pasos / ROI
     ]
   },
 };
@@ -156,6 +166,15 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
 
   const currentSlideData = orderedSlides[currentSlideIndex] || orderedSlides[0];
   const totalSlides = orderedSlides.length;
+
+  // Implementación del salto al cierre
+  const jumpToLastSlide = useCallback(() => {
+    setCurrentSlideIndex(orderedSlides.length - 1);
+    trackFunnelEvent('presentation_jump_to_cta', {
+      fromIndex: currentSlideIndex,
+      slideId: currentSlideData?.id
+    }, quoteData);
+  }, [orderedSlides.length, currentSlideIndex, currentSlideData?.id, quoteData]);
 
   // Detectar configuración de presentación desde la URL (ruta + query string)
   useEffect(() => {
@@ -439,7 +458,12 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
     const data = currentSlideData;
     const commonProps = {
       data,
-      personalizedData: quoteData
+      partnerLogoUrl,
+      personalizedData: quoteData,
+      ctaUrl: data.id === 36 ? ctaUrl : undefined,
+      onCtaClick: (data.type === SlideType.TRANSITION || data.id === 1) ? jumpToLastSlide : undefined,
+      rootPartnerCtaUrl,
+      rootCustomerCtaUrl,
     };
 
     switch (data.type) {
@@ -534,18 +558,6 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
           </div>
         )}
 
-        {/* Navigation Hint (Solo en el primer slide de prodemo) */}
-        {currentSlideIndex === 0 && window.location.search.includes('prodemo') && (
-          <div className="absolute top-1/2 right-12 -translate-y-1/2 pointer-events-none z-[60] flex flex-col items-center gap-4 animate-pulse">
-            <div className="bg-brand-purple text-white px-6 py-3 rounded-2xl font-bold text-xl shadow-2xl border-2 border-white/20">
-              Continuar →
-            </div>
-            <p className="text-white text-sm font-medium drop-shadow-md bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
-              Haz clic para ver más
-            </p>
-          </div>
-        )}
-
       </div>
     </div>
   );
@@ -597,8 +609,14 @@ const RootApp: React.FC = () => {
   // 5. Decision Logic
   const isPresentation = mode === 'presentation' || Boolean(activePresentationId);
 
-  // Si es prodemo pero no hay datos válidos, NO redirigir (fallback a genérico)
-  const isProDemo = activePresentationId === 'prodemo';
+  // Si es prodemo pero no hay datos válidos (ni en URL ni en localStorage),
+  // verificamos el patrón del ID antes de permitir mostrar la presentación genérica
+  if (activePresentationId === 'prodemo' && !resolvedQuote) {
+    if (!isValidQuoteId(quoteId)) {
+      return <LandingApp />;
+    }
+    // Si el patrón es válido pero no hay data, se mostrará con valores por defecto/genéricos
+  }
 
   return (
     <>

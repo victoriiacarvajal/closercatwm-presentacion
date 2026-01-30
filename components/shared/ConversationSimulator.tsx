@@ -582,17 +582,17 @@ export default function ConversationSimulator() {
 
       const qdata = encodeQuoteData(quoteData);
 
-      // Build portable Demo URL with UTMs
-      const demoUrl = window.location.origin + buildUrlWithUtm('/prodemo', {
+      // Build portable Demo URL with ALL data for the Webhook (Sales/Recover)
+      const webhookDemoUrl = window.location.origin + buildUrlWithUtm('/prodemo', {
         presentationId: 'prodemo',
         quoteId: newQuoteId,
         qdata
       });
 
-      // Track using unified funnel helper
+      // Track using unified funnel helper (Make receives the full URL)
       await trackFunnelEvent('simulator_submit', {
         action: 'simulator_quote',
-        demoUrl, // URL con qdata comprimida
+        demoUrl: webhookDemoUrl, // Make recibe la URL completa para trazabilidad total
         simulation: {
           estimatedAvgTurns,
           multimediaStats,
@@ -603,6 +603,8 @@ export default function ConversationSimulator() {
           }
         }
       }, quoteData);
+
+      // El botón "Ver Demo" usará una URL limpia (sin qdata)
 
       // Local Persistence Logic
       localStorage.setItem(`cc_quote_${newQuoteId}`, JSON.stringify(quoteData));
@@ -2778,19 +2780,12 @@ export default function ConversationSimulator() {
           </button>
           <button
             onClick={() => {
-              // Clean URL for local viewing (uses localStorage fallback)
-              window.open(`${window.location.origin}/prodemo?presentationId=prodemo&quoteId=${quoteId}`, '_blank');
+              window.open(`?presentationId=prodemo&quoteId=${quoteId}`, '_blank');
             }}
-            className="flex-1 px-6 py-3 border-2 border-purple-600 rounded-lg font-poppins font-bold text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
-          >
-            Ver Demo de Producto 🎬
-          </button>
-          <button
-            onClick={handleRequestDemo}
-            className="flex-1 px-6 py-3 rounded-lg font-poppins font-bold text-white transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+            className="flex-[2] px-6 py-3 rounded-lg font-poppins font-bold text-white transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
             style={{ background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' }}
           >
-            Agendar Demostración
+            Ver Demo de Producto 🎬
           </button>
         </div>
 

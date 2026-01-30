@@ -10,6 +10,13 @@ export const encodeQuoteData = (data: any) => {
   }
 };
 
+export const isValidQuoteId = (id: string | null): boolean => {
+  if (!id) return false;
+  // Pattern: Alphanumeric uppercase, usually 10-24 characters (base36 + timestamp)
+  const pattern = /^[0-9A-Z]{8,32}$/;
+  return pattern.test(id);
+};
+
 export const decodeQuoteData = (str: string) => {
   try {
     // URL safe base64 decode

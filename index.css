@@ -69,6 +69,30 @@
   background-clip: text;
 }
 
+.text-brand-cyan {
+  color: var(--brand-blue-primary);
+}
+
+.text-brand-purple {
+  color: var(--brand-purple-closer);
+}
+
+.bg-brand-purple {
+  background-color: var(--brand-purple-closer);
+}
+
+.bg-brand-cyan {
+  background-color: var(--brand-blue-primary);
+}
+
+.border-brand-purple {
+  border-color: var(--brand-purple-closer);
+}
+
+.border-brand-cyan {
+  border-color: var(--brand-blue-primary);
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -117,10 +141,53 @@
   }
 }
 
-.mesh-gradient {
-  background: linear-gradient(-45deg, #08C4F410, #8336FF10, #08C4F405, #8336FF05);
-  background-size: 400% 400%;
-  animation: meshGradient 15s ease infinite;
+.vibrant-transition-bg {
+  background: linear-gradient(135deg, #08C4F4 0%, #8336FF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.vibrant-transition-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  animation: rotateMesh 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateMesh {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cta-button-vibrant {
+  background: white;
+  color: #8336FF;
+  font-weight: 700;
+  padding: 1rem 2.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.cta-button-vibrant:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  border-color: #08C4F4;
+}
+
+.cta-button-vibrant:active {
+  transform: scale(0.98);
 }
 
 * {

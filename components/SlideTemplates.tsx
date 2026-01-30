@@ -10,6 +10,7 @@ interface TemplateProps {
   rootPartnerCtaUrl?: string; // URL opcional para CTA "partner" en portada
   rootCustomerCtaUrl?: string; // URL opcional para CTA "cliente" en portada
   personalizedData?: any;
+  onCtaClick?: () => void; // Callback para navegar internamente al slide de cierre
 }
 
 // Filas de comparación usadas tanto en mobile (tarjetas) como en desktop (tabla)
@@ -65,12 +66,20 @@ export const CoverSlide: React.FC<TemplateProps> = ({ data, partnerLogoUrl, root
         )}
       </div>
 
-      {/* Subtitle */}
-      <h2 className="text-xl md:text-4xl text-brand-cyan font-medium mb-4 md:mb-6 max-w-5xl leading-tight px-2">
-        {personalizedData?.formData?.business
-          ? `Propuesta Estratégica: ${personalizedData.formData.business}`
-          : data.subtitle}
-      </h2>
+      {/* Title & Subtitle Section */}
+      <div className="max-w-5xl mx-auto mb-8 md:mb-12">
+        <h2 className="text-2xl md:text-6xl text-brand-cyan font-bold mb-6 leading-tight px-2 drop-shadow-sm">
+          {personalizedData?.formData?.business
+            ? `Propuesta Estratégica para ${personalizedData.formData.business}`
+            : data.title}
+        </h2>
+
+        <p className="text-lg md:text-2xl text-gray-300 font-medium max-w-4xl mx-auto px-4 leading-relaxed">
+          {personalizedData?.formData?.business
+            ? "Descubre cómo Closercat Pro escalará tus metas de venta con IA. Desliza o usa las flechas para comenzar a explorar."
+            : data.subtitle}
+        </p>
+      </div>
 
       {/* CTA global cuando la navegación está bloqueada */}
       {(rootPartnerCtaUrl || rootCustomerCtaUrl) && (
@@ -198,58 +207,66 @@ export const AgendaSlide: React.FC<TemplateProps> = ({ data }) => (
 );
 
 // 3. Transition Slide
-export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl, rootPartnerCtaUrl, rootCustomerCtaUrl }) => (
-  <div className="h-full flex flex-col items-center justify-center text-white relative overflow-hidden px-4 sm:px-8">
-    {/* Fondo principal con degradado de marca, coherente con el logo */}
-    <div className="absolute inset-0 bg-gradient-to-br from-brand-purple to-brand-cyan" />
-    {/* Capa sutil para mejorar contraste de texto sobre el degradado */}
-    <div className="absolute inset-0 bg-black/25" />
-    <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-4 sm:mb-6 md:mb-8 text-center z-10 px-2 sm:px-6 md:px-12 leading-tight max-w-6xl">{data.title}</h1>
+export const TransitionSlide: React.FC<TemplateProps> = ({ data, ctaUrl, rootPartnerCtaUrl, rootCustomerCtaUrl, onCtaClick }) => (
+  <div className="h-full flex flex-col items-center justify-center text-white relative overflow-hidden px-4 sm:px-8 vibrant-transition-bg">
+    <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-display font-extrabold mb-4 sm:mb-6 md:mb-8 text-center z-10 px-2 sm:px-6 md:px-12 leading-tight max-w-6xl drop-shadow-md">{data.title}</h1>
     {data.subtitle && (
-      <h2 className="text-xl sm:text-2xl md:text-4xl font-light text-brand-cyan z-10 text-center max-w-4xl">
+      <h2 className="text-xl sm:text-2xl md:text-4xl font-medium text-white z-10 text-center max-w-4xl mb-12 drop-shadow-lg opacity-90">
         {data.subtitle}
       </h2>
     )}
 
-    {/* Caso 1: CTA único (cuando hay partner asociado) */}
-    {ctaUrl && !rootPartnerCtaUrl && !rootCustomerCtaUrl && (
-      <a
-        href={ctaUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-8 sm:mt-10 inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-white text-brand-purple font-semibold text-sm sm:text-base shadow-lg hover:bg-gray-100 z-10 transition-colors"
+    {/* Botón Agendar (Prioriza navegación interna para prodemo) */}
+    {onCtaClick ? (
+      <button
+        onClick={onCtaClick}
+        className="cta-button-vibrant z-10"
       >
-        Agendar
-      </a>
-    )}
+        Agendar Llamada Estratégica 📅
+      </button>
+    ) : (
+      <>
+        {/* Caso 1: CTA único (cuando hay partner asociado) */}
+        {ctaUrl && !rootPartnerCtaUrl && !rootCustomerCtaUrl && (
+          <a
+            href={ctaUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="cta-button-vibrant z-10"
+          >
+            Agendar
+          </a>
+        )}
 
-    {/* Caso 2: menú doble (sin partner asociado, reutiliza patrón de portada) */}
-    {!ctaUrl && (rootPartnerCtaUrl || rootCustomerCtaUrl) && (
-      <div className="mt-8 sm:mt-10 bg-white/10 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 backdrop-blur border border-white/20 z-10">
-        <p className="text-xs sm:text-sm text-white/80 mb-2 text-center">¿Cómo te interesa avanzar?</p>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
-          {rootPartnerCtaUrl && (
-            <a
-              href={rootPartnerCtaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full bg-white text-brand-purple text-xs sm:text-sm font-semibold shadow-md hover:bg-gray-100"
-            >
-              Partner / reseller
-            </a>
-          )}
-          {rootCustomerCtaUrl && (
-            <a
-              href={rootCustomerCtaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full bg-brand-cyan text-white text-xs sm:text-sm font-semibold shadow-md hover:bg-cyan-500"
-            >
-              Para mi negocio
-            </a>
-          )}
-        </div>
-      </div>
+        {/* Caso 2: menú doble (sin partner asociado, reutiliza patrón de portada) */}
+        {!ctaUrl && (rootPartnerCtaUrl || rootCustomerCtaUrl) && (
+          <div className="mt-8 sm:mt-10 bg-white/10 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 backdrop-blur border border-white/20 z-10">
+            <p className="text-xs sm:text-sm text-white/80 mb-2 text-center">¿Cómo te interesa avanzar?</p>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
+              {rootPartnerCtaUrl && (
+                <a
+                  href={rootPartnerCtaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-full bg-white text-brand-purple text-xs sm:text-sm font-semibold shadow-md hover:bg-gray-100"
+                >
+                  Partner / reseller
+                </a>
+              )}
+              {rootCustomerCtaUrl && (
+                <a
+                  href={rootCustomerCtaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="cta-button-vibrant z-10 py-2"
+                >
+                  Me interesa CloserCat
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </>
     )}
   </div>
 );
