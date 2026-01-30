@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { clarityEvent, getUtmParams } from '../../utils/tracking';
+import { clarityEvent, getUtmParams, sendWebhookEvent, buildUrlWithUtm, trackFunnelEvent, encodeQuoteData } from '../../utils/tracking';
 import { TeamStructureData } from '../../types';
 
 interface ConversationTurn {
@@ -201,17 +201,6 @@ const generateQuoteId = (formData: any, teamStructure: any, projection: any) => 
   return Math.abs(hash).toString(36).toUpperCase() + Date.now().toString(36).toUpperCase();
 };
 
-const encodeQuoteData = (data: any) => {
-  try {
-    return btoa(unescape(encodeURIComponent(JSON.stringify(data))))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-  } catch (e) {
-    console.error('Error encoding quote data:', e);
-    return '';
-  }
-};
 
 export default function ConversationSimulator() {
   const [step, setStep] = useState<'simulator' | 'multimedia' | 'volume' | 'teamStructure' | 'integrations' | 'form' | 'results'>('simulator');
@@ -581,39 +570,6 @@ export default function ConversationSimulator() {
     try {
       const params = new URLSearchParams(window.location.search);
       const utm = getUtmParams(params);
-
-      const payload = {
-        event: 'simulator_submit',
-        action: 'simulator_quote',
-        created_at: new Date().toISOString(),
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        utm,
-        lead: formData,
-        simulation: {
-          estimatedAvgTurns,
-          multimediaStats,
-          teamStructure: {
-            ...teamStructure,
-            numberOfSalesReps: teamStructure.numberOfSalesReps,
-            whatsappOwnership: teamStructure.whatsappOwnership,
-            managementStrategy: teamStructure.managementStrategy,
-            repsPerLine: teamStructure.repsPerLine
-          },
-          projection,
-        },
-      };
-
-      const webhookUrl = import.meta.env?.VITE_MAKE_WEBHOOK_URL;
-      if (webhookUrl) {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      }
-
-      // Local Persistence Logic
       const newQuoteId = generateQuoteId(formData, teamStructure, projection);
       const quoteData = {
         id: newQuoteId,
@@ -624,10 +580,34 @@ export default function ConversationSimulator() {
         browserId: getBrowserId()
       };
 
+      const qdata = encodeQuoteData(quoteData);
+
+      // Build portable Demo URL with UTMs
+      const demoUrl = window.location.origin + buildUrlWithUtm('/prodemo', {
+        presentationId: 'prodemo',
+        quoteId: newQuoteId,
+        qdata
+      });
+
+      // Track using unified funnel helper
+      await trackFunnelEvent('simulator_submit', {
+        action: 'simulator_quote',
+        demoUrl, // URL con qdata comprimida
+        simulation: {
+          estimatedAvgTurns,
+          multimediaStats,
+          projectionSummary: {
+            monthlyRevenue: projection.baselineRevenue,
+            totalMonthlyCost: projection.totalMonthlyCost,
+            expectedROI: projection.incrementalROI20
+          }
+        }
+      }, quoteData);
+
+      // Local Persistence Logic
       localStorage.setItem(`cc_quote_${newQuoteId}`, JSON.stringify(quoteData));
       setQuoteId(newQuoteId);
 
-      clarityEvent('simulator_form_submitted');
       setStep('results');
     } catch (error) {
       console.error('Error enviando webhook de simulador:', error);
@@ -2798,16 +2778,8 @@ export default function ConversationSimulator() {
           </button>
           <button
             onClick={() => {
-              const quoteData = {
-                id: quoteId,
-                formData,
-                teamStructure,
-                projection,
-                timestamp: new Date().toISOString(),
-                browserId: getBrowserId()
-              };
-              const qdata = encodeQuoteData(quoteData);
-              window.open(`?presentationId=prodemo&quoteId=${quoteId}&qdata=${qdata}`, '_blank');
+              // Clean URL for local viewing (uses localStorage fallback)
+              window.open(`${window.location.origin}/prodemo?presentationId=prodemo&quoteId=${quoteId}`, '_blank');
             }}
             className="flex-1 px-6 py-3 border-2 border-purple-600 rounded-lg font-poppins font-bold text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
           >
@@ -2824,7 +2796,12 @@ export default function ConversationSimulator() {
 
         <div className="mt-4 text-center print:hidden">
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              trackFunnelEvent('simulator_print_pdf', {
+                quoteId: quoteId
+              }, { id: quoteId, formData });
+              window.print();
+            }}
             className="text-sm text-gray-500 hover:text-purple-600 underline"
           >
             🖨️ Descargar cotización en PDF

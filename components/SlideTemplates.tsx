@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { SlideData } from '../types';
+import { trackFunnelEvent } from '../utils/tracking';
 import { Check, User, Bot, ArrowRight, Zap, Shield, PlayCircle } from 'lucide-react';
 
 interface TemplateProps {
@@ -877,12 +878,6 @@ export const TimelineSlide: React.FC<TemplateProps> = ({ data }) => (
   </div>
 );
 
-// Helper for optional Clarity events
-const clarityEvent = (name: string, data?: any) => {
-  if (typeof window === 'undefined') return;
-  // @ts-ignore
-  if (window.clarity) window.clarity('event', name, data);
-};
 
 // 12. Calendly Closing Slide
 export const CalendlySlide: React.FC<TemplateProps> = ({ data, personalizedData }) => {
@@ -909,17 +904,17 @@ export const CalendlySlide: React.FC<TemplateProps> = ({ data, personalizedData 
       if (e.data.event && e.data.event.indexOf('calendly') === 0) {
         if (e.data.event === 'calendly.event_scheduled') {
           console.log('Calendly Event Scheduled!', e.data.payload);
-          clarityEvent('presentacion_calendly_booked', {
+          trackFunnelEvent('presentacion_calendly_booked', {
             invitee_email: email,
-            invitee_name: name,
-            quote_id: personalizedData?.id
-          });
+            invitee_name: name
+          }, personalizedData);
         }
 
         if (e.data.event === 'calendly.event_type_viewed') {
-          clarityEvent('presentacion_calendly_viewed', {
-            quote_id: personalizedData?.id
-          });
+          trackFunnelEvent('presentacion_calendly_viewed', {
+            invitee_email: email,
+            invitee_name: name
+          }, personalizedData);
         }
       }
     };

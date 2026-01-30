@@ -9,6 +9,7 @@ import {
   ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
+import { clarityEvent, sendWebhookEvent, trackFunnelEvent, decodeQuoteData } from './utils/tracking';
 import SEOManager from './components/shared/SEOManager';
 
 // URLs genéricas por defecto (puedes reemplazarlas por las reales)
@@ -22,22 +23,6 @@ function claritySet(key: string, value: unknown) {
   if (window.clarity) window.clarity('set', key, value);
 }
 
-function clarityEvent(name: string, data?: any) {
-  if (typeof window === 'undefined') return;
-  // @ts-ignore
-  if (window.clarity) window.clarity('event', name, data);
-}
-
-const decodeQuoteData = (str: string) => {
-  try {
-    // URL safe base64 decode
-    const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(decodeURIComponent(escape(atob(base64))));
-  } catch (e) {
-    console.error('Error decoding quote data:', e);
-    return null;
-  }
-};
 
 // Configuración por partner: URLs separadas para partner y cliente
 const PARTNER_CONFIG: Record<string, { partnerCtaUrl?: string; customerCtaUrl?: string }> = {
@@ -126,8 +111,7 @@ const PRESENTATION_PRESETS: Record<string, {
     hidePricing: false,
     showCtaButton: true,
     slideOrder: [
-      1,   // Portada
-      9,   // Dashboard (Centro de comando)
+      9,   // Dashboard (Centro de comando) - INICIO
       24,  // Todo comienza con una conversación
       25,  // Configura una IA
       14,  // IA vs Manual
@@ -443,13 +427,13 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
   // Tracking de progreso de diapositivas
   useEffect(() => {
     if (!currentSlideData) return;
-    clarityEvent('presentacion_slide_view', {
+    trackFunnelEvent('presentacion_slide_view', {
       slide_id: currentSlideData.id,
       slide_index: currentSlideIndex,
       slide_title: currentSlideData.title,
       presentation_id: window.location.search.includes('prodemo') ? 'prodemo' : 'standard'
-    });
-  }, [currentSlideIndex, currentSlideData]);
+    }, quoteData);
+  }, [currentSlideIndex, currentSlideData, quoteData]);
 
   const renderSlideContent = () => {
     const data = currentSlideData;
@@ -550,6 +534,18 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
           </div>
         )}
 
+        {/* Navigation Hint (Solo en el primer slide de prodemo) */}
+        {currentSlideIndex === 0 && window.location.search.includes('prodemo') && (
+          <div className="absolute top-1/2 right-12 -translate-y-1/2 pointer-events-none z-[60] flex flex-col items-center gap-4 animate-pulse">
+            <div className="bg-brand-purple text-white px-6 py-3 rounded-2xl font-bold text-xl shadow-2xl border-2 border-white/20">
+              Continuar →
+            </div>
+            <p className="text-white text-sm font-medium drop-shadow-md bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm">
+              Haz clic para ver más
+            </p>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -601,10 +597,8 @@ const RootApp: React.FC = () => {
   // 5. Decision Logic
   const isPresentation = mode === 'presentation' || Boolean(activePresentationId);
 
-  // Si es prodemo pero no hay datos válidos (ni en URL ni en localStorage), enviar a landing
-  if (activePresentationId === 'prodemo' && !resolvedQuote) {
-    return <LandingApp />;
-  }
+  // Si es prodemo pero no hay datos válidos, NO redirigir (fallback a genérico)
+  const isProDemo = activePresentationId === 'prodemo';
 
   return (
     <>

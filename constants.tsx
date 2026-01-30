@@ -214,7 +214,7 @@ export const SLIDES: SlideData[] = [
     subtitle: "Un solo panel para gestionar todas tus conversaciones comerciales, sin abrir WhatsApp.",
     imagePlaceholder: "DASHBOARD COMPLETO: Barra superior (Plantillas, Cierre), Panel de conversaciones, Filtros",
     imageUrl: "/closercat-dashboard.png",
-    videoUrl: "",
+    videoUrl: "/vista-global-closercat.mp4",
   },
 
   // SLIDE 10: DIFERENCIADORES
