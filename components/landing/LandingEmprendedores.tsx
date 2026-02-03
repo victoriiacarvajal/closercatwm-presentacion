@@ -31,30 +31,30 @@ export default function LandingEmprendedores() {
                             </Badge>
 
                             <h1 className="text-5xl font-poppins font-extrabold leading-tight mb-4 mt-4" style={{ color: '#121212' }}>
-                                Centraliza los WhatsApp de tu equipo comercial sin perder la cercanía del número personal
+                                Tu equipo comercial en WhatsApp, potenciado por IA y bajo tu control total
                             </h1>
 
                             <p className="text-xl font-inter mb-6" style={{ color: '#4b5563' }}>
-                                Sincroniza todos los números de tus vendedores en una plataforma unificada. Migra gradualmente a WhatsApp API sin perder clientes.
+                                Centraliza conversaciones, captura datos automáticamente y asegura respuestas perfectas con una IA que trabaja junto a tus vendedores, no en su lugar.
                             </p>
 
                             <div className="space-y-3 mb-8">
                                 <div className="flex items-start gap-3">
                                     <div className="mt-1 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#08C4F4' }} />
                                     <div className="font-inter" style={{ color: '#121212' }}>
-                                        <strong>Sincronización multi-número:</strong> Todos los WhatsApp en un solo dashboard
+                                        <strong>Gestión Híbrida:</strong> IA y Humanos colaborando en el mismo chat
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <div className="mt-1 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#08C4F4' }} />
                                     <div className="font-inter" style={{ color: '#121212' }}>
-                                        <strong>Knowledge Base unificado:</strong> Respuestas consistentes para todo el equipo
+                                        <strong>Base de Conocimiento:</strong> Respuestas precisas sobre tus productos
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <div className="mt-1 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#08C4F4' }} />
                                     <div className="font-inter" style={{ color: '#121212' }}>
-                                        <strong>Migración gradual:</strong> Invitaciones automáticas para adoptar número institucional
+                                        <strong>Captura de Datos:</strong> Tu CRM se llena solo mientras vendes
                                     </div>
                                 </div>
                             </div>
@@ -90,10 +90,10 @@ export default function LandingEmprendedores() {
                 <div className="max-w-4xl mx-auto px-6">
                     <div className="text-center mb-12">
                         <h2 className="text-4xl font-poppins font-extrabold mb-4" style={{ color: '#121212' }}>
-                            El caos de gestionar ventas con WhatsApp personal
+                            El riesgo de operar sin inteligencia comercial
                         </h2>
                         <p className="text-xl font-inter" style={{ color: '#4b5563' }}>
-                            Cuando cada vendedor usa su propio número, pierdes el control
+                            Cuando dependes solo de la gestión manual, pierdes datos y oportunidades
                         </p>
                     </div>
 
@@ -131,29 +131,29 @@ export default function LandingEmprendedores() {
 
                     <div className="space-y-12">
                         <ValuePropCard
-                            icon="🔄"
-                            title="Sincroniza todos los números"
-                            feature="Conecta los WhatsApp personales de tu equipo a una cuenta central sin que cambien de número."
-                            capability="Obtienes visibilidad completa de todas las conversaciones en un solo dashboard compartido."
-                            benefit="<strong>Control total</strong> de tu operación comercial sin interrumpir el flujo de trabajo actual."
+                            icon="🧠"
+                            title="Gestión Híbrida Inteligente"
+                            feature="IA y Equipo en el mismo chat. La IA maneja la espera inteligente de mensajes y tu equipo interviene cuando es necesario."
+                            capability="Combina la velocidad de respuesta de la IA con la empatía y estrategia de tu equipo comercial."
+                            benefit="<strong>Eficiencia máxima</strong> sin perder el trato humano que cierra ventas."
                             imagePosition="right"
                         />
 
                         <ValuePropCard
-                            icon="📚"
-                            title="Knowledge Base Unificado"
-                            feature="Crea una base de conocimiento centralizada que todo el equipo y la IA pueden usar."
-                            capability="Asegura que todos den la misma información sobre precios, stock y políticas."
-                            benefit="<strong>Respuestas consistentes</strong> y onboarding de nuevos vendedores en días, no meses."
+                            icon="⚡"
+                            title="Enriquecimiento de Perfil"
+                            feature="El sistema extrae 11+ datos clave (como nombre, empresa y presupuesto) automáticamente mientras la conversación fluye."
+                            capability="Convierte texto libre en datos estructurados listos para usar en tus campañas."
+                            benefit="<strong>CRM siempre actualizado</strong> sin ingreso manual de datos por parte de los vendedores."
                             imagePosition="left"
                         />
 
                         <ValuePropCard
-                            icon="🚀"
-                            title="Migración Gradual a API"
-                            feature="Sistema de invitaciones automáticas para mover clientes al número institucional institucional poco a poco."
-                            capability="Permite profesionalizar la operación sin forzar un cambio abrupto que haga perder clientes."
-                            benefit="<strong>Transición sin fricción</strong> hacia una operación 100% profesional y escalable."
+                            icon="🛡️"
+                            title="Filtros de Seguridad Activos"
+                            feature="Cada respuesta sugerida por la IA se valida contra tus políticas comerciales antes de enviarse."
+                            capability="Evita alucinaciones de la IA, descuentos no autorizados o promesas falsas a tus clientes."
+                            benefit="<strong>Tranquilidad total</strong> de que tu marca siempre responde correctamente."
                             imagePosition="right"
                         />
                     </div>
@@ -192,10 +192,10 @@ export default function LandingEmprendedores() {
 
                     <div className="grid md:grid-cols-4 gap-8">
                         {[
-                            { num: '1', title: 'Diagnóstico', desc: 'Analizamos tu operación actual y necesidades' },
-                            { num: '2', title: 'Sincronización', desc: 'Conectamos los WhatsApp de tu equipo a la plataforma' },
-                            { num: '3', title: 'Configuración', desc: 'Cargamos tu Knowledge Base y flujos de venta' },
-                            { num: '4', title: 'Migración', desc: 'Activamos invitaciones para mover clientes gradualmente' },
+                            { num: '1', title: 'Diagnóstico y Conexión', desc: 'Conectamos los flujos de WhatsApp de tu equipo' },
+                            { num: '2', title: 'Entrenamiento', desc: 'Cargamos tu Base de Conocimiento y reglas' },
+                            { num: '3', title: 'Despliegue Híbrido', desc: 'Activamos la IA con supervisión humana' },
+                            { num: '4', title: 'Optimización', desc: 'Usamos los datos para mejorar la conversión' },
                         ].map((step) => (
                             <div key={step.num} className="text-center relative">
                                 <div className="w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-xl flex items-center justify-center mx-auto mb-4 relative z-10">
@@ -223,7 +223,7 @@ export default function LandingEmprendedores() {
                         {[
                             {
                                 q: '¿Mis vendedores pierden acceso a su WhatsApp personal?',
-                                a: 'No. La sincronización funciona en paralelo. Ellos siguen usando su WhatsApp normalmente, pero tú obtienes visibilidad completa en el dashboard.',
+                                a: 'No. La gestión híbrida funciona en paralelo. Ellos siguen usando su WhatsApp normalmente, pero tú obtienes visibilidad completa en el panel de control.',
                             },
                             {
                                 q: '¿Cómo funciona la migración gradual?',
@@ -239,7 +239,7 @@ export default function LandingEmprendedores() {
                             },
                             {
                                 q: '¿Integran con mi CRM actual?',
-                                a: 'Sí. Tenemos integraciones nativas y vía API/Webhooks con los principales CRMs (HubSpot, Salesforce, Zoho, Pipedrive, etc.).',
+                                a: 'Sí. Tenemos integraciones nativas y vía notificaciones automáticas con los principales CRMs (HubSpot, Salesforce, Zoho, Pipedrive, etc.).',
                             },
                             {
                                 q: '¿Cómo se calcula el costo mensual?',

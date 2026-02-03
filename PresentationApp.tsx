@@ -5,7 +5,7 @@ import SlideLayout from './components/SlideLayout';
 import {
   CoverSlide, AgendaSlide, TransitionSlide, StandardSlide,
   SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide,
-  ComparisonTableSlide, PricingSlide, TimelineSlide
+  ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide, PricingLogicSlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 
@@ -392,6 +392,7 @@ const PresentationApp: React.FC = () => {
       case SlideType.COMPARISON_TABLE: return <ComparisonTableSlide data={data} />;
       case SlideType.PRICING: return <PricingSlide data={data} />;
       case SlideType.TIMELINE: return <TimelineSlide data={data} />;
+      case SlideType.PRICING_LOGIC: return <PricingLogicSlide data={data} />;
       default: return <div className="p-10">Unknown Slide Type</div>;
     }
   };
@@ -399,9 +400,8 @@ const PresentationApp: React.FC = () => {
   return (
     <div className="w-screen h-screen bg-gray-200 flex items-center justify-center font-sans overflow-hidden">
       <div
-        className={`relative shadow-2xl overflow-hidden bg-white ${
-          isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
-        }`}
+        className={`relative shadow-2xl overflow-hidden bg-white ${isMobile ? 'w-full h-full rounded-none' : 'rounded-xl'
+          }`}
         style={
           isMobile
             ? undefined

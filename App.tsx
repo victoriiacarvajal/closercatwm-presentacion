@@ -6,7 +6,7 @@ import LandingApp from './LandingApp';
 import {
   CoverSlide, AgendaSlide, TransitionSlide, StandardSlide,
   SplitImageSlide, DashboardSlide, GridSlide, SplitTextSlide,
-  ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide
+  ComparisonTableSlide, PricingSlide, TimelineSlide, CalendlySlide, PricingLogicSlide
 } from './components/SlideTemplates';
 import { ChevronLeft, ChevronRight, Maximize, Minimize } from 'lucide-react';
 import { clarityEvent, sendWebhookEvent, trackFunnelEvent, decodeQuoteData, isValidQuoteId } from './utils/tracking';
@@ -502,6 +502,7 @@ const PresentationApp: React.FC<{ quoteData?: any }> = ({ quoteData }) => {
       case SlideType.PRICING: return <PricingSlide {...commonProps} />;
       case SlideType.TIMELINE: return <TimelineSlide {...commonProps} />;
       case SlideType.CALENDLY: return <CalendlySlide {...commonProps} />;
+      case SlideType.PRICING_LOGIC: return <PricingLogicSlide {...commonProps} />;
       default: return <div className="p-10">Unknown Slide Type</div>;
     }
   };

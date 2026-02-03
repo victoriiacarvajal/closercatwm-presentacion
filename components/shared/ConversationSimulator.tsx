@@ -1264,12 +1264,12 @@ export default function ConversationSimulator() {
       <div className="mt-10 p-8 bg-white border border-gray-100 rounded-2xl shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h4 className="font-poppins font-bold text-gray-900">Estrategia de Automatización</h4>
-            <p className="text-xs text-gray-500">¿Qué porcentaje de tus conversaciones delegarás a la IA?</p>
+            <h4 className="font-poppins font-bold text-gray-900">¿Cuánto quieres automatizar?</h4>
+            <p className="text-xs text-gray-500">¿Qué porcentaje de conversaciones quieres que la IA gestione automáticamente?</p>
           </div>
           <div className="text-right">
             <span className="text-3xl font-mono font-bold text-purple-600">{iaDelegationPercentage}%</span>
-            <span className="block text-[10px] text-gray-400 uppercase tracking-wider">IA Activa</span>
+            <span className="block text-[10px] text-gray-400 uppercase tracking-wider">Gestión Automática</span>
           </div>
         </div>
 
@@ -1289,8 +1289,8 @@ export default function ConversationSimulator() {
             <p className="text-xs text-purple-700">La IA gestiona, califica y cierra por ti.</p>
           </div>
           <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Custodia Humana</p>
-            <p className="text-xs text-gray-600">Gestión de humanos con datos organizados y custodia.</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Gestión Humana</p>
+            <p className="text-xs text-gray-600">Tu equipo toma el control con toda la información organizada.</p>
           </div>
         </div>
       </div>
@@ -1392,21 +1392,27 @@ export default function ConversationSimulator() {
             {[
               {
                 id: 'decentralized',
-                label: 'Mantener control exclusivo de vendedores',
-                detail: 'Sin centralizar información (WhatsApps personales). Operación paralela con 1 línea institucional (Solo pagas Setup).'
+                icon: '🔓',
+                label: 'Autonomía Total del Vendedor',
+                detail: 'Cada vendedor usa su WhatsApp personal. Tú solo ves reportes consolidados.',
+                example: 'Ideal si: Tu equipo ya tiene relaciones en sus números personales.'
               },
               {
                 id: 'mixed',
-                label: 'Estrategia Mixta Controlada',
-                detail: 'Control total de WhatsApps (personales + empresa) bajo supervisión y centralización.'
+                icon: '⚖️',
+                label: 'Estrategia Mixta (Control + Autonomía)',
+                detail: 'Combinas líneas personales con supervisión centralizada. Lo mejor de ambos mundos.',
+                example: 'Ideal si: Quieres datos centralizados sin perder la cercanía del vendedor.'
               },
               {
                 id: 'institutional',
-                label: 'Migrar 100% a línea institucional',
-                detail: 'Toda la gestión se realiza a través de línea corporativa gestionada por la empresa.'
+                icon: '🏢',
+                label: 'Centralización Total',
+                detail: 'Toda la operación desde líneas corporativas. Control absoluto de la información.',
+                example: 'Ideal si: Priorizas el control institucional sobre la relación personal.'
               }
             ].map((option) => (
-              <label key={option.id} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+              <label key={option.id} className="flex items-start gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-all">
                 <input
                   type="radio"
                   name="managementStrategy"
@@ -1415,9 +1421,15 @@ export default function ConversationSimulator() {
                   onChange={(e) => setTeamStructure({ ...teamStructure, managementStrategy: e.target.value as any })}
                   className="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500"
                 />
-                <div>
-                  <span className="block text-sm font-bold text-gray-800">{option.label}</span>
-                  <span className="block text-xs text-gray-500 mt-1">{option.detail}</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">{option.icon}</span>
+                    <span className="text-sm font-bold text-gray-800">{option.label}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">{option.detail}</p>
+                  <p className="text-[10px] text-purple-600 italic bg-purple-50 px-2 py-1 rounded inline-block">
+                    💡 {option.example}
+                  </p>
                 </div>
               </label>
             ))}
@@ -1913,7 +1925,7 @@ export default function ConversationSimulator() {
               <p className="text-xs text-gray-600">Automatización de WhatsApp para Equipos Comerciales</p>
             </div>
             <div className="text-right">
-              <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>RESUMEN OPERATIVO</h2>
+              <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Cotización: {quoteId}</h2>
               <p className="text-xs text-gray-600">{today}</p>
             </div>
           </div>
@@ -2042,7 +2054,7 @@ export default function ConversationSimulator() {
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Texto (IA)</div>
                 <div className="flex justify-between items-end">
                   <div className="text-[9px] font-bold">{Math.round(projection.textMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.text}</div>
+                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.text} COP</div>
                 </div>
                 <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.textCost)}</div>
               </div>
@@ -2050,7 +2062,7 @@ export default function ConversationSimulator() {
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Audio IA</div>
                 <div className="flex justify-between items-end">
                   <div className="text-[9px] font-bold">{Math.round(projection.audioMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                  <div className="text-[7px] text-gray-400">@ ${Math.round(projection.unitCosts.audio)}</div>
+                  <div className="text-[7px] text-gray-400">@ ${Math.round(projection.unitCosts.audio)} COP</div>
                 </div>
                 <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.audioCost)}</div>
               </div>
@@ -2058,15 +2070,15 @@ export default function ConversationSimulator() {
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Multimedia</div>
                 <div className="flex justify-between items-end">
                   <div className="text-[9px] font-bold">{Math.round((projection.imageMessages + projection.documentMessages) * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.multimedia}</div>
+                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.multimedia} COP</div>
                 </div>
                 <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
               </div>
               <div className="p-1.5 border border-gray-100 rounded">
-                <div className="text-[7px] text-gray-400 uppercase font-bold">Int. Humana</div>
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Gestión Humana</div>
                 <div className="flex justify-between items-end">
                   <div className="text-[9px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
-                  <div className="text-[7px] text-blue-400">@ ${projection.unitCosts.human}</div>
+                  <div className="text-[7px] text-blue-400">@ ${projection.unitCosts.human} COP</div>
                 </div>
                 <div className="text-[8px] text-blue-600 font-bold">{formatCurrency(projection.residualCostMonthly)}</div>
               </div>
@@ -2230,39 +2242,41 @@ export default function ConversationSimulator() {
 
 
           <div className="space-y-6 text-xs text-gray-700 leading-relaxed">
-            {/* Logic Breakdown (Print Only) */}
             <section className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-[9px]">
               <h3 className="text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide border-b border-gray-200 pb-1">Desglose de Lógica de Cálculo</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 mb-3">
                 <div>
                   <p className="font-bold text-gray-700">1. Definición de Volumen:</p>
-                  <p>Se calculan <strong>{(projection.conversationsPerMonth * projection.avgTurnsPerConversation).toLocaleString()} turnos totales</strong> basados en {projection.conversationsPerMonth.toLocaleString()} conversaciones de {projection.avgTurnsPerConversation} interacciones promedio.</p>
+                  <p>Se calculan <strong>{(projection.conversationsPerMonth * projection.avgTurnsPerConversation).toLocaleString()} mensajes totales</strong> basados en {projection.conversationsPerMonth.toLocaleString()} conversaciones de {projection.avgTurnsPerConversation} mensajes promedio.</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-700">2. Costos Unitarios (IA):</p>
-                  <p>El procesamiento activo de IA se factura por mensaje: <strong>Texto (${projection.unitCosts.text})</strong>, <strong>Audio (~${Math.round(projection.unitCosts.audio)})</strong> y <strong>Multimedia (${projection.unitCosts.multimedia})</strong>. El tráfico humano residual solo paga infraestructura (<strong>${projection.unitCosts.human}</strong>).</p>
+                  <p className="font-bold text-gray-700">2. ¿Por qué cada tipo cuesta diferente?</p>
+                  <p>• <strong>Texto (${projection.unitCosts.text} COP):</strong> Procesamiento básico de lenguaje natural.</p>
+                  <p>• <strong>Audio (~${Math.round(projection.unitCosts.audio)} COP):</strong> Incluye transcripción de voz + análisis de sentimiento.</p>
+                  <p>• <strong>Multimedia (${projection.unitCosts.multimedia} COP):</strong> Análisis de imágenes o documentos con OCR.</p>
                 </div>
                 <div>
-                  <p className="font-bold text-gray-700">3. Modelo de Delegación:</p>
-                  <p>Solo el <strong>{projection.iaPercentage}%</strong> del tráfico total incurre en costo de IA. El <strong>{projection.humanPercentage}%</strong> restante paga tarifa residual.</p>
+                  <p className="font-bold text-gray-700">3. Modelo de Automatización:</p>
+                  <p>Solo el <strong>{projection.iaPercentage}%</strong> del tráfico usa procesamiento IA. El <strong>{projection.humanPercentage}%</strong> restante es <strong>Gestión Humana (${projection.unitCosts.human} COP/msg)</strong>: solo infraestructura y almacenamiento, sin procesamiento IA. Por eso es 60 veces más barato.</p>
                 </div>
               </div>
             </section>
 
             <section>
-              <h3 className="text-sm font-bold text-purple-900 mb-1">1. Base Operativa (IA + Residual)</h3>
+              <h3 className="text-sm font-bold text-purple-900 mb-1">1. Base Operativa (IA + Gestión Humana)</h3>
               <p>
-                Incluye la infraestructura necesaria para el procesamiento de mensajes mediante Inteligencia Artificial y la custodia de conversaciones por agentes humanos.
-                El motor de IA está optimizado para interpretar lenguaje natural, intenciones de compra y gestión de objeciones 24/7.
-                La "Intervención Humana" (Residual) garantiza que casos complejos sean derivados automáticamente a su equipo comercial.
+                Incluye el motor de IA que procesa mensajes 24/7 con comprensión de texto, audio e imágenes.
+                La IA agrupa mensajes en ráfaga (espera inteligente de 3 segundos), valida respuestas con 8 filtros de seguridad y extrae datos del cliente automáticamente (enriquecimiento de perfil).
+                Tu equipo puede tomar control en cualquier momento para gestionar casos complejos. La Gestión Humana solo paga infraestructura ($3 COP/msg), sin procesamiento IA.
               </p>
             </section>
 
             <section>
               <h3 className="text-sm font-bold text-purple-900 mb-1">2. Capacidad de Base de Conocimiento (KB)</h3>
               <p>
-                Representa el cerebro de su asistente. Cada ítem de la KB es un dato específico (precio, stock, política, FAQ) que la IA domina.
-                Una mayor capacidad permite que la IA responda con precisión quirúrgica sobre catálogos extensos sin inventar información ("alucinaciones").
+                El cerebro de tu asistente, configurado desde un panel único según tu caso de uso (Ecommerce, B2B o Soporte).
+                Incluye tabs condicionales para Productos, Servicios o FAQs. Cada ítem es un dato específico (precio, stock, política) que la IA domina sin inventar información.
+                Mayor capacidad = catálogos más extensos con precisión quirúrgica.
               </p>
             </section>
 
@@ -2270,8 +2284,9 @@ export default function ConversationSimulator() {
               <section className="p-3 bg-purple-50 rounded-lg border border-purple-100">
                 <h3 className="text-sm font-bold text-purple-900 mb-1">3. Asesoría de Prompting Custom (Activo)</h3>
                 <p>
-                  Servicio especializado donde nuestros ingenieros diseñan una personalidad y tono de voz único para su marca.
-                  Incluye ingeniería de prompts avanzada para guiar al usuario a través de embudos de venta específicos y técnicas de cierre persuasivo personalizadas.
+                  Personalización avanzada del comportamiento de tu asistente.
+                  Nuestros ingenieros diseñan una personalidad, tono de voz y estrategias de cierre únicas para tu marca.
+                  Incluye ingeniería de prompts para guiar embudos de venta específicos y técnicas persuasivas personalizadas.
                 </p>
               </section>
             )}
@@ -2280,8 +2295,8 @@ export default function ConversationSimulator() {
               <section className="p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <h3 className="text-sm font-bold text-blue-900 mb-1">4. Intelligence Reports (Activo)</h3>
                 <p>
-                  Acceso a análisis avanzados de "Sentiment" y tendencias de mercado.
-                  Transformamos miles de conversaciones en datos accionables: qué preguntan más sus clientes, por qué no están comprando y cuáles son las oportunidades de mejora en su producto/servicio.
+                  Reportes mensuales que transforman miles de conversaciones en datos accionables.
+                  Descubre qué preguntan más tus clientes, por qué no están comprando, análisis de sentiment y oportunidades de mejora en tu producto o servicio.
                 </p>
               </section>
             )}
@@ -2290,21 +2305,55 @@ export default function ConversationSimulator() {
               <section className="p-3 bg-green-50 rounded-lg border border-green-100">
                 <h3 className="text-sm font-bold text-green-900 mb-1">5. Gestión de Campañas Masivas (Activo)</h3>
                 <p>
-                  Automatización total de envíos proactivos por WhatsApp.
-                  Ideal para lanzamientos, promociones o seguimientos de leads fríos.
-                  La IA se encarga de recibir todas las respuestas de la campaña, calificando a los interesados en tiempo real sin saturar a sus vendedores.
+                  Envíos masivos automatizados por WhatsApp para hasta 50,000 contactos.
+                  Incluye segmentación avanzada por 24+ campos (ubicación, etapa del funnel, comportamiento) y métricas en tiempo real.
+                  La IA recibe y califica todas las respuestas automáticamente, sin saturar a tus vendedores.
                 </p>
               </section>
             )}
 
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-bold mb-3">Compromiso de Servicio:</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                <li><strong>Soporte Técnico:</strong> Acompañamiento continuo en la optimización del modelo.</li>
-                <li><strong>Privacidad:</strong> Los datos de sus clientes están cifrados y se utilizan exclusivamente para su operación comercial.</li>
-                <li><strong>Escalabilidad:</strong> El sistema crece con su demanda sin necesidad de contratar más personal administrativo.</li>
-              </ul>
-            </div>
+            <section className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+              <h3 className="text-sm font-bold text-purple-900 mb-2">6. Funcionalidades Incluidas en Todas las Cuentas</h3>
+
+              <div className="grid grid-cols-2 gap-4 text-[9px]">
+                <div>
+                  <p className="font-bold text-gray-800 mb-1">Panel de Control Unificado:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                    <li>Gestión de todas las conversaciones desde un solo lugar</li>
+                    <li>Filtros avanzados por estado, agente, etiquetas y fecha</li>
+                    <li>Vista de perfil del contacto con historial completo</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-bold text-gray-800 mb-1">Plantillas y Automatización:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                    <li>Plantillas oficiales de WhatsApp Business aprobadas por Meta con variables dinámicas</li>
+                    <li>Estados de cierre automáticos (positivo, negativo, en riesgo)</li>
+                    <li>Galería de Medios con 500MB de almacenamiento</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-bold text-gray-800 mb-1">Integraciones:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                    <li>Conexión nativa con CRMs (HubSpot, Salesforce, Pipedrive)</li>
+                    <li>Sincronización bidireccional de contactos y conversaciones</li>
+                    <li>Notificaciones automáticas para integraciones personalizadas</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <p className="font-bold text-gray-800 mb-1">Análisis y Reportes:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 text-gray-700">
+                    <li>Tasa de conversión por agente y canal</li>
+                    <li>Tiempo de respuesta promedio</li>
+                    <li>Seguimiento de ingresos y métricas de cierre</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
           </div>
 
           <div className="mt-12 text-center text-[10px] text-gray-400">
@@ -2320,12 +2369,14 @@ export default function ConversationSimulator() {
             <img src="/logo-closercat.png" alt="CloserCat" className="h-16 mx-auto mb-8" />
 
             <h3 className="text-3xl font-black text-gray-900 mb-4 tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              ¿Listo para ver la magia en acción con {formData.business || 'tu negocio'}?
+              ¿Quieres ver estas capacidades en acción?
             </h3>
 
-            <p className="text-lg text-gray-600 mb-10 max-w-lg mx-auto leading-relaxed">
-              Hemos diseñado este análisis exclusivamente para potenciar los resultados de su equipo comercial. El siguiente paso es una experiencia en vivo.
+            <p className="text-lg text-gray-600 mb-6 max-w-lg mx-auto leading-relaxed">
+              Hemos preparado esta presentación para que puedas entender cómo funcionará CloserCat en tu negocio para apoyar tu proceso de ventas.
             </p>
+
+
 
             <div className="inline-block p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100 mb-8 shadow-sm">
               <p className="text-xs text-purple-400 uppercase font-black tracking-[0.2em] mb-2">Tu Acceso Personalizado</p>
@@ -2337,17 +2388,7 @@ export default function ConversationSimulator() {
               </a>
             </div>
 
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#08C4F4] to-[#8336FF] text-white flex items-center justify-center text-3xl shadow-xl animate-bounce">
-                🚀
-              </div>
-              <div>
-                <p className="text-sm font-black text-gray-900 uppercase tracking-tighter mb-1">
-                  TRANSFORMA TU DEPARTAMENTO DE VENTAS
-                </p>
-                <p className="text-xs text-gray-400">Haz clic o escanea para agendar tu demostración hoy mismo</p>
-              </div>
-            </div>
+
           </div>
         </div>
       </div >
@@ -2405,9 +2446,12 @@ export default function ConversationSimulator() {
 
         {/* Proyección PERT (Original Design) */}
         <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border-2 border-purple-200">
-          <h4 className="font-poppins font-bold mb-4 text-center" style={{ color: '#121212' }}>
-            Proyección de Inversión Mensual (PERT)
+          <h4 className="font-poppins font-bold mb-2 text-center" style={{ color: '#121212' }}>
+            Tu Inversión Mensual Estimada
           </h4>
+          <p className="text-xs text-center text-gray-600 mb-4">
+            Te mostramos 3 escenarios para que presupuestes con confianza
+          </p>
 
           <div className="grid md:grid-cols-3 gap-4 mb-4">
             <div className="text-center p-4 bg-green-100 rounded-lg">
@@ -2417,7 +2461,7 @@ export default function ConversationSimulator() {
               <div className="text-2xl font-mono font-bold" style={{ color: '#10b981' }}>
                 {formatCurrency(projection.optimisticCost)}
               </div>
-              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>-10% del esperado</div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }} title="Ejemplo: Si tus clientes envían menos audios de lo esperado, tu costo baja.">Si usas menos de lo estimado</div>
             </div>
 
             <div className="text-center p-4 bg-purple-100 rounded-lg border-2 border-purple-400 relative transform scale-105 shadow-md">
@@ -2430,7 +2474,7 @@ export default function ConversationSimulator() {
               <div className="text-3xl font-mono font-bold" style={{ color: '#8336FF' }}>
                 {formatCurrency(projection.expectedCost)}
               </div>
-              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>Promedio ponderado</div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }} title="Este es el costo más probable basado en tu configuración actual.">Lo más probable según tu configuración</div>
             </div>
 
             <div className="text-center p-4 bg-red-100 rounded-lg">
@@ -2440,7 +2484,7 @@ export default function ConversationSimulator() {
               <div className="text-2xl font-mono font-bold" style={{ color: '#ef4444' }}>
                 {formatCurrency(projection.pessimisticCost)}
               </div>
-              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }}>+10% del esperado</div>
+              <div className="text-xs font-inter mt-1" style={{ color: '#6b7280' }} title="Ejemplo: Si hay un pico de demanda o más multimedia, tu costo sube.">Si usas más de lo estimado</div>
             </div>
           </div>
         </div>
@@ -2450,7 +2494,7 @@ export default function ConversationSimulator() {
           <h4 className="font-poppins font-bold mb-4 text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
             <span className="text-purple-600">📊</span> Consumo Mensual Estimado
             <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 py-1 px-2 rounded-full font-normal">
-              Volumen Facturable (IA) + Custodia
+              Mensajes Procesados
             </span>
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -2458,7 +2502,7 @@ export default function ConversationSimulator() {
               <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Texto (IA)</div>
               <div className="flex justify-between items-end">
                 <div className="text-sm font-bold">{Math.round(projection.textMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                <div className="text-[10px] text-gray-400">@ ${projection.unitCosts.text}</div>
+                <div className="text-[10px] text-gray-400" title="Procesamiento básico de lenguaje natural">@ ${projection.unitCosts.text} COP</div>
               </div>
               <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.textCost)}</div>
             </div>
@@ -2466,7 +2510,7 @@ export default function ConversationSimulator() {
               <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Audio (IA)</div>
               <div className="flex justify-between items-end">
                 <div className="text-sm font-bold">{Math.round(projection.audioMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                <div className="text-[10px] text-gray-400">@ ${Math.round(projection.unitCosts.audio)}</div>
+                <div className="text-[10px] text-gray-400" title="Incluye transcripción de voz + análisis">@ ${Math.round(projection.unitCosts.audio)} COP</div>
               </div>
               <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.audioCost)}</div>
             </div>
@@ -2474,15 +2518,15 @@ export default function ConversationSimulator() {
               <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Multimedia (IA)</div>
               <div className="flex justify-between items-end">
                 <div className="text-sm font-bold">{Math.round((projection.imageMessages + projection.documentMessages) * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
-                <div className="text-[10px] text-gray-400">@ ${projection.unitCosts.multimedia}</div>
+                <div className="text-[10px] text-gray-400" title="Análisis de imágenes o documentos con OCR">@ ${projection.unitCosts.multimedia} COP</div>
               </div>
               <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
             </div>
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-              <div className="text-[10px] text-blue-700 uppercase font-bold mb-1">Int. Humana</div>
+              <div className="text-[10px] text-blue-700 uppercase font-bold mb-1">Gestión Humana</div>
               <div className="flex justify-between items-end">
                 <div className="text-sm font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
-                <div className="text-[10px] text-blue-400">@ ${projection.unitCosts.human}</div>
+                <div className="text-[10px] text-blue-400" title="Solo infraestructura y almacenamiento (sin procesamiento IA)">@ ${projection.unitCosts.human} COP</div>
               </div>
               <div className="text-xs text-blue-600 font-mono mt-1 font-bold">{formatCurrency(projection.residualCostMonthly)}</div>
             </div>
@@ -2596,12 +2640,12 @@ export default function ConversationSimulator() {
               </div>
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-200">
                 <div className="p-2 bg-purple-50 rounded text-center">
-                  <div className="text-[10px] uppercase text-purple-600 font-bold">Participación IA</div>
+                  <div className="text-[10px] uppercase text-purple-600 font-bold">Gestionadas por IA</div>
                   <div className="text-lg font-bold text-purple-700">{projection.iaPercentage}%</div>
                   <div className="text-[10px] text-purple-500">{projection.iaTrafficMessages.toLocaleString()} msgs</div>
                 </div>
                 <div className="p-2 bg-blue-50 rounded text-center">
-                  <div className="text-[10px] uppercase text-blue-600 font-bold">Intervención Humana</div>
+                  <div className="text-[10px] uppercase text-blue-600 font-bold">Gestionadas por tu Equipo</div>
                   <div className="text-lg font-bold text-blue-700">{projection.humanPercentage}%</div>
                   <div className="text-[10px] text-blue-500">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
                 </div>
