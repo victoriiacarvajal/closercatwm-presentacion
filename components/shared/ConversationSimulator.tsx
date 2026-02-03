@@ -333,23 +333,42 @@ export default function ConversationSimulator() {
 
   const calculateProjection = (monthlyConversations: number, teamData: TeamStructureData) => {
     const aiTurns = estimatedAvgTurns;
-    const totalMonthlyMessages = monthlyConversations * aiTurns;
+    const turns = estimatedAvgTurns;
+
+    // Frecuencia por conversación (0 a 1)
+    const audioFreq = multimediaStats.audioPercentage / 100;
+    const imageFreq = multimediaStats.imagePercentage / 100;
+    const docFreq = multimediaStats.documentPercentage / 100;
+
+    // Mensajes mensuales calculados por frecuencia de aparición en conversaciones
+    const audioMessages = Math.round(monthlyConversations * audioFreq);
+    const imageMessages = Math.round(monthlyConversations * imageFreq);
+    const documentMessages = Math.round(monthlyConversations * docFreq * (multimediaStats.documentAvgPages || 1));
+
+    // Cálculo de mensajes de texto (el resto de los turnos)
+    // Audio e imagen ocupan 1 turno de IA cuando aparecen.
+    // Documento ocupa 'documentAvgPages' turnos de IA.
+    const unitsUsedByMultimedia = audioFreq + imageFreq + (docFreq * (multimediaStats.documentAvgPages || 1));
+    const textTurnsPerConv = Math.max(0, turns - unitsUsedByMultimedia);
+    const textMessages = Math.round(monthlyConversations * textTurnsPerConv);
+
+    const totalMonthlyMessages = textMessages + audioMessages + imageMessages + documentMessages;
 
     // Split traffic: IA vs Residual (Custody)
-    const iaTrafficMessages = Math.round(totalMonthlyMessages * (iaDelegationPercentage / 100));
+    const iaDelegationRatio = iaDelegationPercentage / 100;
+    const iaTrafficMessages = Math.round(totalMonthlyMessages * iaDelegationRatio);
     const residualTrafficMessages = totalMonthlyMessages - iaTrafficMessages;
 
-    // IA Distribution based on multimedia mix
-    const audioMessages = Math.round(iaTrafficMessages * (multimediaStats.audioPercentage / 10));
-    const imageMessages = Math.round(iaTrafficMessages * (multimediaStats.imagePercentage / 10));
-    const documentMessages = Math.round(iaTrafficMessages * (multimediaStats.documentPercentage / 10));
-    const textMessages = iaTrafficMessages - audioMessages - imageMessages - documentMessages;
-
     // Audio cost proportional to duration (assuming base cost is for ~60s)
-    const audioDurationRatio = (multimediaStats.audioAvgMinutes || 60) / 60; // Now stores seconds
+    const audioDurationRatio = (multimediaStats.audioAvgMinutes || 60) / 60; // Base: 60s
     const adjustedAudioCost = COSTS.audio * audioDurationRatio;
 
-    const iaCost = (textMessages * COSTS.text) + (audioMessages * adjustedAudioCost) + (imageMessages * COSTS.image) + (documentMessages * COSTS.document);
+    // Costo solo de lo delegado a la IA
+    const iaCost = (textMessages * iaDelegationRatio * COSTS.text) +
+      (audioMessages * iaDelegationRatio * adjustedAudioCost) +
+      (imageMessages * iaDelegationRatio * COSTS.image) +
+      (documentMessages * iaDelegationRatio * COSTS.document);
+
     const residualCost = residualTrafficMessages * RESIDUAL_COST;
 
     const baseCost = iaCost + residualCost;
@@ -551,10 +570,10 @@ export default function ConversationSimulator() {
       annualRevenuePotential,
       campaignCost,
       campaignMessages,
-      textCost: textMessages * COSTS.text,
-      audioCost: audioMessages * adjustedAudioCost,
-      imageCost: imageMessages * COSTS.image,
-      documentCost: documentMessages * COSTS.document,
+      textCost: (textMessages * iaDelegationRatio) * COSTS.text,
+      audioCost: (audioMessages * iaDelegationRatio) * adjustedAudioCost,
+      imageCost: (imageMessages * iaDelegationRatio) * COSTS.image,
+      documentCost: (documentMessages * iaDelegationRatio) * COSTS.document,
       residualCostMonthly: residualCost
     };
   };

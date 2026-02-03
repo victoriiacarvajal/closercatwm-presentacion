@@ -64,18 +64,39 @@ Este documento detalla las reglas de negocio, constantes y fórmulas matemática
 
 ## 3. Fórmulas de Cálculo
 
-### Volumen Total de Mensajes
-`TotalMessages = ConversationsPerMonth * EstimatedAvgTurns`
+### Volumen y Distribución de Mensajes
 
-### Desglose de Tráfico
-1. `IA_Messages = TotalMessages * (Delegation% / 100)`
-2. `Residual_Messages = TotalMessages - IA_Messages`
+El cálculo ya no aplica multimedia como un porcentaje del total de mensajes, sino como una **frecuencia de aparición por conversación**, lo que evita la sobreestimación masiva.
 
-### Cálculo de Costo Operativo
-1. `IA_Cost = (Text_Msgs * 180) + (Audio_Msgs * Adj_Audio_Cost) + (Image_Msgs * 247) + (Doc_Msgs * 180)`
-2. `Residual_Cost = Residual_Messages * 3`
-3. `Base_Cost = IA_Cost + Residual_Cost`
-4. `Adjusted_Base_Cost = Base_Cost` (Sin multiplicadores de equipo).
+1. **Variables de Frecuencia (Paso 2):**
+   - `Audio_Freq`, `Image_Freq`, `Doc_Freq` (Valores de 0 a 1, derivados de la entrada "0-10").
+
+2. **Cálculo de Unidades por Conversación:**
+   - `Multimedia_Units = Audio_Freq + Image_Freq + (Doc_Freq * Avg_Pages)`
+   - `Text_Turns = max(0, EstimatedAvgTurns - Multimedia_Units)`
+
+3. **Mensajes Totales Mensuales:**
+   - `Text_Messages = ConversationsPerMonth * Text_Turns`
+   - `Audio_Messages = ConversationsPerMonth * Audio_Freq`
+   - `Image_Messages = ConversationsPerMonth * Image_Freq`
+   - `Doc_Messages = ConversationsPerMonth * Doc_Freq * Avg_Pages`
+   - `TotalMonthlyMessages = Text_Messages + Audio_Messages + Image_Messages + Doc_Messages`
+
+### Desglose de Tráfico y Costos
+
+1. **Mensajes Delegados a IA:**
+   - `IA_Traffic_Messages = TotalMonthlyMessages * (iaDelegationPercentage / 100)`
+
+2. **Cálculo de Costo Operativo (IA + Residual):**
+   - `IA_Cost_Ratio = (iaDelegationPercentage / 100)`
+   - `IA_Cost = (Text_Messages * IA_Cost_Ratio * 180) + 
+              (Audio_Messages * IA_Cost_Ratio * Adj_Audio_Cost) + 
+              (Image_Messages * IA_Cost_Ratio * 247) + 
+              (Doc_Messages * IA_Cost_Ratio * 180)`
+   - `Residual_Messages = TotalMonthlyMessages - IA_Traffic_Messages`
+   - `Residual_Cost = Residual_Messages * 3`
+   - `Base_Cost = IA_Cost + Residual_Cost`
+   - `Adjusted_Base_Cost = Base_Cost`
 
 ### Costo de Servicios de Valor Agregado (KB, Prompting, Reports)
 `Value_Added_Services = KB_Variable_Cost + Prompting_Cost + Market_Analysis_Cost`

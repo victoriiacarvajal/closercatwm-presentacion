@@ -103,16 +103,16 @@ Costo Base = (# mensajes texto × $180) + (# mensajes audio × $256) +
 - 200 mensajes imagen/mes = 200 × $247 = $49,400
 - **Total Costo Base:** $486,200/mes
 
-#### B) Factor Multiplicador por Tamaño de Equipo
-Se aplica un multiplicador sobre el costo base según el número de comerciales:
+#### B) Costos de Líneas y Sincronización
+Ya no se aplica un multiplicador porcentual por el tamaño del equipo. En su lugar, se cobran cargos directos por conectividad:
 
-| Rango de Comerciales | Multiplicador | Justificación |
-| :--- | :--- | :--- |
-| 1-5 comerciales | +0% | Sin recargo (operación pequeña) |
-| 6-10 comerciales | +10% | Sincronización multi-número básica |
-| 11-20 comerciales | +20% | Complejidad media de coordinación |
-| 21-50 comerciales | +30% | Alta complejidad de gestión |
-| 50+ comerciales | +50% | Enterprise, múltiples equipos/regiones |
+- **Línea Personal (WA Web):** $25,000 COP/mes por cada línea vinculada.
+- **Línea Institucional (API):** $450,000 COP (Setup único por línea). Sin cargo mensual por CloserCat.
+
+**Estrategias de Gestión:**
+1. **Descentralizada:** Solo se paga Setup de 1 línea institucional. WhatsApps personales no tienen costo de sincronización.
+2. **Mixta:** Cargos por líneas personales ($25k/mes) + Setup institucional.
+3. **Institucional:** Solo Setup por cada línea API habilitada.
 
 **Fórmula:**
 ```
@@ -145,12 +145,14 @@ Total Integración = $791,667/mes (primer año)
 #### D) Servicios a Demanda
 Costos mensuales recurrentes:
 
-| Servicio | Costo Mensual | Detalle |
+| Servicio | Costo | Detalle |
 | :--- | :--- | :--- |
 | **Campañas Masivas** | $66/msg | Basado en volumen de contactos abordados |
-| **Reportes Personalizados** | $200,000 | Dashboards custom + exportación |
-| **Migración Asistida** | $800,000 | Pago único, incluye invitaciones automáticas |
-| **Líneas Adicionales** | $100,000/línea | Por cada número WhatsApp extra |
+| **Intelligence Reports** | $450,000/mes | Análisis de Sentiment y tendencias de mercado |
+| **Asesoría Prompting Custom** | $250,000/mes | Diseño de tono de voz y personalidad IA |
+| **Capacidad KB Extra** | Ver abajo | Bloques adicionales de conocimiento |
+| **Migración Histórica** | $50/msg | Procesamiento y vectorización de chats antiguos |
+| **Líneas Adicionales** | $100,000/línea | Cargo por gestión de línea extra (Setup) |
 | **Onboarding Asistido** | $600,000 | Pago único, sesión de 2 horas |
 
 ### 6.2. Fórmula Completa de Cotización
@@ -166,9 +168,9 @@ Cotización Mensual =
 
 Para dar rango de inversión, aplicamos metodología PERT:
 
-- **Optimista (-20%):** Escenario ideal, bajo uso de multimedia, sin picos
-- **Esperado:** Promedio ponderado = (Optimista + 4×Base + Pesimista) / 6
-- **Pesimista (+30%):** Escenario conservador, alto uso multimedia, picos de demanda
+- **Optimista (-10%):** Escenario ideal, bajo uso de multimedia o alta eficiencia de IA.
+- **Esperado:** 100% de la proyección calculada.
+- **Pesimista (+10%):** Escenario conservador, alto uso multimedia o picos de tráfico.
 
 ### 6.4. Ejemplos Completos de Cotización
 
@@ -183,31 +185,30 @@ Para dar rango de inversión, aplicamos metodología PERT:
 
 **Cálculo:**
 ```
-1. Mensajes totales = 1,500 conv × 3 turnos = 4,500 msgs/mes
-   - Texto (70%): 3,150 × $180 = $567,000
-   - Audio (20%): 900 × $256 = $230,400
-   - Imagen (10%): 450 × $247 = $111,150
-   Costo Base = $908,550
+1. Distribución de Mensajes (Frecuencia en 1,500 conversaciones):
+   - Audios: 1,500 × 0.20 = 300 msgs × $256 = $76,800
+   - Imágenes: 1,500 × 0.10 = 150 msgs × $247 = $37,050
+   - Unidades Multimedia: 0.20 + 0.10 = 0.30 unidades/conv.
+   - Turnos de Texto: 3.0 (Avg) - 0.30 = 2.70 turnos/conv.
+   - Texto: 1,500 × 2.70 = 4,050 msgs × $180 = $729,000
+   Costo Base IA = $842,850
 
-2. Factor Equipo (5 comerciales): +0%
-   Costo Ajustado = $908,550
+2. Costo de Líneas (5 comerciales):
+   - Estrategia Descentralizada: $0/mes
+   Costo Ajustado = $842,850
 
-3. Integraciones:
-   - CRM Custom: $500,000/mes
-   - Setup amortizado: $291,667/mes
-   Total Integraciones = $791,667
+3. Integraciones y Servicios:
+   - CRM Custom (Amortizado): $791,667/mes
+   - Campañas (500 × $66): $33,000
+   - Intelligence Reports: $450,000/mes
+   Total Otros = $1,274,667
 
-4. Servicios a Demanda:
-   - Campañas (500 × 1 × $66): $33,000
-   - Reportes: $200,000
-   Total Servicios = $233,000
+TOTAL MENSUAL = $842,850 + $1,274,667 = $2,117,517
 
-TOTAL MENSUAL = $908,550 + $791,667 + $233,000 = $1,933,217
-
-Proyección PERT:
-- Optimista: $1,760,174
-- Esperado: $2,200,217
-- Pesimista: $2,860,282
+Proyección PERT (+/- 10%):
+- Optimista: $1,905,765
+- Esperado: $2,117,517
+- Pesimista: $2,329,268
 ```
 
 #### Ejemplo 2: Operación Mediana (15 comerciales)
@@ -221,31 +222,30 @@ Proyección PERT:
 
 **Cálculo:**
 ```
-1. Mensajes totales = 3,000 × 4 = 12,000 msgs/mes
-   - Texto (80%): 9,600 × $180 = $1,728,000
-   - Audio (15%): 1,800 × $256 = $460,800
-   - Imagen (5%): 600 × $247 = $148,200
-   Costo Base = $2,337,000
+1. Distribución de Mensajes (Frecuencia en 3,000 conversaciones):
+   - Audios: 3,000 × 0.15 = 450 msgs × $256 = $115,200
+   - Imágenes: 3,000 × 0.05 = 150 msgs × $247 = $37,050
+   - Unidades Multimedia: 0.15 + 0.05 = 0.20 unidades/conv.
+   - Turnos de Texto: 4.0 - 0.20 = 3.80 turnos/conv.
+   - Texto: 3,000 × 3.80 = 11,400 msgs × $180 = $2,052,000
+   Costo Base IA = $2,204,250
 
-2. Factor Equipo (15 comerciales): +20%
-   Costo Ajustado = $2,337,000 × 1.20 = $2,804,400
+2. Costo de Líneas (Estrategia Mixta - 15 comerciales):
+   - Líneas Personales: 15 × $25,000 = $375,000/mes
+   Costo Operativo = $2,579,250
 
-3. Integraciones:
-   - CRM Custom: $0/mes (setup $3.5M amortizado = $291,666/mes)
-   - Sistema Propio: $300,000/mes (setup $2M amortizado = $166,667/mes)
-   Total Integraciones = $591,667
+3. Integraciones y Servicios:
+   - CRM + Sistema Propio (Amortizado): $591,667
+   - Campañas (4,000 × $66): $264,000
+   - Asesoría Prompting: $250,000/mes
+   Total Otros = $1,105,667
 
-4. Servicios a Demanda:
-   - Campañas (2,000 × 2 × $66): $264,000
-   - Migración Asistida: $800,000 (pago único, amortizado = $66,667/mes)
-   Total Servicios = $330,667
+TOTAL MENSUAL = $2,579,250 + $1,105,667 = $3,684,917
 
-TOTAL MENSUAL = $2,804,400 + $591,667 + $330,667 = $3,726,734
-
-Proyección PERT:
-- Optimista: $3,010,187
-- Esperado: $3,762,734
-- Pesimista: $4,891,554
+Proyección PERT (+/- 10%):
+- Optimista: $3,316,425
+- Esperado: $3,684,917
+- Pesimista: $4,053,408
 ```
 
 #### Ejemplo 3: Operación Grande (30 comerciales)
@@ -259,32 +259,31 @@ Proyección PERT:
 
 **Cálculo:**
 ```
-1. Mensajes totales = 8,000 × 5 = 40,000 msgs/mes
-   - Texto (65%): 26,000 × $180 = $4,680,000
-   - Audio (25%): 10,000 × $256 = $2,560,000
-   - Imagen (10%): 4,000 × $247 = $988,000
-   Costo Base = $8,228,000
+1. Distribución de Mensajes (Frecuencia en 8,000 conversaciones):
+   - Audios: 8,000 × 0.25 = 2,000 msgs × $256 = $512,000
+   - Imágenes: 8,000 × 0.10 = 800 msgs × $247 = $197,600
+   - Unidades Multimedia: 0.25 + 0.10 = 0.35 unidades/conv.
+   - Turnos de Texto: 5.0 - 0.35 = 4.65 turnos/conv.
+   - Texto: 8,000 × 4.65 = 37,200 msgs × $180 = $6,696,000
+   Costo Base IA = $7,405,600
 
-2. Factor Equipo (30 comerciales): +30%
-   Costo Ajustado = $8,228,000 × 1.30 = $10,696,400
+2. Costo de Líneas (Estrategia Institucional - 30 comerciales):
+   - Líneas institucionales (Setup amortizado): (4 líneas * $450k) / 12 = $150,000/mes
+   - 3 líneas adicionales (Fee mensual): 3 * $100,000 = $300,000
+   Costo Operativo = $7,855,600
 
-3. Integraciones:
-   - CRM Custom: $500,000/mes + setup $291,667/mes
-   - ERP Custom: $800,000/mes + setup $291,667/mes
-   Total Integraciones = $1,883,334
+3. Integraciones y Servicios:
+   - CRM + ERP (Amortizado): $1,883,334
+   - Campañas (40,000 × $66): $2,640,000
+   - Intelligence Reports: $450,000/mes
+   Total Otros = $4,973,334
 
-4. Servicios a Demanda:
-   - Campañas (10,000 × 4 × $66): $2,640,000
-   - Reportes: $200,000
-   - 3 Líneas adicionales: 3 × $100,000 = $300,000
-   Total Servicios = $3,140,000
+TOTAL MENSUAL = $7,855,600 + $4,973,334 = $12,828,934
 
-TOTAL MENSUAL = $10,696,400 + $1,883,334 + $3,140,000 = $15,719,734
-
-Proyección PERT:
-- Optimista: $10,703,787
-- Esperado: $13,379,734
-- Pesimista: $17,393,654
+Proyección PERT (+/- 10%):
+- Optimista: $11,546,041
+- Esperado: $12,828,934
+- Pesimista: $14,111,827
 ```
 
 ### 6.5. Descuentos por Volumen
@@ -323,10 +322,10 @@ Ahorro = $2,788,000/mes (34% de descuento)
    - No hay costo adicional por sincronizar números de comerciales
    - Límite: hasta 100 números por cuenta
 
-4. **Knowledge Base Unificado:**
-   - Incluido en todos los planes
-   - Límite: 10,000 items (productos/FAQs)
-   - Sin costo adicional
+4. **Knowledge Base Dinámico:**
+   - **Incluido:** 500 items (productos/FAQs).
+   - **Tramo 1 (501-2000):** $40,000 por cada bloque de 500 extra.
+   - **Tramo 2 (>2000):** $120,000 por cada bloque de 1000 extra.
 
 5. **Onboarding y Capacitación:**
    - Recomendado para equipos >10 comerciales
