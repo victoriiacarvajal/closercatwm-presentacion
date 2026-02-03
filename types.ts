@@ -42,7 +42,13 @@ export type SegmentType =
   | 'b2b'
   | 'soporte'
   | 'otras-industrias'
-  | 'profesionales-independientes';
+  | 'profesionales-independientes'
+  | 'recursos/estudio-anatomia-conversaciones'
+  | 'recursos'
+  | 'recursos/falla-1-continuidad-rota'
+  | 'recursos/falla-2-memoria-inexistente'
+  | 'recursos/falla-3-automatizacion-mal-entendida'
+  | 'recursos/falla-4-escalamiento-caotico';
 
 export type BadgeColor = 'blue' | 'green' | 'gray' | 'purple';
 

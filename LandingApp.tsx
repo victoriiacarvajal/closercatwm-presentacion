@@ -7,6 +7,13 @@ import LandingEmprendedores from './components/landing/LandingEmprendedores';
 import LandingOtrasIndustrias from './components/landing/LandingOtrasIndustrias';
 import LandingPlaceholder from './components/landing/LandingPlaceholder';
 import LandingProfesionalesIndependientes from './components/landing/LandingProfesionalesIndependientes';
+import StudyAnatomy from './components/resources/StudyAnatomy';
+import ResourcesHub from './components/resources/ResourcesHub';
+import Falla1Continuidad from './components/resources/articles/Falla1Continuidad';
+import Falla2Memoria from './components/resources/articles/Falla2Memoria';
+import Falla3Automatizacion from './components/resources/articles/Falla3Automatizacion';
+import Falla4Escalamiento from './components/resources/articles/Falla4Escalamiento';
+
 const LandingApp: React.FC = () => {
   const segment = getSegmentFromUrl();
 
@@ -34,6 +41,24 @@ const LandingApp: React.FC = () => {
 
     case 'profesionales-independientes':
       return <LandingProfesionalesIndependientes />;
+
+    case 'recursos/estudio-anatomia-conversaciones':
+      return <StudyAnatomy />;
+
+    case 'recursos':
+      return <ResourcesHub />;
+
+    case 'recursos/falla-1-continuidad-rota':
+      return <Falla1Continuidad />;
+
+    case 'recursos/falla-2-memoria-inexistente':
+      return <Falla2Memoria />;
+
+    case 'recursos/falla-3-automatizacion-mal-entendida':
+      return <Falla3Automatizacion />;
+
+    case 'recursos/falla-4-escalamiento-caotico':
+      return <Falla4Escalamiento />;
 
     case 'ecommerce':
     case 'b2b':

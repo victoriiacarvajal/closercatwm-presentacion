@@ -47,7 +47,13 @@ export function getSegmentFromUrl(): SegmentType | null {
     'b2b',
     'soporte',
     'otras-industrias',
-    'profesionales-independientes'
+    'profesionales-independientes',
+    'recursos/estudio-anatomia-conversaciones',
+    'recursos',
+    'recursos/falla-1-continuidad-rota',
+    'recursos/falla-2-memoria-inexistente',
+    'recursos/falla-3-automatizacion-mal-entendida',
+    'recursos/falla-4-escalamiento-caotico'
   ];
 
   // 1. Check pathname (semantic URL: /formacion)

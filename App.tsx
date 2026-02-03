@@ -581,7 +581,12 @@ const RootApp: React.FC = () => {
   // 3. Detect Segment (Path prioritized over Query)
   const validSegments = [
     'emprendedores', 'formacion', 'ecommerce', 'b2b', 'soporte',
-    'otras-industrias', 'profesionales-independientes'
+    'otras-industrias', 'profesionales-independientes',
+    'recursos/estudio-anatomia-conversaciones',
+    'recursos', 'recursos/falla-1-continuidad-rota',
+    'recursos/falla-2-memoria-inexistente',
+    'recursos/falla-3-automatizacion-mal-entendida',
+    'recursos/falla-4-escalamiento-caotico'
   ];
   const segmentFromPath = validSegments.includes(path) ? path : null;
   const segmentFromQuery = params.get('segment');
@@ -608,7 +613,8 @@ const RootApp: React.FC = () => {
   }
 
   // 5. Decision Logic
-  const isPresentation = mode === 'presentation' || Boolean(activePresentationId);
+  const isSegment = Boolean(activeSegment);
+  const isPresentation = (mode === 'presentation' || Boolean(activePresentationId)) && !isSegment;
 
   // Si es prodemo pero no hay datos válidos (ni en URL ni en localStorage),
   // verificamos el patrón del ID antes de permitir mostrar la presentación genérica
