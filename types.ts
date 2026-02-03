@@ -8,9 +8,11 @@ export enum SlideType {
   GRID = 'GRID',
   DASHBOARD = 'DASHBOARD', // For large screenshots
   COMPARISON_TABLE = 'COMPARISON_TABLE',
-  PRICING = 'PRICING',
   TIMELINE = 'TIMELINE',
+  PRICING = 'PRICING',
   CALENDLY = 'CALENDLY',
+  PRICING_LOGIC = 'PRICING_LOGIC',
+  CONTACT = 'CONTACT',
 }
 
 export interface SlideData {

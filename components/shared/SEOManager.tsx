@@ -12,7 +12,7 @@ const DEFAULT_META: MetaContent = {
     title: 'CloserCat Pro | WhatsApp Business + IA para Equipos Comerciales',
     description: 'Centraliza los WhatsApps personales de tu equipo comercial en un solo dashboard con IA. Respaldo automático, CRM y protección anti-bloqueo.',
     image: '/logo-closercat.png',
-    url: 'https://pro.closercat.com', // Base URL assumption
+    url: 'https://closercat.pro', // Base URL assumption
 };
 
 const SEGMENT_META: Record<string, Partial<MetaContent>> = {

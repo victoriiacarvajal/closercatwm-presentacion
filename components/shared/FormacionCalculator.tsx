@@ -138,7 +138,7 @@ export default function FormacionCalculator() {
 
   const handleSubmitForm = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.whatsapp || !formData.email) {
       alert('Por favor completa todos los campos requeridos');
       return;
@@ -308,7 +308,7 @@ export default function FormacionCalculator() {
 
         <div className="mt-6 pt-3 border-t-2 border-gray-300 text-center text-xs text-gray-600">
           <p className="mb-1"><strong>CloserCat</strong> - Automatización para Educación</p>
-          <p>www.closercat.com · contacto@closercat.com</p>
+          <p>www.closercat.pro · contacto@closercat.pro</p>
           <p className="mt-2 text-xs">Esta cotización es válida por 30 días a partir de la fecha de emisión.</p>
         </div>
       </div>
@@ -404,9 +404,8 @@ export default function FormacionCalculator() {
             return (
               <div
                 key={plan.name}
-                className={`relative rounded-xl border-2 p-6 transition-all hover:shadow-lg ${
-                  showRecommended ? 'border-purple-400 bg-purple-50' : 'border-gray-200 bg-white'
-                }`}
+                className={`relative rounded-xl border-2 p-6 transition-all hover:shadow-lg ${showRecommended ? 'border-purple-400 bg-purple-50' : 'border-gray-200 bg-white'
+                  }`}
               >
                 {showRecommended && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -446,11 +445,10 @@ export default function FormacionCalculator() {
 
                 <button
                   onClick={() => handleSelectPlan(plan)}
-                  className={`w-full px-4 py-3 rounded-lg font-poppins font-bold transition-all ${
-                    showRecommended
+                  className={`w-full px-4 py-3 rounded-lg font-poppins font-bold transition-all ${showRecommended
                       ? 'text-white'
                       : 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                    }`}
                   style={showRecommended ? { background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)' } : {}}
                 >
                   Seleccionar {plan.name}
@@ -640,7 +638,7 @@ export default function FormacionCalculator() {
             <h4 className="font-poppins font-bold mb-4" style={{ color: '#121212' }}>
               ✨ Lo que incluye tu plan
             </h4>
-            
+
             <div className="grid md:grid-cols-2 gap-3">
               {selectedPlan.features.map((feature, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
@@ -656,7 +654,7 @@ export default function FormacionCalculator() {
             <h4 className="font-poppins font-bold mb-4" style={{ color: '#121212' }}>
               📊 Resumen de tus necesidades
             </h4>
-            
+
             <div className="grid md:grid-cols-3 gap-4">
               <div className="text-center p-3 bg-white rounded-lg">
                 <div className="text-2xl font-mono font-bold mb-1" style={{ color: '#8336FF' }}>
@@ -677,7 +675,7 @@ export default function FormacionCalculator() {
                 <div className="text-xs font-inter" style={{ color: '#6b7280' }}>Mensajes estimados/mes</div>
               </div>
             </div>
-            
+
             <p className="text-xs text-center font-inter mt-4" style={{ color: '#6b7280' }}>
               💡 Tu plan {selectedPlan.name} incluye {selectedPlan.messages.toLocaleString()} mensajes/mes, ideal para {selectedPlan.students}
             </p>

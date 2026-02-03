@@ -694,6 +694,22 @@ export const SLIDES: SlideData[] = [
   // SECCIÓN 14: PRECIOS Y SERVICIOS
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // SLIDE 49: LÓGICA DE INVERSIÓN (TRANSPARENCY SLIDE)
+  {
+    id: 49,
+    type: SlideType.PRICING_LOGIC, // New slide type to be handled in SlideTemplates
+    title: "La matemática de tu inversión",
+    subtitle: "Cómo calculamos cada centavo para garantizar tu retorno",
+    content: "En CloserCat no creemos en 'tarifas planas' que esconden ineficiencias. Nuestro modelo cobra exactamente por lo que usas y por el valor que recibes.",
+    bullets: [
+      "📉 Frecuencia Real: Si solo 2 de cada 10 clientes envían audio, solo cobramos 2 audios.",
+      "🤖 Delegación Inteligente: Solo pagas procesamiento IA cuando la IA trabaja. El tráfico humano es casi gratis.",
+      "📊 Proyección PERT: Te damos un rango realista (+/- 10%) para que tu presupuesto sea sólido.",
+      "🛡️ Sin Sorpresas: Estructura de costos transparente y auditable mes a mes."
+    ],
+    extraText: "Esta transparencia nos permite ser socios de tu crecimiento, no un gasto fijo incontrolable.",
+  },
+
   // SLIDE 22: PRECIOS POR MENSAJES (SUSCRIPCIÓN)
   {
     id: 22,

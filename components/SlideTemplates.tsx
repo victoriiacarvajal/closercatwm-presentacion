@@ -974,6 +974,82 @@ export const CalendlySlide: React.FC<TemplateProps> = ({ data, personalizedData 
             </ul>
           </div>
 
+          {/* -------------------------------------------------------------------------
+    // CASE: PRICING_LOGIC (New Transparency Slide)
+    // ------------------------------------------------------------------------- */}
+          {/* This is a placeholder for a switch statement that would contain this case.
+        The instruction implies this case should be added within such a switch.
+        For now, it's placed here as per the instruction's context. */}
+          {/* case SlideType.PRICING_LOGIC: */}
+          {/* const bullets = slide.bullets || []; */}
+          {/* return ( */}
+          <div className="h-full flex flex-col justify-center px-16 relative">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-indigo-600"></div>
+
+            <div className="max-w-4xl mx-auto w-full">
+              <div className="mb-8">
+                <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wide mb-4">
+                  Transparencia Total
+                </span>
+                <h2 className="text-4xl font-extrabold text-slate-900 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  {/* {slide.title} */}
+                </h2>
+                <p className="text-xl text-slate-600 leading-relaxed font-light">
+                  {/* {slide.subtitle} */}
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6">
+                  <p className="text-base text-gray-700 leading-relaxed border-l-4 border-purple-200 pl-4 italic">
+                    {/* "{slide.content}" */}
+                  </p>
+
+                  <div className="space-y-4 pt-2">
+                    {/* {bullets.map((bullet, idx) => ( */}
+                    <div key={0} className="flex items-start bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                      <span className="text-xl mr-3 mt-1 select-none text-purple-600">{/* bullet.split(':')[0].trim() */}</span> {/* Emoji/Icon */}
+                      <div>
+                        <strong className="text-gray-800 block text-sm mb-1">{/* bullet.split(':')[0].replace(/^[^\w\s]+/, '').trim() */}</strong>
+                        <span className="text-sm text-gray-600 block">{/* bullet.split(':')[1]?.trim() || bullet */}</span>
+                      </div>
+                    </div>
+                    {/* ))} */}
+                  </div>
+                </div>
+
+                {/* Visual Metaphor for Logic */}
+                <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200 shadow-inner flex flex-col justify-between h-full">
+                  <div className="text-center mb-6">
+                    <div className="text-xs uppercase text-gray-400 font-bold tracking-widest mb-2">Fórmula de Éxito</div>
+                    <div className="text-2xl font-mono text-purple-800 font-bold bg-white p-4 rounded shadow-sm inline-block border border-purple-100">
+                      (Uso Real × Valor) + Control
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 text-xs text-gray-500">
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                      <span>Audio 30s</span>
+                      <span className="font-mono">$256</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                      <span>Texto IA</span>
+                      <span className="font-mono">$180</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+                      <span>Tráfico Humano</span>
+                      <span className="font-mono font-bold text-green-600">$0 (Casi)</span>
+                    </div>
+                    <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded text-center font-bold">
+                      = ROI +10x Garantizado
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* ); */}
+
           <div className="pt-6 border-t border-gray-100 flex flex-col gap-4">
             <div className="flex items-center gap-4 text-gray-400">
               <div className="flex -space-x-4">
@@ -982,7 +1058,6 @@ export const CalendlySlide: React.FC<TemplateProps> = ({ data, personalizedData 
                     <img
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + (personalizedData?.id || 'cc')}`}
                       alt="testimonio"
-                      className="w-full h-full object-cover"
                     />
                   </div>
                 ))}

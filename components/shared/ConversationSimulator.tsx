@@ -574,7 +574,14 @@ export default function ConversationSimulator() {
       audioCost: (audioMessages * iaDelegationRatio) * adjustedAudioCost,
       imageCost: (imageMessages * iaDelegationRatio) * COSTS.image,
       documentCost: (documentMessages * iaDelegationRatio) * COSTS.document,
-      residualCostMonthly: residualCost
+      residualCostMonthly: residualCost,
+      // Unit costs for UI display
+      unitCosts: {
+        text: COSTS.text,
+        audio: adjustedAudioCost,
+        multimedia: COSTS.image, // Using image as representative for the card
+        human: RESIDUAL_COST
+      }
     };
   };
 
@@ -2032,24 +2039,36 @@ export default function ConversationSimulator() {
             <h3 className="text-[11px] font-bold mb-1 pb-0.5 border-b border-gray-300" style={{ fontFamily: 'Poppins, sans-serif' }}>Detalle de Consumo Mensual</h3>
             <div className="grid grid-cols-4 gap-2">
               <div className="p-1.5 border border-gray-100 rounded">
-                <div className="text-[7px] text-gray-400 uppercase font-bold">Texto</div>
-                <div className="text-[9px] font-bold">{projection.textMessages.toLocaleString()} msgs</div>
-                <div className="text-[8px] text-purple-600">{formatCurrency(projection.textCost)}</div>
+                <div className="text-[7px] text-gray-400 uppercase font-bold">Texto (IA)</div>
+                <div className="flex justify-between items-end">
+                  <div className="text-[9px] font-bold">{Math.round(projection.textMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.text}</div>
+                </div>
+                <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.textCost)}</div>
               </div>
               <div className="p-1.5 border border-gray-100 rounded">
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Audio IA</div>
-                <div className="text-[9px] font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
-                <div className="text-[8px] text-purple-600">{formatCurrency(projection.audioCost)}</div>
+                <div className="flex justify-between items-end">
+                  <div className="text-[9px] font-bold">{Math.round(projection.audioMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                  <div className="text-[7px] text-gray-400">@ ${Math.round(projection.unitCosts.audio)}</div>
+                </div>
+                <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.audioCost)}</div>
               </div>
               <div className="p-1.5 border border-gray-100 rounded">
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Multimedia</div>
-                <div className="text-[9px] font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
-                <div className="text-[8px] text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
+                <div className="flex justify-between items-end">
+                  <div className="text-[9px] font-bold">{Math.round((projection.imageMessages + projection.documentMessages) * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                  <div className="text-[7px] text-gray-400">@ ${projection.unitCosts.multimedia}</div>
+                </div>
+                <div className="text-[8px] text-purple-600 font-bold">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
               </div>
               <div className="p-1.5 border border-gray-100 rounded">
                 <div className="text-[7px] text-gray-400 uppercase font-bold">Int. Humana</div>
-                <div className="text-[9px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
-                <div className="text-[8px] text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+                <div className="flex justify-between items-end">
+                  <div className="text-[9px] font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+                  <div className="text-[7px] text-blue-400">@ ${projection.unitCosts.human}</div>
+                </div>
+                <div className="text-[8px] text-blue-600 font-bold">{formatCurrency(projection.residualCostMonthly)}</div>
               </div>
             </div>
           </div>
@@ -2209,7 +2228,27 @@ export default function ConversationSimulator() {
             <h2 className="text-lg font-bold uppercase tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>Glosario de Servicios y Compromiso</h2>
           </div>
 
+
           <div className="space-y-6 text-xs text-gray-700 leading-relaxed">
+            {/* Logic Breakdown (Print Only) */}
+            <section className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-[9px]">
+              <h3 className="text-sm font-bold text-gray-800 mb-2 uppercase tracking-wide border-b border-gray-200 pb-1">Desglose de Lógica de Cálculo</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="font-bold text-gray-700">1. Definición de Volumen:</p>
+                  <p>Se calculan <strong>{(projection.conversationsPerMonth * projection.avgTurnsPerConversation).toLocaleString()} turnos totales</strong> basados en {projection.conversationsPerMonth.toLocaleString()} conversaciones de {projection.avgTurnsPerConversation} interacciones promedio.</p>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700">2. Costos Unitarios (IA):</p>
+                  <p>El procesamiento activo de IA se factura por mensaje: <strong>Texto (${projection.unitCosts.text})</strong>, <strong>Audio (~${Math.round(projection.unitCosts.audio)})</strong> y <strong>Multimedia (${projection.unitCosts.multimedia})</strong>. El tráfico humano residual solo paga infraestructura (<strong>${projection.unitCosts.human}</strong>).</p>
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700">3. Modelo de Delegación:</p>
+                  <p>Solo el <strong>{projection.iaPercentage}%</strong> del tráfico total incurre en costo de IA. El <strong>{projection.humanPercentage}%</strong> restante paga tarifa residual.</p>
+                </div>
+              </div>
+            </section>
+
             <section>
               <h3 className="text-sm font-bold text-purple-900 mb-1">1. Base Operativa (IA + Residual)</h3>
               <p>
@@ -2270,7 +2309,7 @@ export default function ConversationSimulator() {
 
           <div className="mt-12 text-center text-[10px] text-gray-400">
             <p>CloserCat - Inteligencia Artificial para el Cierre de Ventas</p>
-            <p>www.closercat.com</p>
+            <p>www.closercat.pro</p>
           </div>
         </div>
 
@@ -2294,7 +2333,7 @@ export default function ConversationSimulator() {
                 href={`?presentationId=prodemo&quoteId=${quoteId}`}
                 className="text-2xl font-mono font-bold text-purple-900 tracking-tight hover:underline"
               >
-                closercat.com/prodemo/{quoteId || 'loading...'}
+                closercat.pro/prodemo/{quoteId || 'loading...'}
               </a>
             </div>
 
@@ -2410,27 +2449,42 @@ export default function ConversationSimulator() {
         <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
           <h4 className="font-poppins font-bold mb-4 text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
             <span className="text-purple-600">📊</span> Consumo Mensual Estimado
+            <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 py-1 px-2 rounded-full font-normal">
+              Volumen Facturable (IA) + Custodia
+            </span>
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Texto</div>
-              <div className="text-sm font-bold">{projection.textMessages.toLocaleString()} msgs</div>
-              <div className="text-xs text-purple-600">{formatCurrency(projection.textCost)}</div>
+              <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Texto (IA)</div>
+              <div className="flex justify-between items-end">
+                <div className="text-sm font-bold">{Math.round(projection.textMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                <div className="text-[10px] text-gray-400">@ ${projection.unitCosts.text}</div>
+              </div>
+              <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.textCost)}</div>
             </div>
             <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Audio (IA)</div>
-              <div className="text-sm font-bold">{projection.audioMessages.toLocaleString()} msgs</div>
-              <div className="text-xs text-purple-600">{formatCurrency(projection.audioCost)}</div>
+              <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Audio (IA)</div>
+              <div className="flex justify-between items-end">
+                <div className="text-sm font-bold">{Math.round(projection.audioMessages * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                <div className="text-[10px] text-gray-400">@ ${Math.round(projection.unitCosts.audio)}</div>
+              </div>
+              <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.audioCost)}</div>
             </div>
             <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Multimedia</div>
-              <div className="text-sm font-bold">{(projection.imageMessages + projection.documentMessages).toLocaleString()} msgs</div>
-              <div className="text-xs text-purple-600">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
+              <div className="text-[10px] text-purple-700 uppercase font-bold mb-1">Multimedia (IA)</div>
+              <div className="flex justify-between items-end">
+                <div className="text-sm font-bold">{Math.round((projection.imageMessages + projection.documentMessages) * (projection.iaPercentage / 100)).toLocaleString()} msgs</div>
+                <div className="text-[10px] text-gray-400">@ ${projection.unitCosts.multimedia}</div>
+              </div>
+              <div className="text-xs text-purple-600 font-mono mt-1 font-bold">{formatCurrency(projection.imageCost + projection.documentCost)}</div>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Int. Humana</div>
-              <div className="text-sm font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
-              <div className="text-xs text-blue-600">{formatCurrency(projection.residualCostMonthly)}</div>
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="text-[10px] text-blue-700 uppercase font-bold mb-1">Int. Humana</div>
+              <div className="flex justify-between items-end">
+                <div className="text-sm font-bold">{projection.residualTrafficMessages.toLocaleString()} msgs</div>
+                <div className="text-[10px] text-blue-400">@ ${projection.unitCosts.human}</div>
+              </div>
+              <div className="text-xs text-blue-600 font-mono mt-1 font-bold">{formatCurrency(projection.residualCostMonthly)}</div>
             </div>
           </div>
         </div>
@@ -2528,6 +2582,7 @@ export default function ConversationSimulator() {
           </div>
         </div>
 
+
         {/* Análisis de Demanda y Eficiencia */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="p-6 bg-gray-50 rounded-xl border border-gray-100">
@@ -2552,11 +2607,35 @@ export default function ConversationSimulator() {
                 </div>
               </div>
             </div>
+
+            <details className="mt-4 pt-3 border-t border-gray-200 group">
+              <summary className="text-[10px] font-bold text-purple-500 cursor-pointer flex items-center gap-1 hover:text-purple-700 focus:outline-none select-none">
+                <span className="group-open:rotate-90 transition-transform">▸</span> ¿Cómo llegamos a estos números?
+              </summary>
+              <div className="text-[9px] text-gray-500 mt-2 pl-2 border-l-2 border-purple-100 space-y-2 animate-in slide-in-from-top-2">
+                <p>
+                  <strong className="text-gray-700">1. Volumen Base:</strong> {projection.conversationsPerMonth.toLocaleString()} convs × {projection.avgTurnsPerConversation} turnos/conv = <strong>{(projection.conversationsPerMonth * projection.avgTurnsPerConversation).toLocaleString()} turnos totales.</strong>
+                </p>
+                <p>
+                  <strong className="text-gray-700">2. Frecuencia Multimedia:</strong>
+                  <br />• Audio ({multimediaStats.audioPercentage / 10} de 10): {projection.audioMessages.toLocaleString()} msgs
+                  <br />• Imágenes ({multimediaStats.imagePercentage / 10} de 10): {projection.imageMessages.toLocaleString()} msgs
+                </p>
+                <p>
+                  <strong className="text-gray-700">3. Texto Restante:</strong>
+                  <br />Los turnos no usados por multimedia se calculan como texto: <strong>{projection.textMessages.toLocaleString()} msgs.</strong>
+                </p>
+                <p className="italic text-purple-600 bg-purple-50 p-1 rounded">
+                  * La IA solo cobra procesamiento por los mensajes que gestiona ({projection.iaPercentage}% del total). El resto paga solo tarifa residual de infraestructura (${RESIDUAL_COST} COP).
+                </p>
+              </div>
+            </details>
           </div>
 
+
           <div className="p-6 bg-green-50 rounded-xl border border-green-100 flex flex-col justify-center">
-            <h4 className="font-poppins font-bold mb-2 text-green-800 text-center">
-              Métrica de Eficiencia
+            <h4 className="font-poppins font-bold mb-2 text-green-800 text-center uppercase tracking-widest text-xs">
+              Eficiencia Operativa
             </h4>
             <div className="text-center">
               <div className="text-xs text-green-600 uppercase font-bold mb-1">Costo Promedio por Conversación</div>
@@ -2564,11 +2643,12 @@ export default function ConversationSimulator() {
                 {formatCurrency(projection.costPerConversation)}
               </div>
               <p className="text-[10px] text-green-600 mt-2 italic px-4">
-                * Basado en el volumen de {projection.conversationsPerMonth.toLocaleString()} conversaciones mensuales bajo la lógica de delegación configurada.
+                * Incluye IA, gestión, licencias y servicios divididos por el volumen total de conversaciones.
               </p>
             </div>
           </div>
         </div>
+
 
         {/* Comparativa de Estrategia: Actual vs CloserCat (Expanded Scenarios) */}
         <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
