@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Share2, Clock, Calendar, ArrowRight, CheckCircle, AlertTriangle, BookOpen } from 'lucide-react';
+import { Share2, Clock, Calendar, ArrowRight, CheckCircle, AlertTriangle, BookOpen, ArrowLeft } from 'lucide-react';
 import { clarityEvent } from '../../utils/tracking';
 
 export default function StudyAnatomy() {
@@ -64,77 +64,90 @@ export default function StudyAnatomy() {
     };
 
     return (
-        <div className="min-h-screen bg-[#fffef9] text-[#1a1a1a] font-sans selection:bg-yellow-200">
+        <div className="min-h-screen bg-white text-brand-black font-inter selection:bg-brand-blue-primary/20">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
             {/* Navigation */}
             <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50 h-16 flex items-center justify-between px-6 lg:px-12">
-                <a href="/" className="flex items-center gap-2 text-xl font-bold font-poppins tracking-tight hover:opacity-80 transition-opacity">
-                    <span className="text-2xl">🐈</span>
-                    <span>CloserCat</span>
-                    <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500 font-medium">Research</span>
+                <a href="/recursos" className="flex items-center gap-2 text-gray-500 hover:text-brand-purple-closer transition-colors font-poppins text-sm font-medium">
+                    <ArrowLeft size={18} />
+                    <span className="hidden sm:inline">Volver a Recursos</span>
+                </a>
+                <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <img
+                        src="/logo-closercat.png"
+                        alt="CloserCat Pro"
+                        className="h-10 w-auto"
+                    />
                 </a>
                 <a
                     href="/?mode=presentation&presentationId=prodemo"
-                    className="text-sm font-medium bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800 transition-colors hidden sm:block"
+                    className="text-sm font-poppins font-semibold text-white px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
+                    style={{
+                        background: 'linear-gradient(135deg, #08C4F4 0%, #8336FF 100%)',
+                    }}
                 >
-                    Ver Demo Interactiva
+                    Ver Demo
                 </a>
             </nav>
 
             <main className="pt-32 pb-20 px-6 max-w-[800px] mx-auto">
                 {/* Header */}
-                <header className="mb-12 border-b-2 border-black/80 pb-10">
-                    <div className="text-amber-600 font-bold uppercase tracking-widest text-xs mb-4 font-inter">
+                <header className="mb-12 border-b-2 border-brand-blue-primary/30 pb-10">
+                    <div className="text-brand-purple-closer font-poppins font-bold uppercase tracking-widest text-[10px] mb-4">
                         Investigación · Análisis Conversacional
                     </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif leading-[1.1] mb-6 text-black">
+                    <h1 className="text-4xl md:text-5xl lg:text-5xl font-poppins font-extrabold leading-[1.1] mb-6 text-brand-black tracking-tight">
                         Anatomía de las Conversaciones de WhatsApp que Fallan
                     </h1>
-                    <p className="text-xl md:text-2xl text-gray-600 italic font-serif leading-relaxed mb-8">
+                    <p className="text-xl md:text-2xl text-gray-500 font-serif border-l-4 border-brand-purple-closer pl-6 leading-relaxed mb-8 italic">
                         Cómo la evaluación heurística revela patrones ocultos que separan las conversaciones exitosas de las oportunidades perdidas.
                     </p>
-                    <div className="flex flex-wrap gap-6 text-sm text-gray-500 font-inter">
+                    <div className="flex flex-wrap gap-6 text-sm text-gray-400 font-inter uppercase tracking-widest font-bold">
                         <div className="flex items-center gap-2">
-                            <span className="bg-gray-100 p-1 rounded-full">👩‍💻</span>
-                            <span className="font-semibold text-gray-900">Victoria Carvajal</span>
+                            <span className="bg-brand-gray-smoke p-1.5 rounded-full text-lg">👩‍💻</span>
+                            <span className="text-brand-black">Victoria Carvajal</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Calendar size={16} />
+                            <Calendar size={14} className="text-brand-blue-primary" />
                             <span>Febrero 2026</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Clock size={16} />
+                            <Clock size={14} className="text-brand-blue-primary" />
                             <span>15 min de lectura</span>
                         </div>
                     </div>
                 </header>
 
                 {/* Abstract Box */}
-                <div className="bg-[#f5f4ef] border-l-4 border-amber-500 p-8 my-10 font-inter">
-                    <h3 className="text-amber-600 font-bold uppercase text-xs tracking-widest mb-4">Resumen Ejecutivo</h3>
-                    <p className="mb-6 text-gray-800 leading-relaxed">
-                        Este artículo presenta los hallazgos de un análisis exhaustivo de interacciones conversacionales en WhatsApp Business, evaluando sistemáticamente 14 empresas a través de un framework heurístico de 9 dimensiones. Se identificaron 159 oportunidades de mejora y 43 buenas prácticas.
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-amber-600">14</span>
-                            <span className="text-xs text-gray-500 uppercase font-bold">Empresas</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-amber-600">159</span>
-                            <span className="text-xs text-gray-500 uppercase font-bold">Oportunidades</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-amber-600">14.5</span>
-                            <span className="text-xs text-gray-500 uppercase font-bold">Turnos Avg</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-3xl font-bold text-amber-600">9</span>
-                            <span className="text-xs text-gray-500 uppercase font-bold">Dimensiones</span>
+                <div className="bg-brand-gray-smoke rounded-3xl p-8 my-12 font-inter border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="relative z-10">
+                        <h3 className="text-brand-purple-closer font-poppins font-bold uppercase text-[10px] tracking-widest mb-6">Resumen Ejecutivo</h3>
+                        <p className="mb-8 text-brand-black/80 text-lg leading-relaxed">
+                            Este artículo presenta los hallazgos de un análisis exhaustivo de interacciones conversacionales en WhatsApp Business, evaluando sistemáticamente 14 empresas a través de un framework heurístico de 9 dimensiones. Se identificaron 159 oportunidades de mejora y 43 buenas prácticas.
+                        </p>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div className="text-left">
+                                <span className="block text-4xl font-mono font-bold text-brand-black tracking-tighter">14</span>
+                                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Empresas</span>
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-4xl font-mono font-bold text-brand-purple-closer tracking-tighter">159</span>
+                                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Oportunidades</span>
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-4xl font-mono font-bold text-brand-black tracking-tighter">14.5</span>
+                                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Turnos Avg</span>
+                            </div>
+                            <div className="text-left">
+                                <span className="block text-4xl font-mono font-bold text-brand-blue-primary tracking-tighter">9</span>
+                                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Dimensiones</span>
+                            </div>
                         </div>
                     </div>
+                    {/* Decoration */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-brand-blue-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 </div>
 
                 {/* Introduction */}

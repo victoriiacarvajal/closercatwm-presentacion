@@ -118,10 +118,10 @@ export default function HomepageHub() {
                     Librería de Estrategia
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 group-hover:text-amber-700 transition-colors mb-2">
-                    Las 4 Fallas Estructurales
+                    Las 7 Fallas Estructurales
                   </h3>
                   <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                    ¿Sabes por qué tu WhatsApp vende menos de lo que debería? No es suerte, es diseño. Diagnostica tu operación.
+                    ¿Sabes por qué tu WhatsApp vende menos de lo que debería? Diagnostica tu operación contra los 7 errores más comunes.
                   </p>
                   <div className="inline-flex items-center gap-2 text-sm font-bold text-amber-700 bg-amber-50 px-4 py-2 rounded-lg group-hover:bg-amber-100 transition-colors">
                     Explorar el Hub de Investigación <span className="group-hover:translate-x-1 transition-transform">→</span>

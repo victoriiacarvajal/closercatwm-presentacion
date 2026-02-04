@@ -53,7 +53,10 @@ export function getSegmentFromUrl(): SegmentType | null {
     'recursos/falla-1-continuidad-rota',
     'recursos/falla-2-memoria-inexistente',
     'recursos/falla-3-automatizacion-mal-entendida',
-    'recursos/falla-4-escalamiento-caotico'
+    'recursos/falla-4-escalamiento-caotico',
+    'recursos/falla-5-promesas-rotas',
+    'recursos/falla-6-silencio-mortal',
+    'recursos/falla-7-persuasion-ausente'
   ];
 
   // 1. Check pathname (semantic URL: /formacion)

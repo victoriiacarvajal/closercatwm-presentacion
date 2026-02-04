@@ -13,6 +13,9 @@ import Falla1Continuidad from './components/resources/articles/Falla1Continuidad
 import Falla2Memoria from './components/resources/articles/Falla2Memoria';
 import Falla3Automatizacion from './components/resources/articles/Falla3Automatizacion';
 import Falla4Escalamiento from './components/resources/articles/Falla4Escalamiento';
+import Falla5PromesasRotas from './components/resources/articles/Falla5PromesasRotas';
+import Falla6SilencioMortal from './components/resources/articles/Falla6SilencioMortal';
+import Falla7PersuasionAusente from './components/resources/articles/Falla7PersuasionAusente';
 
 const LandingApp: React.FC = () => {
   const segment = getSegmentFromUrl();
@@ -59,6 +62,15 @@ const LandingApp: React.FC = () => {
 
     case 'recursos/falla-4-escalamiento-caotico':
       return <Falla4Escalamiento />;
+
+    case 'recursos/falla-5-promesas-rotas':
+      return <Falla5PromesasRotas />;
+
+    case 'recursos/falla-6-silencio-mortal':
+      return <Falla6SilencioMortal />;
+
+    case 'recursos/falla-7-persuasion-ausente':
+      return <Falla7PersuasionAusente />;
 
     case 'ecommerce':
     case 'b2b':
