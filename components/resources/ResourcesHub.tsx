@@ -100,9 +100,7 @@ export default function ResourcesHub() {
 
             <main className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
                 <div className="text-center mb-16 max-w-3xl mx-auto">
-                    <span className="inline-block bg-brand-purple-closer/10 text-brand-purple-closer px-4 py-1 rounded-full text-xs font-poppins font-bold uppercase tracking-widest mb-6">
-                        Ciencia de Ventas
-                    </span>
+                    <div className="mb-6"></div>
                     <h1 className="text-4xl md:text-6xl font-poppins font-extrabold mb-6 text-brand-black tracking-tight">
                         Las 7 Fallas Estructurales del WhatsApp Comercial
                     </h1>

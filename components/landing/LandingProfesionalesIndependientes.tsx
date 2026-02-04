@@ -57,7 +57,6 @@ export default function LandingProfesionalesIndependientes() {
             feature: 'Sistema de snapshots incrementales cada 6 horas con almacenamiento encriptado en servidor propio. Retención configurable y exportación a múltiples formatos.',
             capability: 'Respaldo automático de todas tus conversaciones sin intervención manual. Si pierdes tu teléfono, te roban la línea o te bloquean la cuenta, recuperas todo en minutos.',
             benefit: '<strong>Tu negocio no se detiene.</strong> Recuperas todos tus contactos y conversaciones inmediatamente, sin perder ni un solo cliente o aliado importante.',
-            screenshot: '/placeholder-backup.png',
         },
         {
             icon: '📇',
@@ -65,7 +64,6 @@ export default function LandingProfesionalesIndependientes() {
             feature: 'Fichas enriquecidas automáticamente desde conversaciones, con notas privadas, etiquetas personalizables, recordatorios de follow-up y segmentación avanzada por tipo, ciudad o última interacción.',
             capability: 'Organiza cada contacto con contexto completo. Sabes exactamente a quién contactar hoy, qué prometiste, cuándo dar seguimiento y cómo segmentar tu red.',
             benefit: '<strong>Nunca más olvidas dar seguimiento.</strong> Reactivas leads tibios, cultivas aliados y mantienes clientes activos con recordatorios automáticos.',
-            screenshot: '/placeholder-crm.png',
         },
         {
             icon: '🤖',
@@ -73,7 +71,6 @@ export default function LandingProfesionalesIndependientes() {
             feature: 'Contestador automático que consulta tu Knowledge Base (servicios, precios, FAQs) para responder consultas repetitivas 24/7. Clasifica mensajes y genera borradores personalizados.',
             capability: 'La IA responde automáticamente consultas básicas mientras tú te enfocas en cerrar negocios. Límites de seguridad (50-100 respuestas/mes) evitan abusos.',
             benefit: '<strong>78% de consultas básicas resueltas automáticamente.</strong> Tu tiempo se libera para atender lo importante: cerrar negocios y cultivar relaciones clave.',
-            screenshot: '/placeholder-ia.png',
         },
     ];
 
